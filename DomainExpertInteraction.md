@@ -30,7 +30,7 @@ The purpose of this system is to support employee wellness inside an organizatio
 2. Primary Goals :
    Allow employees to access live, interactive wellness sessions.
    Enable employees to watch wellness-related content and videos.
-   Provide employees with consultations from wellness experts such as psychiatrists, nutritionists, and fitness trainers.
+   Provide employees with consultations from wellness experts such as psycholygists, nutritionists, and Physical Wellness Instructor.
    Deliver personalized diet, fitness, and mental-health plans.
    Make wellness support easily accessible within the organization.
 
