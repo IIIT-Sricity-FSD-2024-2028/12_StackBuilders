@@ -1,1 +1,126 @@
+# Domain: Health and Wellness platforms
+# Problem Statement: Wellness Program Management Platform
+# Last Updated : 2026-02-01
 
+DomainTerm1 : Wellness Expert
+definition: 
+	-A wellness expert is a professional who provides wellness guidance, sessions, or consultations through the platform.
+
+examples: 
+	-A wellness expert conducts live wellness sessions.
+	-A wellness expert responds to employee consultations.
+aliases:
+	-Health Expert
+	-Wellness Professional
+
+DomainTerm2 : Wellness Program
+definition:
+	A wellness program is a structured set of activities designed to improve employees’ physical and mental well-being.
+
+examples:
+	-A wellness program includes live fitness sessions and consultations.
+	-A wellness program is managed through the wellness platform.
+aliases:
+	-Health Program
+	-Wellness Initiative
+
+DomainTerm3 : Consultation
+definition:
+	Consultation refers to a one-to-one interaction between an employee and a wellness expert for health guidance.
+
+examples: 
+	-Consultation allows employees to receive personalized advice.
+	-Consultation sessions are scheduled through the platform.
+aliases:
+	-Health Consultation
+	-Expert Session
+
+DomainTerm4 : Live Session
+definition:
+	A live session is a real-time wellness activity conducted by a wellness expert for employees.
+
+examples:
+	-Live session participation improves employee engagement.
+aliases:
+	-Live Wellness Session
+	-Interaction Session
+
+DomainTerm5 : Video Library
+definition:
+	The video library is a collection of recorded wellness content available for employees.
+
+examples:
+	-The video library contains fitness and mindfulness videos.
+	-Video library access is available to all employee accounts.
+aliases:
+	-Content Library
+	-Wellness Videos
+
+DomainTerm6 : Physical Wellness Expert
+definition:
+	A Physical wellness Expert is a wellness professional responsible for conducting fitness or wellness sessions and guiding employees through structured activities.
+
+examples:
+	-A Physical wellness Expert manages session content on the wellness platform.
+	-A Physical wellness Expert conducts live wellness sessions for employees.
+aliases:
+	-Fitness Trainer
+	-Wellness Trainer
+
+DomainTerm7 : Nutritionist
+definition:
+	A nutritionist is a wellness expert who provides dietary guidance and nutrition-related consultations to employees.
+
+examples:
+	-A nutritionist offers diet plans through consultations.
+	-A nutritionist supports employees with nutrition-related advice.
+aliases:
+	-Diet Expert
+	-Nutrition Specialist
+
+DomainTerm8 : Psychologist
+definition:
+	A Psychologist is a mental health professional who provides psychological consultations and mental wellness support.
+
+examples:
+	-A Psychologist conducts mental health consultations for employees.
+	-A Psychologist supports stress management and mental wellbeing.
+aliases:
+	-Mental Wellness Instructor
+	-Therapist
+DomainTerm9 : Feedback and Rating
+definition:
+	Feedback and rating refer to the process by which employees provide opinions and numerical evaluations about wellness sessions, consultations, or content on the platform.
+
+examples:
+	-Feedback and rating help evaluate the effectiveness of live wellness sessions.
+	-Feedback and rating allow employees to share their experience after consultations.
+aliases:
+	-User Feedback
+	-Session Evaluation
+
+DomainTerm10 : Platform Settings
+definition: 
+	Platform settings define system-wide rules and options that control the overall behavior of the platform.
+
+examples:
+	-Platform settings manage feature availability across the system.
+aliases:
+	-System Settings
+	-Global Settings
+
+DomainTerm11 : Employee
+definition:
+    An employee is an organization member who participates in wellness programs and uses the platform to access wellness services.
+
+examples:
+    -An employee joins live wellness sessions through the platform.
+    -An employee uses consultations and video content to improve well-being.
+aliases:
+    -Staff Member
+    -Organization Employee
+
+
+
+
+	
