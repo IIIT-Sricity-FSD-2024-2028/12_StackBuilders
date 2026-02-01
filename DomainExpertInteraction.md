@@ -18,7 +18,7 @@ https://drive.google.com/file/d/1RguEWZdP27cdEX18o_DTp1LUcQT_GX6n/view?usp=shari
 
 Role :Wellness Program Instructor
 
-Experience in domain : Worked as FHVE instructor in iiitsricity From past years
+Experience in domain : Working as a FHVE instructor at IIIT SriCity for past few years
 
 Nature of work : operational
 
@@ -43,14 +43,13 @@ The purpose of this system is to support employee wellness inside an organizatio
    | Live Session     | A live session is a real-time wellness activity conducted by a wellness expert for employees.                                      |
    | Wellness Expert  | A wellness expert is a professional who provides wellness guidance, sessions, or consultations through the platform. Video Library |
    | Video Library    | The video library is a collection of recorded wellness content available for employees.                                            |
-   | Trainer          | A trainer is a wellness professional who conducts fitness or wellness sessions for employees.                                      |
 
 ## Actors and Responsibilities :
 
 | Actor                                                   | Responsibilities                                                                                                                   |
 | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Employee                                                | Access live interactive wellness sessions, watch wellness content, book consultations with wellness experts, and provide feedback. |
-| Wellness Expert (Psychiatrist / Nutritionist / Trainer) | Conduct live sessions, provide consultations, share wellness content, and respond to employee concerns.                            |
+| Wellness Expert (Psychiatrist / Nutritionist / Physical Wellness Instructor) | Conduct live sessions, provide consultations, share wellness content, and respond to employee concerns.                            |
 | HR                                                      | Manage wellness experts’ accounts, schedule wellness sessions, coordinate wellness activities, and monitor participation.          |
 | Admin                                                   | Manage system configuration, create and manage user roles, maintain platform access, and ensure smooth system operation.           |
 
