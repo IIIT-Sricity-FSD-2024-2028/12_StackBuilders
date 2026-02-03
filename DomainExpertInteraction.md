@@ -49,15 +49,17 @@ The purpose of this system is to support employee wellness inside an organizatio
 | Actor                                                   | Responsibilities                                                                                                                   |
 | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Employee                                                | Access live interactive wellness sessions, watch wellness content, book consultations with wellness experts, and provide feedback. |
-| Wellness Expert (Psychiatrist / Nutritionist / Physical Wellness Instructor) | Conduct live sessions, provide consultations, share wellness content, and respond to employee concerns.                            |
+| Wellness Expert (psychologist / Nutritionist / Physical Wellness Instructor) | Conduct live sessions, provide consultations, share wellness content, and respond to employee concerns.                            |
 | HR                                                      | Manage wellness experts’ accounts, schedule wellness sessions, coordinate wellness activities, and monitor participation.          |
 | Admin                                                   | Manage system configuration, create and manage user roles, maintain platform access, and ensure smooth system operation.           |
 
 ## Core Workflows :
 
 Workflow 1: Employee Accesses Wellness Content
+
 Trigger :
 Employee logs into the Wellness Management Platform.
+
 Steps Involved:
 
 1. Employee authenticates via account settings.
@@ -69,6 +71,7 @@ Outcome :
 Employee successfully consumes recorded wellness content.
 
 Workflow 2: Employee Participates in Live Wellness Session
+
 Trigger :
 Employee selects Access Live Sessions.
 
@@ -82,8 +85,10 @@ Steps Involved:
    Employee successfully participates in a live wellness session.
 
 Workflow 3: Wellness Expert Manages Live Sessions
+
 Trigger :
 Wellness Expert selects Manage Live Sessions.
+
 Steps Involved:
 Expert schedules or updates a live wellness session.
 System saves session details.
@@ -93,6 +98,7 @@ Outcome :
 Live wellness session is successfully scheduled or updated.
 
 Workflow 4: Wellness Expert Manages Wellness Content
+
 Trigger :
 Wellness Expert selects Manage Content.
 
@@ -116,10 +122,10 @@ Mandatory Rules or Policies :
 
 Constraints or Limitations:
 
-1. Wellness experts are available only during scheduled time slots by HR.
-2. Live sessions have limited duration.
-3. Employees may not always be available due to work schedules.
-4. Internet connectivity is required to access live sessions and content.
+1. Employees, HR/Admin, and Wellness Experts have different access privileges.
+2. Access to the platform requires valid login credentials.
+3. Employee health and wellness data must be secure and confidential.
+4. Regions with slow internet speed may face issues with the platform
 
 Common Exceptions or Edge Cases:
 
