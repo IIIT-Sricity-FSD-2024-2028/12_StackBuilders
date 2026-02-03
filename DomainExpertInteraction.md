@@ -90,9 +90,9 @@ Trigger :
 Wellness Expert selects Manage Live Sessions.
 
 Steps Involved:
-Expert schedules or updates a live wellness session.
-System saves session details.
-Notifications are sent to employees.
+1. Expert schedules or updates a live wellness session.
+2. System saves session details.
+3. Notifications are sent to employees.
 
 Outcome :
 Live wellness session is successfully scheduled or updated.
