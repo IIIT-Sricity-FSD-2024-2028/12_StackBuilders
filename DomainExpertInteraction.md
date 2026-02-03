@@ -5,11 +5,11 @@ Domain:   Health and Wellness platforms
 
 Problem statement:  Wellness Program Management Platform
 
-Date of interaction:  01-12-2026
+Date of interaction:  01-02-2026
 
-Mode of interaction:  video call
+Mode of interaction:  Google Meet
 
-Duration (in-minutes):	  25minutes
+Duration (in-minutes):	  25 minutes
 
 Publicly accessible Video link:
 https://drive.google.com/file/d/1RguEWZdP27cdEX18o_DTp1LUcQT_GX6n/view?usp=sharing
@@ -24,17 +24,16 @@ Nature of work : operational
 
 ## Domain Context and Terminology:
 
-1. Purpose of the Problem Statement :
-The purpose of this system is to support employee wellness inside an organization. Employees often need access to wellness content such as videos, live sessions, and consultations with experts. Managing all these activities manually is difficult.
-
-2. Primary Goals :
+### Purpose of the Problem Statement :
+The purpose of this problem statement is to highlight the need for a centralized platform to bring all wellness-related activities into one place, making them easier to organize, monitor, and improve for better employee well-being.
+### Primary Goals :
    Allow employees to access live, interactive wellness sessions.
    Enable employees to watch wellness-related content and videos.
-   Provide employees with consultations from wellness experts such as psycholygists, nutritionists, and Physical Wellness Instructor.
+   Provide employees with consultations from wellness experts such as psychologists, nutritionists, and Physical Wellness Instructors.
    Deliver personalized diet, fitness, and mental-health plans.
    Make wellness support easily accessible within the organization.
 
-3. Key Domain Terms :
+### Key Domain Terms :
 
    | Term             | Meaning as explained by the expert                                                                                                 |
    | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
@@ -55,119 +54,109 @@ The purpose of this system is to support employee wellness inside an organizatio
 
 ## Core Workflows :
 
-Workflow 1: Employee Accesses Wellness Content
+### Workflow 1: Employee Participates in Live Wellness Session
 
-Trigger :
-Employee logs into the Wellness Management Platform.
-
-Steps Involved:
-
-1. Employee authenticates via account settings.
-2. Employee selects Access Video Library.
-3. System retrieves available wellness videos.
-4. Employee views selected content.
-
-Outcome :
-Employee successfully consumes recorded wellness content.
-
-Workflow 2: Employee Participates in Live Wellness Session
-
-Trigger :
+Trigger:
 Employee selects Access Live Sessions.
 
 Steps Involved:
+1. Employee views the list of scheduled live wellness sessions.
+2. Employee selects a specific live wellness session.
+3. Session details along with the external meeting link are made available to the employee.
+4. Employee selects the external meeting link.
+5. Employee is redirected to the external platform and joins the live wellness session.
 
-1. Employee views list of scheduled live sessions.
-2. System connects with the external platform.
-3. Employee joins the live session.
-4. System records participation.
-   Outcome :
-   Employee successfully participates in a live wellness session.
+Outcome:
+Employee successfully participates in the live wellness session.
 
-Workflow 3: Wellness Expert Manages Live Sessions
+### Workflow 2: Wellness Expert Manages Live Sessions
 
-Trigger :
-Wellness Expert selects Manage Live Sessions.
-
-Steps Involved:
-1. Expert schedules or updates a live wellness session.
-2. System saves session details.
-3. Notifications are sent to employees.
-
-Outcome :
-Live wellness session is successfully scheduled or updated.
-
-Workflow 4: Wellness Expert Manages Wellness Content
-
-Trigger :
-Wellness Expert selects Manage Content.
+Trigger: Wellness Expert selects Manage Live Sessions.
 
 Steps Involved:
 
-1. Expert uploads or modifies wellness content.
-2. System validates the content.
-3. Content is published to the video library.
+1. Wellness expert creates or proposes a live wellness session.
+2. Wellness expert submits a request to HR to conduct the live wellness session.
+3. HR reviews the live session request.
+4. HR approves the live wellness session request.
+5. Wellness expert generates the session meeting link using an external platform.
+6. Wellness expert enters the meeting link into the approved session details.
+7. Session information is saved on the platform.
+8. Notifications are sent to employees about the live wellness session.
 
-Outcome :
-Updated wellness content becomes available to employees.
+Outcome:
+Live wellness session is approved, scheduled, and made available to employees.
+
+### Workflow 3: Employee Consultation with Wellness Expert
+
+Trigger: Employee selects  Book Consultation
+
+Steps Involved:
+1. Employee selects Book Consultation.
+2. Employee chooses a wellness expert and submits the request.
+3. System notifies the selected expert.
+4. Expert schedules the consultation and adds a external meeting link.
+5. Employee joins the consultation using the provided link.
+
+Outcome: 
+Employee successfully completes a consultation with the wellness expert.
 
 ## Rules, Constraints, and Exceptions :
 
-Mandatory Rules or Policies :
+### Mandatory Rules or Policies :
 
-1. Only registered employees can access the wellness platform.
-2. Consultations and sessions must be conducted only by approved wellness experts.
-3. Employee information and consultation details must be kept confidential.
-4. Live sessions and consultations must follow organizational guidelines.
+1. Only authenticated employees are allowed to access wellness programs and services.
+2. Live wellness sessions must receive HR approval before being shared with employees.
+3. Employee consultation and communication data must be handled confidentially.
+4. Role-based access must be enforced for all platform features and operations.
 
-Constraints or Limitations:
+### Constraints or Limitations:
 
-1. Employees, HR/Admin, and Wellness Experts have different access privileges.
-2. Access to the platform requires valid login credentials.
-3. Employee health and wellness data must be secure and confidential.
-4. Regions with slow internet speed may face issues with the platform
+1. The platform supports only predefined roles such as Employee, Wellness Expert, HR, and Admin.
+2. Employees can participate in live sessions only at the scheduled time slots.
+3. Wellness consultations are subject to expert availability and time slot limitations.
 
-Common Exceptions or Edge Cases:
+### Common Exceptions or Edge Cases:
 
-1. Wellness experts are available only during scheduled time slots.
-2. Live sessions have limited duration and participant capacity.
-3. Employees may not always be available due to work schedules.
-4. Internet connectivity is required to access live sessions and content.
+1. HR may reject a live session request due to scheduling conflicts.
+2. Employees may cancel or miss scheduled consultations.
+3. External meeting links may expire or become invalid.
+4. Employees may miss a session due to network or availability issues
 
-Situations Where Things Usually Go Wrong:
+### Situations Where Things Usually Go Wrong:
 
 1. Low participation in live sessions due to workload or lack of awareness.
 2. Delays in expert responses affecting employee satisfaction.
-3. Technical problems such as audio/video issues during sessions.
-4. Miscommunication between employees and wellness experts.
+3. Miscommunication between employees and wellness experts.
+4. Incomplete session details lead to misunderstanding about session purpose.
 
 ## Current Challenges and Pain Points :
 
-Most difficult or inefficient parts:
-Coordinating live wellness sessions and expert consultations manually is time-consuming and inefficient. Managing schedules, participant availability, and session updates without a centralized system creates confusion.
+### most difficult or inefficient parts: 
+Coordinating wellness activities, getting approvals on time, and maintaining clear communication between employees, wellness experts, and HR. Using multiple tools and manual scheduling often causes delays and confusion.
 
-Delays, errors, or misunderstandings:
+### Delays, errors, or misunderstandings:
 Delays often occur in expert responses and session scheduling. Misunderstandings can happen due to last-minute changes in session timings, lack of proper notifications, or unclear communication between employees and wellness experts.
 
-Hardest information to track or manage:
+### Hardest information to track or manage:
 Tracking employee participation, consultation requests, session history, and feedback is difficult when handled manually. Maintaining up-to-date records of wellness experts’ availability and session details is also challenging.
 
 ## Assumptions & Clarifications :
 
-Assumptions Confirmed :
+### Assumptions Confirmed :
 
 1. Employees need a centralized platform to access wellness sessions, content, and expert consultations.
 2. Live and interactive sessions are more engaging than only providing static content.
 3. Wellness experts play a key role in guiding employees through consultations and sessions
 
-Assumptions Corrected :
+### Assumptions Corrected :
 
 1. It was initially assumed that wellness activities could be managed manually, but this was found to be inefficient as participation increased.
 2. It was assumed that wellness content alone is sufficient; however, expert interaction is necessary for effective support.
-3. It was clarified that topics such as sleep are provided only as expert recommendations, not as predefined system features.
+3. It was assumed that all employees would actively participate in wellness programs; this was corrected after understanding that participation varies based on interest and workload.
 
-Open Questions That Need Follow-Up :
+### Open Questions That Need Follow-Up :
 
 1. How frequently should live wellness sessions be scheduled?
 2. What is the preferred consultation duration for each type of wellness expert?
-3. Should employees be allowed to choose between multiple experts for consultations?
+3. Should there be a limit on the number of consultations per employee?
