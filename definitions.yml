@@ -1,6 +1,6 @@
 # Domain: Health and Wellness platforms
 # Problem Statement: Wellness Program Management Platform
-# Last Updated : 2026-02-01
+# Last Updated : 2026-02-04
 
 DomainTerm1 : Wellness Expert
 definition: 
@@ -120,8 +120,15 @@ aliases:
 	-System Settings
 	-Global Settings
 
+DomainTerm12 : Wellness Check-in
+definition:
+	A wellness check-in is a structured self-assessment or routine evaluation through which employees record and monitor their physical, nutritional, or mental wellbeing.
 
-
-
-
+examples:
+	-Employees submit regular wellness check-ins to track their health progress.
+	-Wellness check-in data helps experts provide tailored wellness guidance.
+aliases:
+	-Health Check-in
+	-Wellness Assessment
+	-Employee Check-in
 	
