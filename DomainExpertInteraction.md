@@ -50,7 +50,7 @@ The purpose of this problem statement is to highlight the need for a centralized
 | Employee                                                | Access live interactive wellness sessions, watch wellness content, book consultations with wellness experts, and provide feedback. |
 | Wellness Expert (psychologist / Nutritionist / Physical Wellness Instructor) | Conduct live sessions, provide consultations, share wellness content, and respond to employee concerns.                            |
 | HR                                                      | Manage wellness experts’ accounts, schedule wellness sessions, coordinate wellness activities, and monitor participation.          |
-| Admin                                                   | Manage system configuration, create and manage user roles, maintain platform access, and ensure smooth system operation.           |
+| Administrator                                           | Manage system configuration, create and manage user roles, maintain platform access, and ensure smooth system operation.           |
 
 ## Core Workflows :
 
@@ -77,12 +77,9 @@ Steps Involved:
 
 1. Wellness expert creates or proposes a live wellness session.
 2. Wellness expert submits a request to HR to conduct the live wellness session.
-3. HR reviews the live session request.
-4. HR approves the live wellness session request.
-5. Wellness expert generates the session meeting link using an external platform.
-6. Wellness expert enters the meeting link into the approved session details.
-7. Session information is saved on the platform.
-8. Notifications are sent to employees about the live wellness session.
+3. Wellness expert generates the session meeting link using an external platform.
+4. Wellness expert enters the meeting link into the approved session details.
+5. Session information is saved on the platform.
 
 Outcome:
 Live wellness session is approved, scheduled, and made available to employees.
@@ -112,16 +109,15 @@ Employee successfully completes a consultation with the wellness expert.
 
 ### Constraints or Limitations:
 
-1. The platform supports only predefined roles such as Employee, Wellness Expert, HR, and Admin.
+1. The platform supports only predefined roles such as Employee, Wellness Expert, HR, and Administrator.
 2. Employees can participate in live sessions only at the scheduled time slots.
 3. Wellness consultations are subject to expert availability and time slot limitations.
 
 ### Common Exceptions or Edge Cases:
 
-1. HR may reject a live session request due to scheduling conflicts.
-2. Employees may cancel or miss scheduled consultations.
-3. External meeting links may expire or become invalid.
-4. Employees may miss a session due to network or availability issues
+1. Employees may cancel or miss scheduled consultations.
+2. External meeting links may expire or become invalid.
+3. Employees may miss a session due to network or availability issues
 
 ### Situations Where Things Usually Go Wrong:
 
