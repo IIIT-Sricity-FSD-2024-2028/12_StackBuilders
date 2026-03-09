@@ -1,0 +1,198 @@
+DROP DATABASE IF EXISTS wellness_platform;
+CREATE DATABASE wellness_platform;
+USE wellness_platform;
+
+CREATE TABLE User_Accounts (
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('Employee','HR','Expert','Admin') NOT NULL,
+    account_status ENUM('Active','Inactive','Suspended') DEFAULT 'Active',
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Company (
+    company_id INT PRIMARY KEY AUTO_INCREMENT,
+    company_name VARCHAR(100) NOT NULL,
+    registration_date DATE NOT NULL
+);
+
+CREATE TABLE Employee (
+    employee_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT UNIQUE,
+    company_id INT,
+    name VARCHAR(100) NOT NULL,
+    phone_number VARCHAR(15),
+    department VARCHAR(100),
+
+    FOREIGN KEY (user_id) REFERENCES User_Accounts(user_id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (company_id) REFERENCES Company(company_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Employee_Profile (
+    employee_id INT PRIMARY KEY,
+    height DECIMAL(5,2),
+    weight DECIMAL(5,2),
+    gender ENUM('Male','Female','Other'),
+    age INT,
+
+    FOREIGN KEY (employee_id) REFERENCES Employee(employee_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Step_Count (
+    record_date DATE,
+    employee_id INT,
+    step_count INT NOT NULL,
+
+    PRIMARY KEY (record_date, employee_id),
+
+    FOREIGN KEY (employee_id) REFERENCES Employee(employee_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE HR (
+    hr_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT UNIQUE,
+    company_id INT,
+    name VARCHAR(100),
+
+    FOREIGN KEY (user_id) REFERENCES User_Accounts(user_id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (company_id) REFERENCES Company(company_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Wellness_Expert (
+    expert_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT UNIQUE,
+    company_id INT,
+    hr_id INT,
+    name VARCHAR(100),
+    specialization VARCHAR(100),
+    experience INT,
+
+    FOREIGN KEY (user_id) REFERENCES User_Accounts(user_id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (company_id) REFERENCES Company(company_id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (hr_id) REFERENCES HR(hr_id)
+        ON DELETE SET NULL
+);
+
+CREATE TABLE Video (
+    video_id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(150) NOT NULL,
+    description TEXT,
+    category VARCHAR(50),
+    video_url VARCHAR(255),
+    upload_date DATE,
+    expert_id INT,
+
+    FOREIGN KEY (expert_id) REFERENCES Wellness_Expert(expert_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Watch_History (
+    watch_id INT PRIMARY KEY AUTO_INCREMENT,
+    employee_id INT,
+    video_id INT,
+    watch_date DATE,
+
+    FOREIGN KEY (employee_id) REFERENCES Employee(employee_id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (video_id) REFERENCES Video(video_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Live_Session (
+    session_id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(150),
+    purpose TEXT,
+    session_type VARCHAR(50),
+    session_date DATE,
+    start_time TIME,
+    end_time TIME,
+    meeting_link VARCHAR(255),
+    expert_id INT,
+    status ENUM('Scheduled','Completed','Cancelled'),
+
+    FOREIGN KEY (expert_id) REFERENCES Wellness_Expert(expert_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Session_History (
+    enrollment_id INT PRIMARY KEY AUTO_INCREMENT,
+    employee_id INT,
+    session_id INT,
+    registration_date DATE,
+
+    FOREIGN KEY (employee_id) REFERENCES Employee(employee_id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (session_id) REFERENCES Live_Session(session_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Consultation (
+    consultation_id INT PRIMARY KEY AUTO_INCREMENT,
+    employee_id INT,
+    expert_id INT,
+    request_date DATE,
+    consultation_date DATE,
+    meeting_link VARCHAR(255),
+    status ENUM('Pending','Accepted','Completed','Cancelled'),
+    purpose TEXT,
+
+    FOREIGN KEY (employee_id) REFERENCES Employee(employee_id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (expert_id) REFERENCES Wellness_Expert(expert_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Feedback (
+    feedback_id INT PRIMARY KEY AUTO_INCREMENT,
+    employee_id INT,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    feedback_date DATE,
+    live_session_id INT,
+    consultation_id INT,
+    comments TEXT,
+
+    FOREIGN KEY (employee_id) REFERENCES Employee(employee_id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (live_session_id) REFERENCES Live_Session(session_id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (consultation_id) REFERENCES Consultation(consultation_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Rewards (
+    reward_id INT PRIMARY KEY AUTO_INCREMENT,
+    reward_name VARCHAR(100),
+    description TEXT
+);
+
+CREATE TABLE Challenges (
+    challenge_id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(150),
+    step_goal INT,
+    hr_id INT,
+    reward_id INT,
+
+    FOREIGN KEY (hr_id) REFERENCES HR(hr_id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (reward_id) REFERENCES Rewards(reward_id)
+        ON DELETE SET NULL
+);
