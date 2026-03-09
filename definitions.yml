@@ -12,51 +12,7 @@ examples:
 aliases:
 	-Health Expert
 	-Wellness Professional
-
-DomainTerm2 : Wellness Program
-definition:
-	A wellness program is a structured set of activities designed to improve employees’ physical and mental well-being.
-
-examples:
-	-A wellness program includes live fitness sessions and consultations.
-	-A wellness program is managed through the wellness platform.
-aliases:
-	-Health Program
-	-Wellness Initiative
-
-DomainTerm3 : Consultation
-definition:
-	Consultation refers to a one-to-one interaction between an employee and a wellness expert for health guidance.
-
-examples: 
-	-Consultation allows employees to receive personalized advice.
-	-Consultation sessions are scheduled through the platform.
-aliases:
-	-Health Consultation
-	-Expert Session
-
-DomainTerm4 : Live Session
-definition:
-	A live session is a real-time wellness activity conducted by a wellness expert for employees.
-
-examples:
-	-Live session participation improves employee engagement.
-aliases:
-	-Live Wellness Session
-	-Interaction Session
-
-DomainTerm5 : Video Library
-definition:
-	The video library is a collection of recorded wellness content available for employees.
-
-examples:
-	-The video library contains fitness and mindfulness videos.
-	-Video library access is available to all employee accounts.
-aliases:
-	-Content Library
-	-Wellness Videos
-
-DomainTerm6 : Physical Wellness Expert
+DomainTerm2 : Physical Wellness Expert
 definition:
 	A Physical wellness Expert is a wellness professional responsible for conducting fitness or wellness sessions and guiding employees through structured activities.
 
@@ -67,7 +23,7 @@ aliases:
 	-Fitness Trainer
 	-Wellness Trainer
 
-DomainTerm7 : Nutritionist
+DomainTerm3 : Nutritionist
 definition:
 	A nutritionist is a wellness expert who provides dietary guidance and nutrition-related consultations to employees.
 
@@ -78,7 +34,7 @@ aliases:
 	-Diet Expert
 	-Nutrition Specialist
 
-DomainTerm8 : Psychologist
+DomainTerm4 : Psychologist
 definition:
 	A Psychologist is a mental health professional who provides psychological consultations and mental wellness support.
 
@@ -88,28 +44,8 @@ examples:
 aliases:
 	-Mental Wellness Instructor
 	-Therapist
-DomainTerm9 : Feedback and Rating
-definition:
-	Feedback and rating refer to the process by which employees provide opinions and numerical evaluations about wellness sessions, consultations, or content on the platform.
 
-examples:
-	-Feedback and rating help evaluate the effectiveness of live wellness sessions.
-	-Feedback and rating allow employees to share their experience after consultations.
-aliases:
-	-User Feedback
-	-Session Evaluation
-
-DomainTerm10 : Platform Settings
-definition: 
-	Platform settings define system-wide rules and options that control the overall behavior of the platform.
-
-examples:
-	-Platform settings manage feature availability across the system.
-aliases:
-	-System Settings
-	-Global Settings
-
-DomainTerm11 : Employee
+DomainTerm5 : Employee
 definition:
     An employee is an organization member who participates in wellness programs and uses the platform to access wellness services.
 
@@ -119,6 +55,71 @@ examples:
 aliases:
     -Staff Member
     -Organization Employee
+
+DomainTerm6 : Wellness Program
+definition:
+	A wellness program is a structured set of activities designed to improve employees’ physical and mental well-being.
+
+examples:
+	-A wellness program includes live fitness sessions and consultations.
+	-A wellness program is managed through the wellness platform.
+aliases:
+	-Health Program
+	-Wellness Initiative
+
+DomainTerm7 : Consultation
+definition:
+	Consultation refers to a one-to-one interaction between an employee and a wellness expert for health guidance.
+
+examples: 
+	-Consultation allows employees to receive personalized advice.
+	-Consultation sessions are scheduled through the platform.
+aliases:
+	-Health Consultation
+	-Expert Session
+
+DomainTerm8 : Live Session
+definition:
+	A live session is a real-time wellness activity conducted by a wellness expert for employees.
+
+examples:
+	-Live session participation improves employee engagement.
+aliases:
+	-Live Wellness Session
+	-Interaction Session
+
+DomainTerm9 : Video Library
+definition:
+	The video library is a collection of recorded wellness content available for employees.
+
+examples:
+	-The video library contains fitness and mindfulness videos.
+	-Video library access is available to all employee accounts.
+aliases:
+	-Content Library
+	-Wellness Videos
+
+DomainTerm10 : Rating
+definition:
+	Rating refer to the process by which employees provide numerical evaluations about wellness sessions, consultations, or content on the platform.
+
+examples:
+	-Ratings help evaluate the effectiveness of live wellness sessions.
+	-Ratings allow employees to share their experience after consultations.
+aliases:
+	-User Rating
+	-Session Evaluation
+
+DomainTerm11 : Platform Settings
+definition: 
+	Platform settings define system-wide rules and options that control the overall behavior of the platform.
+
+examples:
+	-Platform settings manage feature availability across the system.
+aliases:
+	-System Settings
+	-Global Settings
+
 
 
 
