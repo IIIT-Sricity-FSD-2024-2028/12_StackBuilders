@@ -10,27 +10,26 @@ The objective of the platform is to streamline the management of employee wellne
 
 -HR(Human Resource)
 
--Admin
+-Administrator
 ## Planned Features
 
 ### Employee
 - Access wellness video library  
 - Join live wellness sessions  
 - Book consultations with wellness experts  
-- Raise wellness-related queries  
+- Participate in chalenges and claim rewards  
 
 ### Wellness Expert (Physical Wellness Instructor, Nutritionist, Psychologist)
 - Conduct and manage live wellness sessions  
 - Provide consultations to employees  
-- Upload and manage wellness content  
-- Respond to employee queries  
+- Upload and manage wellness content   
 
 ### HR (Human Resource)
-- Manage and schedule live wellness sessions  
-- Manage Wellness Experts
+- Manage challenges and rewards 
+- Manage Wellness Experts and Employees
 
-### Admin
-- Manage users and roles  
+### Administrator
+- Manage database
 - Configure platform settings  
 
 
