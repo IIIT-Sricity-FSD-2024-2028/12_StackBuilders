@@ -32,6 +32,9 @@ The objective of the platform is to streamline the management of employee wellne
 - Manage database
 - Configure platform settings  
 
+## Frontend Demo:
+Start by signing in as a Super User
+### credentials : 
+Gmail    : ravi@gmail.com
 
-
-
+Password : 1234
