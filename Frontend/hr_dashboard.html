@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HR Wellness Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Playfair+Display:ital,wght@1,700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="hr_dashboard.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <nav class="navbar">
+        <div class="logo">Stack Builders</div>
+
+        <div class="nav-links">
+          <a href="hr_dashboard.html" class="active"><i class="fa-solid fa-house"></i> Home</a>
+          <a href="hr_challenges.html" id="consultationNavLink" data-nav-target="hr_challenges.html"
+            ><i class="fa-regular fa-calendar"></i> Challenges</a
+          >
+          <a href="hr_vediolibrary.html" id="videoLibraryNavLink" data-nav-target="hr_vediolibrary.html"
+            ><i class="fa-solid fa-video"></i> Video Library</a
+          >
+        </div>
+
+        <div class="nav-right">
+          <i class="fa-regular fa-bell" aria-hidden="true"></i>
+          <span id="hrWelcomeMessage">Welcome</span>
+          <i
+            class="fa-regular fa-user"
+            id="profileNavIcon"
+            aria-hidden="true"
+          ></i>
+        </div>
+      </nav>
+
+      <section class="hero-card">
+        <h1>Welcome back</h1>
+        <p>
+          Monitor and manage employee wellness programs, track participation,
+          and ensure a healthy workplace culture.
+        </p>
+      </section>
+
+      <section class="stats-grid">
+        <article class="stat-card">
+          <span class="stat-icon teal"
+            ><i class="fa-solid fa-people-group"></i
+          ></span>
+          <p class="stat-label">Total Employees</p>
+          <h2 id="dashboardEmployeeCount">0</h2>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-icon blue"
+            ><i class="fa-solid fa-briefcase"></i
+          ></span>
+          <p class="stat-label">Wellness Experts</p>
+          <h2 id="dashboardExpertCount">0</h2>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-icon green"
+            ><i class="fa-solid fa-wave-square"></i
+          ></span>
+          <p class="stat-label">Scheduled Live Sessions</p>
+          <h2>12</h2>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-icon purple"
+            ><i class="fa-solid fa-gift"></i
+            ></span>
+          <p class="stat-label">Active Rewards</p>
+          <h2 id="dashboardRewardCount">0</h2>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-icon orange"
+            ><i class="fa-solid fa-bullseye"></i
+          ></span>
+          <p class="stat-label">Active Challenges</p>
+          <h2 id="dashboardChallengeCount">0</h2>
+        </article>
+      </section>
+
+      <section class="two-column-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <h3>Active Challenges</h3>
+          </div>
+
+          <div class="challenge-list" id="dashboardChallengeList"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h3 id="dashboardLeaderboardTitle">Challenge Leaderboard</h3>
+          </div>
+
+          <div class="leaderboard" id="dashboardLeaderboardList"></div>
+        </article>
+      </section>
+
+      <section class="section-block">
+        <div class="section-header">
+          <div>
+            <h3>Employee Management Overview</h3>
+            <p>Monitor employee wellness metric and program participation.</p>
+          </div>
+          <button class="primary-button" id="openEmployeeModal">
+            Add Employee
+          </button>
+        </div>
+
+        <div class="panel wide-panel">
+          <div class="search-bar">
+            <input
+              type="text"
+              id="employeeSearchInput"
+              placeholder="Search employees or reports..."
+            />
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Department / Role</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="employeeManagementTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <div class="section-header">
+          <div>
+            <h3>Wellness Expert Management</h3>
+            <p>Manage consultations and expert availability.</p>
+          </div>
+          <button class="primary-button" id="openExpertModal">
+            Add Expert
+          </button>
+        </div>
+
+        <div class="panel wide-panel">
+          <div class="search-bar">
+            <input
+              type="text"
+              id="expertSearchInput"
+              placeholder="Search wellness experts..."
+            />
+          </div>
+
+          <div class="expert-grid" id="expertManagementGrid"></div>
+        </div>
+      </section>
+
+
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="#">About us</a>
+          <span>&bull;</span>
+          <a href="#">Contact us</a>
+        </div>
+        <p>&copy; 2026 StackBuilders. Built with wellness in mind.</p>
+      </footer>
+    </div>
+
+    <div class="modal-overlay" id="employeeModal" hidden>
+      <div class="modal-card modal-card-employee" role="dialog" aria-modal="true" aria-labelledby="employeeModalTitle">
+        <button class="modal-close" type="button" data-close-modal aria-label="Close add employee form">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <section class="employee-shell modal-shell">
+          <div class="brand">StackBuilders</div>
+
+          <header class="page-copy">
+            <h1 id="employeeModalTitle">Add Employee to Wellness Program</h1>
+            <p>A centralized platform to plan, manage, and track employee wellness.</p>
+          </header>
+
+          <section class="form-card">
+            <form class="employee-form">
+              <div class="field-group">
+                <label for="employeeName">Employee Name</label>
+                <input id="employeeName" type="text" placeholder="Enter Employee Name" required />
+              </div>
+
+              <div class="field-group">
+                <label for="department">Department</label>
+                <div class="select-wrap">
+                  <select id="department">
+                    <option value="" selected disabled>Select Department</option>
+                    <option>Engineering</option>
+                    <option>Marketing</option>
+                    <option>Sales</option>
+                    <option>Operations</option>
+                    <option>HR</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="employeeEmail">Gmail Address</label>
+                <div class="input-icon-wrap">
+                  <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                  <input id="employeeEmail" type="email" placeholder="Enter Gmail" required />
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="employeePassword">Password</label>
+                <input id="employeePassword" type="password" placeholder="Enter Password" required />
+              </div>
+
+              <div class="form-actions">
+                <button class="submit-btn" type="submit">Add Employee</button>
+                <button class="back-btn modal-back-btn" type="button" data-close-modal>
+                  Back
+                </button>
+              </div>
+            </form>
+          </section>
+        </section>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="expertModal" hidden>
+      <div class="modal-card modal-card-expert" role="dialog" aria-modal="true" aria-labelledby="expertModalTitle">
+        <button class="modal-close" type="button" data-close-modal aria-label="Close add expert form">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <section class="expert-shell modal-shell">
+          <div class="brand">StackBuilders</div>
+
+          <header class="page-copy">
+            <h1 id="expertModalTitle">Add Wellness Expert</h1>
+            <p>
+              Empowering employees through data-driven health and expert-led
+              guidance.
+            </p>
+          </header>
+
+          <section class="form-card">
+            <form class="expert-form">
+              <div class="field-group">
+                <label for="expertName">Full Name</label>
+                <input id="expertName" type="text" placeholder="Enter expert name" required />
+              </div>
+
+              <div class="field-group">
+                <label for="expertExperience">Experience (Years)</label>
+                <div class="input-icon-wrap">
+                  <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+                  <input id="expertExperience" type="text" placeholder="e.g., 5 years" required />
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="expertEmail">Gmail Address</label>
+                <div class="input-icon-wrap">
+                  <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                  <input id="expertEmail" type="email" placeholder="Enter Gmail" required />
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="expertPassword">Password</label>
+                <input id="expertPassword" type="password" placeholder="Enter Password" required />
+              </div>
+
+              <div class="field-group">
+                <label>Specialization</label>
+                <div class="specialization-grid">
+                  <label class="special-card">
+                    <input type="radio" name="specialization" value="Physical Trainer" />
+                    <span class="special-card-inner">
+                      <i class="fa-solid fa-wave-square" aria-hidden="true"></i>
+                      <strong>Physical Trainer</strong>
+                    </span>
+                  </label>
+
+                  <label class="special-card active">
+                    <input type="radio" name="specialization" value="Nutritionist" checked />
+                    <span class="special-card-inner">
+                      <i class="fa-solid fa-stethoscope" aria-hidden="true"></i>
+                      <strong>Nutritionist</strong>
+                    </span>
+                  </label>
+
+                  <label class="special-card">
+                    <input type="radio" name="specialization" value="Psychologist" />
+                    <span class="special-card-inner">
+                      <i class="fa-solid fa-brain" aria-hidden="true"></i>
+                      <strong>Psychologist</strong>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button class="submit-btn" type="submit">Add Expert</button>
+                <button class="back-btn modal-back-btn" type="button" data-close-modal>
+                  Back
+                </button>
+              </div>
+            </form>
+          </section>
+        </section>
+      </div>
+    </div>
+
+    <div class="profile-overlay" id="profileOverlay" hidden>
+      <div class="profile-frame-shell" role="dialog" aria-modal="true" aria-label="My Profile">
+        <button
+          class="profile-overlay-close"
+          id="profileDrawerBackBtn"
+          type="button"
+          aria-label="Close profile panel"
+        >
+          Back
+        </button>
+        <iframe class="profile-frame" src="profile.html?role=hr" title="HR profile"></iframe>
+      </div>
+    </div>
+
+    <script src="employeeAuth.js"></script>
+    <script src="expertAuth.js"></script>
+    <script src="hrProfileStore.js"></script>
+    <script src="hrAuth.js"></script>
+    <script src="challengeStorage.js"></script>
+    <script src="hr_dashboard.js"></script>
+  </body>
+</html>

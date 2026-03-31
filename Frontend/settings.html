@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stack Builders Profile</title>
+  <link rel="stylesheet" href="settings.css" />
+  <link rel="stylesheet" href="layout.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="app-body">
+<div class="app-shell">
+  <aside class="app-sidebar">
+    <div class="brand-lockup"><div class="brand-mark"><i class="fa fa-layer-group"></i></div><div class="brand-copy"><strong>Stack Builders</strong><span>Super User Console</span></div></div>
+    <div class="sidebar-section-label">Workspace</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="dash.html"><i class="fa fa-chart-pie"></i>Dashboard</a>
+      <a class="sidebar-link" href="usermgmt.html"><i class="fa fa-users"></i>User Management</a>
+      <a class="sidebar-link" href="roles.html"><i class="fa fa-user-shield"></i>Roles & Access</a>
+      <a class="sidebar-link" href="datamgmt.html"><i class="fa fa-database"></i>Company Management</a>
+      <a class="sidebar-link" href="reports.html"><i class="fa fa-chart-column"></i>Reports</a>
+      <a class="sidebar-link active" href="settings.html"><i class="fa fa-gear"></i>Settings</a>
+    </nav>
+    <div class="sidebar-card">
+      <h3>System control</h3>
+      <p>Adjust profile, security, notifications, and system rules from a persistent settings workspace.</p>
+      <a class="mini-button" href="roles.html"><i class="fa fa-shield-halved"></i>Access rules</a>
+    </div>
+  </aside>
+  <div class="app-main">
+    <main class="content">
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">Account</p>
+          <h1>Profile</h1>
+          <p class="subtitle">View and manage your profile details</p>
+        </div>
+      </div>
+      <div class="container">
+        <aside class="sidebar">
+          <ul>
+            <li class="active" data-tab="profile">Profile</li>
+            <li data-tab="security">Security</li>
+            <li data-tab="notifications">Notifications</li>
+            <li data-tab="system">System</li>
+            <li data-tab="access">Access Control</li>
+          </ul>
+        </aside>
+        <main class="content">
+          <section class="card tab active" id="profile">
+            <div class="profile-header">
+              <div class="profile">
+                <div class="avatar" aria-hidden="true">
+                  <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="profile-copy">
+                  <h2>Profile</h2>
+                  <p>Keep your account details up to date.</p>
+                </div>
+              </div>
+              <button class="btn-primary" type="button" id="saveProfileButton">Save Changes</button>
+            </div>
+            <div class="profile-grid">
+              <label class="profile-item" for="profileNameInput">
+                <span>Name</span>
+                <input id="profileNameInput" type="text" value="Ravi" data-profile-field="name">
+              </label>
+              <label class="profile-item" for="profileAgeInput">
+                <span>Age</span>
+                <input id="profileAgeInput" type="number" min="18" max="99" value="29" data-profile-field="age">
+              </label>
+              <label class="profile-item" for="profileGenderInput">
+                <span>Gender</span>
+                <select id="profileGenderInput" data-profile-field="gender">
+                  <option value="Male" selected>Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+              <label class="profile-item" for="profileEmailInput">
+                <span>Gmail ID</span>
+                <input id="profileEmailInput" type="email" value="ravi@gmail.com" data-profile-field="email">
+              </label>
+              <label class="profile-item" for="profilePhoneInput">
+                <span>Phone Number</span>
+                <input id="profilePhoneInput" type="tel" value="+91 98765 43210" data-profile-field="phone">
+              </label>
+            </div>
+            <p class="profile-status" id="profileStatus" aria-live="polite"></p>
+          </section>
+          <section class="card tab" id="security">
+            <h2>Security Settings</h2>
+            <input type="password" placeholder="Current Password"/><input type="password" placeholder="New Password"/><input type="password" placeholder="Confirm Password"/>
+            <div class="actions"><button class="btn-light">Cancel</button><button class="btn-primary">Update Password</button></div>
+          </section>
+          <section class="card tab" id="notifications">
+            <h2>Notification Preferences</h2>
+            <div class="toggle"><span>Email Notifications</span><div class="switch is-on"></div></div>
+            <div class="toggle"><span>User Activity Alerts</span><div class="switch is-on"></div></div>
+            <div class="toggle"><span>System Updates</span><div class="switch"></div></div>
+            <button class="btn-primary">Save Preferences</button>
+          </section>
+          <section class="card tab" id="system">
+            <h2>System Configuration</h2>
+            <input type="text" value="Stack Builders"/><input type="text" value="Asia/Calcutta"/><input type="text" value="DD-MM-YYYY"/><input type="number" value="30"/>
+            <div class="actions"><button class="btn-light">Reset</button><button class="btn-primary">Save Configuration</button></div>
+          </section>
+          <section class="card tab" id="access">
+            <h2>Access Control</h2>
+            <div class="toggle"><span>Two-Factor Authentication</span><div class="switch"></div></div>
+            <div class="toggle"><span>IP Whitelist</span><div class="switch"></div></div>
+            <div class="toggle"><span>Failed Login Lockout</span><div class="switch is-on"></div></div>
+            <div class="toggle"><span>Password Complexity</span><div class="switch is-on"></div></div>
+            <button class="btn-primary">Save Settings</button>
+          </section>
+        </main>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="adminAuth.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

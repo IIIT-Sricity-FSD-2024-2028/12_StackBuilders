@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wellness Video Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Lobster&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
+  <link rel="stylesheet" href="Expert_Video_Library.css" />
+</head>
+<body>
+  <div class="shell">
+    <nav class="navbar">
+      <div class="logo">Stack Builders</div>
+      <div class="nav-links">
+        <a href="Wellness_Dashboard.html" id="navHome"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="Wellness_Consultation_Dashboard.html" id="navConsultation"><i class="fa-regular fa-calendar"></i> Consultation</a>
+        <a href="Expert_Live_Session.html" id="navLiveSession"><i class="fa-solid fa-tower-broadcast"></i> Live Session</a>
+        <a href="Expert_Video_Library.html" id="navVideoLibrary" class="active"><i class="fa-solid fa-video"></i> Video Library</a>
+      </div>
+      <div class="nav-right">
+        <span id="expertWelcomeMessage">Welcome back, Wellness Expert!</span>
+        <i class="fa-regular fa-bell"></i>
+        <i class="fa-regular fa-user" id="profileNavIcon"></i>
+      </div>
+    </nav>
+
+    <main class="library-page">
+      <section class="library-hero">
+        <div>
+          <p class="eyebrow">Expert Video Library</p>
+          <h1>Video Library</h1>
+          <p class="subtitle">Explore our collection of wellness videos curated for your health journey.</p>
+        </div>
+        <button class="add-video-btn" id="openAddVideoModalBtn" type="button">
+          <i class="fa-solid fa-plus"></i> Add Video
+        </button>
+      </section>
+
+      <section class="filter-panel">
+        <label class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input id="videoSearchInput" type="text" placeholder="Search for videos..." />
+        </label>
+      </section>
+
+      <section class="video-category" data-category-section="health">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon pink"><i class="fa-solid fa-heart-pulse"></i></span>
+            <div>
+              <h2>Health Related Videos</h2>
+              <p>Nutrition, sleep, and healthy daily habits.</p>
+            </div>
+          </div>
+          <div class="section-controls">
+            <button class="circle-btn" type="button" data-direction="prev" aria-label="Previous videos">&lsaquo;</button>
+            <button class="circle-btn active" type="button" data-direction="next" aria-label="Next videos">&rsaquo;</button>
+          </div>
+        </div>
+        <div class="video-viewport">
+        <div class="video-grid">
+          <article class="video-card" data-title="Nutrition Basics for Busy Professionals">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=uan3Aj0bHKc">
+              <img src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=900&q=80" alt="Nutrition Basics" />
+              <span class="duration">12:45</span>
+            </a>
+            <div class="card-body">
+              <h3>Nutrition Basics for Busy Professionals</h3>
+            </div>
+          </article>
+
+          <article class="video-card" data-title="Building Healthy Eating Habits">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=81G22t2UHxA">
+              <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80" alt="Healthy Eating Habits" />
+              <span class="duration">15:30</span>
+            </a>
+            <div class="card-body">
+              <h3>Building Healthy Eating Habits</h3>
+            </div>
+          </article>
+
+          <article class="video-card" data-title="Understanding Sleep and Recovery">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=lIo9FcrljDk&t=71s">
+              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80" alt="Sleep and Recovery" />
+              <span class="duration">18:20</span>
+            </a>
+            <div class="card-body">
+              <h3>Understanding Sleep and Recovery</h3>
+            </div>
+          </article>
+
+          <article class="video-card" data-title="Healthy Snacking Without Overeating">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=jC2kXISfBdk">
+              <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&q=80" alt="Healthy Snacks" />
+              <span class="duration">09:40</span>
+            </a>
+            <div class="card-body">
+              <h3>Healthy Snacking Without Overeating</h3>
+            </div>
+          </article>
+
+          <article class="video-card" data-title="Healthy Meal Prep for the Week">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=1-SJGQ2HLp8">
+              <img src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=80" alt="Healthy Meal Prep" />
+              <span class="duration">14:05</span>
+            </a>
+            <div class="card-body">
+              <h3>Healthy Meal Prep for the Week</h3>
+            </div>
+          </article>
+        </div>
+        </div>
+      </section>
+
+      <section class="video-category" data-category-section="mind">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon purple"><i class="fa-solid fa-brain"></i></span>
+            <div>
+              <h2>Mind Relaxation Videos</h2>
+              <p>Calming routines, mindfulness, and stress relief.</p>
+            </div>
+          </div>
+          <div class="section-controls">
+            <button class="circle-btn" type="button" data-direction="prev" aria-label="Previous videos">&lsaquo;</button>
+            <button class="circle-btn active" type="button" data-direction="next" aria-label="Next videos">&rsaquo;</button>
+          </div>
+        </div>
+        <div class="video-viewport">
+        <div class="video-grid">
+          <article class="video-card" data-title="Guided Meditation for Stress Relief">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=R_yFAMtfv9c">
+              <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80" alt="Guided Meditation" />
+              <span class="duration">20:00</span>
+            </a>
+            <div class="card-body">
+              <h3>Guided Meditation for Stress Relief</h3>
+            </div>
+          </article>
+
+          <article class="video-card" data-title="Mindfulness Techniques for Work">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=bLpChrgS0AY">
+              <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&q=80" alt="Mindfulness at Work" />
+              <span class="duration">10:15</span>
+            </a>
+            <div class="card-body">
+              <h3>Mindfulness Techniques for Work</h3>
+            </div>
+          </article>
+
+          <article class="video-card" data-title="Breathing Exercises for Anxiety">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=odADwWzHR24">
+              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80" alt="Breathing Exercises" />
+              <span class="duration">8:30</span>
+            </a>
+            <div class="card-body">
+              <h3>Breathing Exercises for Anxiety</h3>
+            </div>
+          </article>
+
+          <article class="video-card" data-title="Evening Calm Routine for Better Sleep">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=_9JZuOO9E_w">
+              <img src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=900&q=80" alt="Evening Calm Routine" />
+              <span class="duration">11:20</span>
+            </a>
+            <div class="card-body">
+              <h3>Evening Calm Routine for Better Sleep</h3>
+            </div>
+          </article>
+
+          <article class="video-card" data-title="Morning Mindfulness Reset">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=inpok4MKVLM">
+              <img src="https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=900&q=80" alt="Morning Mindfulness Reset" />
+              <span class="duration">09:55</span>
+            </a>
+            <div class="card-body">
+              <h3>Morning Mindfulness Reset</h3>
+            </div>
+          </article>
+        </div>
+        </div>
+      </section>
+
+      <section class="video-category" data-category-section="physical">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon green"><i class="fa-solid fa-dumbbell"></i></span>
+            <div>
+              <h2>Physical Wellness Videos</h2>
+              <p>Movement, mobility, stretching, and fitness routines.</p>
+            </div>
+          </div>
+          <div class="section-controls">
+            <button class="circle-btn" type="button" data-direction="prev" aria-label="Previous videos">&lsaquo;</button>
+            <button class="circle-btn active" type="button" data-direction="next" aria-label="Next videos">&rsaquo;</button>
+          </div>
+        </div>
+        <div class="video-viewport">
+        <div class="video-grid">
+          <article class="video-card" data-title="Desk Yoga for Office Workers">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=xRH1To_xyr8">
+              <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=900&q=80" alt="Desk Yoga" />
+              <span class="duration">14:50</span>
+            </a>
+            <div class="card-body">
+              <h3>Desk Yoga for Office Workers</h3>
+            </div>
+          </article>
+
+          <article class="video-card" data-title="Full Body Strength Training">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=XxuRSjER3Qk">
+              <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80" alt="Strength Training" />
+              <span class="duration">25:00</span>
+            </a>
+            <div class="card-body">
+              <h3>Full Body Strength Training</h3>
+            </div>
+          </article>
+
+          <article class="video-card" data-title="Stretching and Flexibility Routine">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=FI51zRzgIe4">
+              <img src="https://images.unsplash.com/photo-1510894347713-fc3ed6fdf539?auto=format&fit=crop&w=900&q=80" alt="Stretching Routine" />
+              <span class="duration">16:40</span>
+            </a>
+            <div class="card-body">
+              <h3>Stretching and Flexibility Routine</h3>
+            </div>
+          </article>
+
+          <article class="video-card" data-title="Morning Mobility to Wake Up Your Body">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=2IcWJobNDck">
+              <img src="https://images.unsplash.com/photo-1518459031867-a89b944bffe4?auto=format&fit=crop&w=900&q=80" alt="Morning Mobility" />
+              <span class="duration">13:10</span>
+            </a>
+            <div class="card-body">
+              <h3>Morning Mobility to Wake Up Your Body</h3>
+            </div>
+          </article>
+
+          <article class="video-card" data-title="Quick Core Strength Routine">
+            <a class="thumbnail" href="https://www.youtube.com/watch?v=1919eTCoESo">
+              <img src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=80" alt="Quick Core Strength Routine" />
+              <span class="duration">12:20</span>
+            </a>
+            <div class="card-body">
+              <h3>Quick Core Strength Routine</h3>
+            </div>
+          </article>
+        </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="profile-overlay" id="profileOverlay" hidden>
+    <div class="profile-frame-shell" role="dialog" aria-modal="true" aria-label="My Profile">
+      <button
+        class="profile-overlay-close"
+        id="profileDrawerBackBtn"
+        type="button"
+        aria-label="Close profile panel"
+      >
+        Back
+      </button>
+      <iframe
+        class="profile-frame"
+        src="profile.html?role=wellness"
+        title="Wellness profile"
+      ></iframe>
+    </div>
+  </div>
+
+  <div class="video-modal-overlay" id="videoModalOverlay" hidden>
+    <div class="video-modal" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
+      <div class="video-modal-header">
+        <div>
+          <p class="video-modal-eyebrow">VIDEO LIBRARY</p>
+          <h2 id="videoModalTitle">Add New Video</h2>
+          <p class="video-modal-copy">Add the details for a new wellness video without leaving this page.</p>
+        </div>
+        <button class="video-close-btn" id="closeAddVideoModalBtn" type="button">Close</button>
+      </div>
+
+      <form class="video-modal-form" id="videoModalForm" novalidate>
+        <p class="video-form-error" id="videoFormError" hidden></p>
+        <div class="video-form-grid">
+          <label class="video-field video-field-wide" data-field-name="title">
+            <span>Video Title</span>
+            <input type="text" name="title" placeholder="Enter video title" required />
+            <small class="video-field-error" hidden>Please add content here.</small>
+          </label>
+          <label class="video-field" data-field-name="category">
+            <span>Category</span>
+            <select name="category" required>
+              <option value="">Select category</option>
+              <option>Health Related</option>
+              <option>Mind Relaxation</option>
+              <option>Physical Wellness</option>
+            </select>
+            <small class="video-field-error" hidden>Please add content here.</small>
+          </label>
+          <label class="video-field" data-field-name="duration">
+            <span>Duration</span>
+            <input type="text" name="duration" placeholder="12:45" required />
+            <small class="video-field-error" hidden>Please add content here.</small>
+          </label>
+          <label class="video-field video-field-wide" data-field-name="videoLink">
+            <span>Video Link</span>
+            <input type="url" name="videoLink" placeholder="Paste YouTube or video URL" required />
+            <small class="video-field-error" hidden>Please add content here.</small>
+          </label>
+          <label class="video-field video-field-wide" data-field-name="thumbnailLink">
+            <span>Thumbnail Link</span>
+            <input type="url" name="thumbnailLink" placeholder="Paste thumbnail image URL" required />
+            <small class="video-field-error" hidden>Please add content here.</small>
+          </label>
+          <label class="video-field video-field-wide" data-field-name="description">
+            <span>Description</span>
+            <textarea name="description" rows="4" placeholder="Write a short summary for this video." required></textarea>
+            <small class="video-field-error" hidden>Please add content here.</small>
+          </label>
+        </div>
+
+        <div class="video-modal-actions">
+          <button class="video-secondary-btn" id="cancelAddVideoModalBtn" type="button">Cancel</button>
+          <button class="video-primary-btn" type="submit">Save Video</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="expertAuth.js"></script>
+  <script src="videoLibraryStorage.js"></script>
+  <script src="Expert_Video_Library.js"></script>
+</body>
+</html>

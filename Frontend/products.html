@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Products - Company Management</title>
+  <link rel="stylesheet" href="empstyles.css" />
+  <link rel="stylesheet" href="layout.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="app-body">
+<div class="app-shell">
+  <aside class="app-sidebar">
+    <div class="brand-lockup">
+      <div class="brand-mark"><i class="fa fa-layer-group"></i></div>
+        <div class="brand-copy"><strong>Stack Builders</strong><span>Super User Console</span></div>
+    </div>
+    <div class="sidebar-section-label">Workspace</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="dash.html"><i class="fa fa-chart-pie"></i>Dashboard</a>
+      <a class="sidebar-link" href="usermgmt.html"><i class="fa fa-users"></i>User Management</a>
+      <a class="sidebar-link" href="roles.html"><i class="fa fa-user-shield"></i>Roles & Access</a>
+      <a class="sidebar-link active" href="datamgmt.html"><i class="fa fa-database"></i>Company Management</a>
+      <a class="sidebar-link" href="reports.html"><i class="fa fa-chart-column"></i>Reports</a>
+      <a class="sidebar-link" href="settings.html"><i class="fa fa-gear"></i>Settings</a>
+    </nav>
+    <div class="sidebar-card">
+      <h3>Catalog Control</h3>
+      <p>Use this page as a reusable product table once your project supplies the records.</p>
+      <a class="mini-button" href="datamgmt.html"><i class="fa fa-users-gear"></i>Companies</a>
+    </div>
+  </aside>
+  <div class="app-main">
+    <main class="container">
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">Companies</p>
+          <h1>Product Records</h1>
+          <p class="subtitle">Manage product inventory, pricing, and lifecycle status</p>
+        </div>
+        <div class="heading-actions">
+          <button class="ghost-button"><i class="fa fa-tags"></i>Manage categories</button>
+          <button class="ghost-button"><i class="fa fa-file-export"></i>Export catalog</button>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab" data-href="datamgmt.html">Companies <span>--</span></button>
+        <button class="tab active" data-href="products.html">Products <span>--</span></button>
+        <button class="tab" data-href="reports.html">Records <span>--</span></button>
+      </div>
+
+      <div class="actions">
+        <input type="text" placeholder="Search products..." />
+        <div>
+          <button class="btn-outline">Export</button>
+          <button class="btn-primary">+ Add Product</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr><th>SKU</th><th>Product Name</th><th>Category</th><th>Price</th><th>Status</th><th>Updated</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr class="empty-row">
+              <td colspan="7">No product records are hardcoded. Render this table from your project data.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="footer-text">Showing 0 entries</p>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="adminAuth.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

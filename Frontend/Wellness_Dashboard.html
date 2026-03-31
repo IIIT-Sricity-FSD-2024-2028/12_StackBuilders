@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stack Builders Expert Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Lobster&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="Wellness_Dashboard.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <nav class="navbar">
+        <div class="logo">Stack Builders</div>
+
+        <div class="nav-links">
+          <a href="Wellness_Dashboard.html" class="active" id="navHome"><i class="fa-solid fa-house"></i> Home</a>
+          <a href="Wellness_Consultation_Dashboard.html" id="navConsultation"><i class="fa-regular fa-calendar"></i> Consultation</a>
+          <a href="Expert_Live_Session.html" id="navLiveSession"
+            ><i class="fa-solid fa-tower-broadcast"></i> Live Session</a
+          >
+          <a href="Expert_Video_Library.html" id="navVideoLibrary"><i class="fa-solid fa-video"></i> Video Library</a>
+        </div>
+
+        <div class="nav-right">
+          <span id="wellnessWelcomeMessage">Welcome back, Wellness Expert!</span>
+          <i class="fa-regular fa-bell"></i>
+          <i class="fa-regular fa-user" id="profileNavIcon"></i>
+        </div>
+      </nav>
+
+      <main class="dashboard">
+        <section class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-icon mint">
+              <span aria-hidden="true">◉</span>
+            </div>
+            <div>
+              <p class="eyebrow">Upcoming Live Sessions</p>
+              <h2 id="upcomingLiveSessionsCount">0</h2>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon coral">
+              <span aria-hidden="true">▣</span>
+            </div>
+            <div>
+              <p class="eyebrow">Upcoming Consultations</p>
+              <h2 id="upcomingConsultationsCount">0</h2>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon violet">
+              <span aria-hidden="true">▶</span>
+            </div>
+            <div>
+              <p class="eyebrow">Video Library</p>
+              <h2>126</h2>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Upcoming Live Sessions</h3>
+              <p>Join our wellness experts for live interactive sessions</p>
+            </div>
+            <a class="view-all" id="viewupcomingLive" href="#">View All <span>&gt;</span></a>
+          </div>
+
+          <div class="cards three-col" id="upcomingLiveSessionsCards"></div>
+          <div class="dashboard-pager" id="upcomingLiveSessionsPager" hidden>
+            <button class="dashboard-pager-btn" id="upcomingLiveSessionsPrevBtn" type="button">Previous</button>
+            <span class="dashboard-pager-btn dashboard-pager-indicator" id="upcomingLiveSessionsPageNumber">1</span>
+            <button class="dashboard-pager-btn" id="upcomingLiveSessionsNextBtn" type="button">Next</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Upcoming Consultations</h3>
+              <p>Schedule one-on-one sessions with our experts</p>
+            </div>
+            <a class="view-all" id="viewupcomingConsultations" href="#">View All <span>&gt;</span></a>
+          </div>
+
+          <div class="cards three-col" id="upcomingConsultationsCards"></div>
+          <div class="dashboard-pager" id="upcomingConsultationsPager" hidden>
+            <button class="dashboard-pager-btn" id="upcomingConsultationsPrevBtn" type="button">Previous</button>
+            <span class="dashboard-pager-btn dashboard-pager-indicator" id="upcomingConsultationsPageNumber">1</span>
+            <button class="dashboard-pager-btn" id="upcomingConsultationsNextBtn" type="button">Next</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Video Library</h3>
+              <p>Watch our curated wellness videos</p>
+            </div>
+            <a class="view-all" id="viewvideolibrary" href="#">View All <span>&gt;</span></a>
+          </div>
+
+          <div class="cards three-col">
+            <article class="video-card">
+              <div class="video-thumb">
+                <img
+                  src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80"
+                  alt="High intensity workout"
+                />
+                <span class="video-tag red">Fitness</span>
+                <span class="video-time">24:15</span>
+                <span class="play-chip" aria-hidden="true">▶</span>
+              </div>
+              <div class="video-copy">
+                <h4>High Intensity Workout</h4>
+                <p>Burn calories with this full-body HIIT session</p>
+              </div>
+            </article>
+
+            <article class="video-card">
+              <div class="video-thumb">
+                <img
+                  src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=900&q=80"
+                  alt="Nutrition basics"
+                />
+                <span class="video-tag green-tag">Nutrition</span>
+                <span class="video-time">18:42</span>
+                <span class="play-chip" aria-hidden="true">▶</span>
+              </div>
+              <div class="video-copy">
+                <h4>Nutrition Basics</h4>
+                <p>Learn to build balanced, nutritious meals</p>
+              </div>
+            </article>
+
+            <article class="video-card">
+              <div class="video-thumb">
+                <img
+                  src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=900&q=80"
+                  alt="Guided meditation"
+                />
+                <span class="video-tag purple-tag">Meditation</span>
+                <span class="video-time">15:00</span>
+                <span class="play-chip" aria-hidden="true">▶</span>
+              </div>
+              <div class="video-copy">
+                <h4>Guided Meditation</h4>
+                <p>Find peace and clarity in just 15 minutes</p>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="#">About us</a>
+          <a href="mailto:">Contact us</a>
+        </div>
+        <p>© 2026 Stack Builders. Built with wellness in mind.</p>
+      </footer>
+    </div>
+    <div class="profile-overlay" id="profileOverlay" hidden>
+      <div class="profile-frame-shell" role="dialog" aria-modal="true" aria-label="My Profile">
+        <button
+          class="profile-overlay-close"
+          id="profileDrawerBackBtn"
+          type="button"
+          aria-label="Close profile panel"
+        >
+          Back
+        </button>
+        <iframe
+          class="profile-frame"
+          src="profile.html?role=wellness"
+          title="Wellness profile"
+        ></iframe>
+      </div>
+    </div>
+    <script src="expertAuth.js"></script>
+    <script src="consultationStorage.js"></script>
+    <script src="liveSessionStorage.js"></script>
+    <script src="Wellness_Dashboard.js"></script>
+  </body>
+</html>
