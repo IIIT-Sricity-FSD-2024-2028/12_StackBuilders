@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wellness Dashboard</title>
+    <link rel="stylesheet" href="Employee_Dashboard.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <nav class="navbar">
+        <div class="logo">Stack Builders</div>
+
+        <div class="nav-links">
+          <a href="#" class="active"><i class="fa-solid fa-house"></i> Home</a>
+          <a href="#" id="consultationNavLink"
+            ><i class="fa-regular fa-calendar"></i> Consultation</a
+          >
+          <a href="Live_Session.html"
+            ><i class="fa-solid fa-tower-broadcast"></i> Live Session</a
+          >
+          <a href="Video_Library.html?role=employee"
+            ><i class="fa-solid fa-video"></i> Video Library</a
+          >
+        </div>
+
+        <div class="nav-right">
+          <span id="employeeWelcomeMessage">Welcome back, Employee!</span>
+          <i class="fa-regular fa-bell"></i>
+          <i class="fa-regular fa-user" id="profileNavIcon"></i>
+        </div>
+      </nav>
+
+      <section class="top-section">
+        <div class="card main-card">
+          <h3><i class="fa-solid fa-wave-square"></i> Daily Steps</h3>
+          <h1 class="steps">8,361</h1>
+          <p class="small-text">of 10,000 goal</p>
+
+          <div class="progress">
+            <div class="progress-fill"></div>
+          </div>
+
+          <div class="rank-box">
+            <div class="rank-icon"><i class="fa-solid fa-award"></i></div>
+            <div>
+              <p>Your Rank</p>
+              <h4>4th in your team</h4>
+            </div>
+          </div>
+
+          <div class="streak">
+            <h4>5-Day Streak</h4>
+
+            <div class="week">
+              <span>M</span>
+              <span>T</span>
+              <span>W</span>
+              <span>T</span>
+              <span>F</span>
+              <span>S</span>
+              <span>S</span>
+            </div>
+
+            <div class="fire-row">
+              <div class="fire active">F</div>
+              <div class="fire active">F</div>
+              <div class="fire active">F</div>
+              <div class="fire active">F</div>
+              <div class="fire active">F</div>
+              <div class="fire"></div>
+              <div class="fire"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card main-card">
+          <h3><i class="fa-solid fa-bullseye"></i> Active Challenges</h3>
+          <div class="employee-challenge-list" id="employeeChallengeList"></div>
+        </div>
+
+        <div class="card main-card">
+          <h3><i class="fa-solid fa-medal"></i> Leaderboard</h3>
+
+          <div class="leader gold">
+            <div class="num">1</div>
+            <div>
+              <h4>Alex Rivera</h4>
+              <p>12,450 steps</p>
+            </div>
+            <span>Trophy</span>
+          </div>
+
+          <div class="leader silver">
+            <div class="num">2</div>
+            <div>
+              <h4>Jamie Chen</h4>
+              <p>11,230 steps</p>
+            </div>
+            <span>Medal</span>
+          </div>
+
+          <div class="leader bronze">
+            <div class="num">3</div>
+            <div>
+              <h4>Sam Patel</h4>
+              <p>10,890 steps</p>
+            </div>
+            <span>Bronze</span>
+          </div>
+
+          <div class="leader you">
+            <div class="num">4</div>
+            <div>
+              <h4>You (Employee)</h4>
+              <p>8,361 steps</p>
+            </div>
+          </div>
+
+          <div class="leader normal">
+            <div class="num">5</div>
+            <div>
+              <h4>Chris Taylor</h4>
+              <p>7,820 steps</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="reward-section card">
+        <div class="balance-card main-card">
+          <div class="balance-top">
+            <div class="small-icon"><i class="fa-solid fa-award"></i></div>
+            <div>
+              <h5>Your Balance</h5>
+              <p>Updated today</p>
+            </div>
+          </div>
+
+          <h1>1,250</h1>
+          <h3>Wellness Points</h3>
+
+          <div class="next-box">
+            <div class="next-text">
+              <span>Next Reward</span>
+              <span>250 pts away</span>
+            </div>
+
+            <div class="progress small-progress">
+              <div class="progress-fill green-fill"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reward-right">
+          <div class="reward-header-row">
+            <h3><i class="fa-solid fa-gift"></i> Available Rewards</h3>
+            <div class="reward-nav-controls">
+              <button type="button" class="reward-nav-btn" id="prevRewardsBtn">
+                Previous
+              </button>
+              <button type="button" class="reward-nav-btn" id="nextRewardsBtn">
+                Next
+              </button>
+            </div>
+          </div>
+
+          <div class="reward-grid" id="rewardGrid"></div>
+        </div>
+      </section>
+
+      <section class="card tip-section">
+        <div class="tip-left">
+          <span class="tag">Daily Wellness Tip</span>
+          <h2>Take 5 minutes today to breathe.</h2>
+          <p>
+            Deep breathing reduces stress hormones, lowers heart rate, and
+            improves focus. Try the 4-7-8 technique: inhale for 4 seconds, hold
+            for 7, exhale for 8.
+          </p>
+
+          <div class="doctor">
+            <div class="circle">Dr</div>
+            <div>
+              <h4>Dr. Sarah Mitchell</h4>
+              <p>Clinical Psychologist</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tip-right">
+          <img
+            src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600"
+            alt="Meditation"
+          />
+        </div>
+      </section>
+
+      <section class="live-section">
+        <div class="live-content">
+          <span class="live-tag">LIVE</span>
+
+          <div class="mini-tags">
+            <span>Yoga</span>
+            <span>Live Session</span>
+          </div>
+
+          <h2>Mindful Flow Yoga with Sarah</h2>
+          <p>Join 127 participants. Started 5 minutes ago. 45 min session</p>
+
+          <button id="liveSessionBtn">Join Live Session</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="title-row">
+          <h2>Video Library</h2>
+          <button
+            class="more-btn"
+            type="button"
+            onclick="window.location.href = 'Video_Library.html?role=employee'"
+          >
+            More
+          </button>
+        </div>
+
+        <div class="video-grid">
+          <a
+            class="video-card"
+            href="https://www.youtube.com/watch?v=ml6cT4AZdqI"
+            target="_blank"
+          >
+            <div class="video-image">
+              <img
+                src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600"
+                alt="Workout"
+              />
+              <span class="video-tag red">Fitness</span>
+              <span class="video-time">24:15</span>
+              <div class="play-btn"><i class="fa-solid fa-play"></i></div>
+            </div>
+            <h4>High Intensity Workout</h4>
+            <p>Burn calories with this full-body HIIT session</p>
+          </a>
+
+          <a
+            class="video-card"
+            href="https://www.youtube.com/watch?v=5qap5aO4i9A"
+            target="_blank"
+          >
+            <div class="video-image">
+              <img
+                src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600"
+                alt="Nutrition"
+              />
+              <span class="video-tag green-tag">Nutrition</span>
+              <span class="video-time">18:42</span>
+              <div class="play-btn"><i class="fa-solid fa-play"></i></div>
+            </div>
+            <h4>Nutrition Basics</h4>
+            <p>Learn to build balanced, nutritious meals</p>
+          </a>
+
+          <a
+            class="video-card"
+            href="https://www.youtube.com/watch?v=inpok4MKVLM"
+            target="_blank"
+          >
+            <div class="video-image">
+              <img
+                src="https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=600"
+                alt="Meditation"
+              />
+              <span class="video-tag purple-tag">Meditation</span>
+              <span class="video-time">15:00</span>
+              <div class="play-btn"><i class="fa-solid fa-play"></i></div>
+            </div>
+            <h4>Guided Meditation</h4>
+            <p>Find peace and clarity in just 15 minutes</p>
+          </a>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Expert Categories</h2>
+
+        <div class="expert-grid">
+          <div class="expert purple">
+            <div class="expert-icon"><i class="fa-solid fa-brain"></i></div>
+            <h3>Psychologists</h3>
+            <p>Mental health experts for mindfulness and stress management</p>
+            <span>12 Experts Available</span>
+          </div>
+
+          <div class="expert green">
+            <div class="expert-icon"><i class="fa-regular fa-heart"></i></div>
+            <h3>Nutritionists</h3>
+            <p>Diet and meal planning experts to optimize your health</p>
+            <span>18 Experts Available</span>
+          </div>
+
+          <div class="expert orange">
+            <div class="expert-icon"><i class="fa-solid fa-dumbbell"></i></div>
+            <h3>Physical Wellness</h3>
+            <p>Fitness trainers and yoga instructors for active lifestyle</p>
+            <span>24 Experts Available</span>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="#">About us</a>
+          <a href="mailto:">Contact us</a>
+        </div>
+        <p>© 2026 Stack Builders. Built with wellness in mind.</p>
+      </footer>
+    </div>
+    <div class="profile-overlay" id="profileOverlay" hidden>
+      <div
+        class="profile-frame-shell"
+        role="dialog"
+        aria-modal="true"
+        aria-label="My Profile"
+      >
+        <button
+          class="profile-overlay-close"
+          id="profileDrawerBackBtn"
+          type="button"
+          aria-label="Close profile panel"
+        >
+          Back
+        </button>
+        <iframe
+          class="profile-frame"
+          src="profile.html?role=employee"
+          title="Employee profile"
+        ></iframe>
+      </div>
+    </div>
+    <script src="employeeAuth.js"></script>
+    <script src="challengeStorage.js"></script>
+    <script src="Employee_Dashboard.js"></script>
+  </body>
+</html>

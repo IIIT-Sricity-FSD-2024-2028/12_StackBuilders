@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roles - Employee</title>
+  <link rel="stylesheet" href="roles-user.css">
+  <link rel="stylesheet" href="layout.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="app-body">
+<div class="app-shell">
+  <aside class="app-sidebar">
+        <div class="brand-lockup"><div class="brand-mark"><i class="fa fa-layer-group"></i></div><div class="brand-copy"><strong>Stack Builders</strong><span>Super User Console</span></div></div>
+    <div class="sidebar-section-label">Workspace</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="dash.html"><i class="fa fa-chart-pie"></i>Dashboard</a>
+      <a class="sidebar-link" href="usermgmt.html"><i class="fa fa-users"></i>User Management</a>
+      <a class="sidebar-link active" href="roles.html"><i class="fa fa-user-shield"></i>Roles & Access</a>
+      <a class="sidebar-link" href="datamgmt.html"><i class="fa fa-database"></i>Company Management</a>
+      <a class="sidebar-link" href="reports.html"><i class="fa fa-chart-column"></i>Reports</a>
+      <a class="sidebar-link" href="settings.html"><i class="fa fa-gear"></i>Settings</a>
+    </nav>
+    <div class="sidebar-card"><h3>Access Center</h3><p>Audit employee permissions here once your project provides the permission matrix.</p><a class="mini-button" href="roleswellness.html"><i class="fa fa-heart-pulse"></i>Wellness role</a></div>
+  </aside>
+  <div class="app-main">
+    <main class="container">
+      <div class="page-heading"><div><p class="eyebrow">Permissions</p><h1>Roles & Access Control</h1><p class="subtitle">Manage role-based permissions and access levels</p></div></div>
+      <div class="layout">
+        <div class="roles">
+          <h3>Roles</h3>
+          <div class="role" data-href="roles.html"><i class="fa fa-user-shield"></i><div><strong>HR</strong><span>Modules configurable</span></div></div>
+          <div class="role active" data-href="rolesuser.html"><i class="fa fa-user"></i><div><strong>Employee</strong><span>Modules configurable</span></div></div>
+          <div class="role" data-href="roleswellness.html"><i class="fa fa-heart-pulse"></i><div><strong>Wellness Expert</strong><span>Modules configurable</span></div></div>
+        </div>
+        <div class="permissions" data-permission-group="employee">
+          <h3>Permissions for Employee</h3>
+          <p class="subtitle small">Toggle individual permissions for each module</p>
+          <table class="permission-matrix">
+            <thead><tr><th>Module</th><th>Create</th><th>Read</th><th>Update</th><th>Delete</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>User Management</td>
+                <td class="permission-cell"><button class="toggle" type="button" data-permission-key="user-management-create" data-default-state="off" aria-label="User Management create permission disabled"></button></td>
+                <td class="permission-cell"><button class="toggle" type="button" data-permission-key="user-management-read" data-default-state="off" aria-label="User Management read permission disabled"></button></td>
+                <td class="permission-cell"><button class="toggle" type="button" data-permission-key="user-management-update" data-default-state="off" aria-label="User Management update permission disabled"></button></td>
+                <td class="permission-cell"><button class="toggle" type="button" data-permission-key="user-management-delete" data-default-state="off" aria-label="User Management delete permission disabled"></button></td>
+              </tr>
+              <tr>
+                <td>Company Management</td>
+                <td class="permission-cell"><button class="toggle" type="button" data-permission-key="client-management-create" data-default-state="off" aria-label="Company Management create permission disabled"></button></td>
+                <td class="permission-cell"><button class="toggle active" type="button" data-permission-key="client-management-read" data-default-state="on" aria-label="Company Management read permission enabled"></button></td>
+                <td class="permission-cell"><button class="toggle active" type="button" data-permission-key="client-management-update" data-default-state="on" aria-label="Company Management update permission enabled"></button></td>
+                <td class="permission-cell"><button class="toggle" type="button" data-permission-key="client-management-delete" data-default-state="off" aria-label="Company Management delete permission disabled"></button></td>
+              </tr>
+              <tr>
+                <td>Reports &amp; Analytics</td>
+                <td class="permission-cell"><button class="toggle" type="button" data-permission-key="reports-create" data-default-state="off" aria-label="Reports and Analytics create permission disabled"></button></td>
+                <td class="permission-cell"><button class="toggle active" type="button" data-permission-key="reports-read" data-default-state="on" aria-label="Reports and Analytics read permission enabled"></button></td>
+                <td class="permission-cell"><button class="toggle" type="button" data-permission-key="reports-update" data-default-state="off" aria-label="Reports and Analytics update permission disabled"></button></td>
+                <td class="permission-cell"><button class="toggle" type="button" data-permission-key="reports-delete" data-default-state="off" aria-label="Reports and Analytics delete permission disabled"></button></td>
+              </tr>
+              <tr>
+                <td>Challenge Management</td>
+                <td class="permission-cell"><button class="toggle" type="button" data-permission-key="challenge-management-create" data-default-state="off" aria-label="Challenge Management create permission disabled"></button></td>
+                <td class="permission-cell"><button class="toggle active" type="button" data-permission-key="challenge-management-read" data-default-state="on" aria-label="Challenge Management read permission enabled"></button></td>
+                <td class="permission-cell"><button class="toggle" type="button" data-permission-key="challenge-management-update" data-default-state="off" aria-label="Challenge Management update permission disabled"></button></td>
+                <td class="permission-cell"><button class="toggle" type="button" data-permission-key="challenge-management-delete" data-default-state="off" aria-label="Challenge Management delete permission disabled"></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="adminAuth.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

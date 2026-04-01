@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="dashstyles.css">
+  <link rel="stylesheet" href="layout.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="app-body">
+<div class="app-shell">
+  <aside class="app-sidebar">
+    <div class="brand-lockup">
+      <div class="brand-mark"><i class="fa fa-layer-group"></i></div>
+      <div class="brand-copy">
+              <strong>Stack Builders</strong>
+        <span>Super User Console</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section-label">Workspace</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link active" href="dash.html"><i class="fa fa-chart-pie"></i>Dashboard</a>
+      <a class="sidebar-link" href="usermgmt.html"><i class="fa fa-users"></i>User Management</a>
+      <a class="sidebar-link" href="roles.html"><i class="fa fa-user-shield"></i>Roles & Access</a>
+      <a class="sidebar-link" href="datamgmt.html"><i class="fa fa-database"></i>Company Management</a>
+      <a class="sidebar-link" href="reports.html"><i class="fa fa-chart-column"></i>Reports</a>
+      <a class="sidebar-link" href="settings.html"><i class="fa fa-gear"></i>Settings</a>
+    </nav>
+
+    <div class="sidebar-card">
+      <h3>Workspace Overview</h3>
+      <p>Connect your project data here to surface activity, alerts, and the most important workflows.</p>
+      <a class="mini-button" href="reports.html"><i class="fa fa-arrow-up-right-from-square"></i>Open reports</a>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <main class="container">
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">Overview</p>
+          <h1>Dashboard overview</h1>
+        </div>
+      </div>
+
+      <section class="stats">
+        <div class="card">
+          <div class="card-header">
+            <span>Total Users</span>
+            <i class="fa fa-users"></i>
+          </div>
+          <h2 class="placeholder-value" id="dashboardTotalUsers">0</h2>
+          <p class="placeholder-text" id="dashboardTotalUsersMeta">Synced from employee, expert, and HR accounts</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span>Active Users</span>
+            <i class="fa fa-user"></i>
+          </div>
+          <h2 class="placeholder-value" id="dashboardActiveUsers">0</h2>
+          <p class="placeholder-text" id="dashboardActiveUsersMeta">Live enabled accounts across the workspace</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span>System Activity</span>
+            <i class="fa fa-heartbeat"></i>
+          </div>
+          <h2 class="placeholder-value" id="dashboardActivityVolume">0</h2>
+          <p class="placeholder-text" id="dashboardActivityVolumeMeta">Consultations, sessions, videos, challenges, and rewards</p>
+        </div>
+
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <h3>Quick Actions</h3>
+
+          <div class="action" data-href="usermgmt.html">
+            <i class="fa fa-plus"></i>
+            <div>
+              <strong>Add User</strong>
+              <span>Create new user account</span>
+            </div>
+          </div>
+
+          <div class="action" data-href="datamgmt.html">
+            <i class="fa fa-database"></i>
+            <div>
+              <strong>Manage Companies</strong>
+              <span>Review company records</span>
+            </div>
+          </div>
+
+          <div class="action" data-href="reports.html">
+            <i class="fa fa-file"></i>
+            <div>
+              <strong>View Reports</strong>
+              <span>Access analytics</span>
+            </div>
+          </div>
+
+          <div class="action" data-href="settings.html">
+            <i class="fa fa-cog"></i>
+            <div>
+              <strong>System Settings</strong>
+              <span>Configure system</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Recent Activity</h3>
+
+          <ul class="activity" id="dashboardActivityList">
+            <li class="placeholder-text">No recent activity loaded yet.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="adminAuth.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Consultations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lobster&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="Wellness_Consultation_Dashboard.css" />
+  </head>
+  <body>
+    <div class="wrapper">
+      <nav class="navbar">
+        <div class="logo">Stack Builders</div>
+
+        <div class="nav-links">
+          <a href="Wellness_Dashboard.html" id="navHome"><i class="fa-solid fa-house"></i> Home</a>
+          <a href="Wellness_Consultation_Dashboard.html" id="navConsultation" class="active"><i class="fa-regular fa-calendar"></i> Consultation</a>
+          <a href="Expert_Live_Session.html" id="navLiveSession"><i class="fa-solid fa-tower-broadcast"></i> Live Session</a>
+          <a href="Expert_Video_Library.html" id="navVideoLibrary"><i class="fa-solid fa-video"></i> Video Library</a>
+        </div>
+
+        <div class="nav-right">
+          <span id="wellnessWelcomeMessage">Welcome back, Wellness Expert!</span>
+          <i class="fa-regular fa-bell"></i>
+          <i class="fa-regular fa-user" id="profileNavIcon"></i>
+        </div>
+      </nav>
+
+      <section class="panel">
+        <div class="section-title">
+          <div class="icon-box">Upcoming</div>
+          <div>
+            <h2>Upcoming Consultations</h2>
+            <p>Approved wellness sessions ready to run</p>
+          </div>
+        </div>
+
+        <div class="upcoming-grid" id="upcomingConsultationsGrid"></div>
+        <div class="pager" id="upcomingConsultationsPager" hidden>
+          <button class="pager-btn" id="upcomingConsultationsPrevBtn" type="button">Previous</button>
+          <span class="pager-btn page-total" id="upcomingConsultationsPageNumber">1</span>
+          <button class="pager-btn" id="upcomingConsultationsNextBtn" type="button">Next</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">
+          <div class="icon-box">Requests</div>
+          <div>
+            <h2>Consultation Requests</h2>
+            <p>Pending consultation requests awaiting approval</p>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>S.No</th>
+              <th>Employee name</th>
+              <th>Purpose of request</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="consultationRequestsBody"></tbody>
+        </table>
+      </section>
+
+      <div class="split">
+        <section class="panel">
+          <div class="section-title">
+            <div class="icon-box">Accepted</div>
+            <div>
+              <h2>Accepted Consultations</h2>
+              <p>Requests that were approved successfully</p>
+            </div>
+          </div>
+
+          <div id="acceptedConsultationsList"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">
+            <div class="icon-box red-box">Rejected</div>
+            <div>
+              <h2>Rejected Consultations</h2>
+              <p>Requests that were declined</p>
+            </div>
+          </div>
+
+          <div id="rejectedConsultationsList"></div>
+        </section>
+      </div>
+
+      <section class="panel previous-consultations">
+        <div class="section-title">
+          <div class="icon-box">History</div>
+          <div>
+            <h2>Previous Client Consultations</h2>
+            <p>Your completed wellness session history</p>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Purpose</th>
+              <th>Date</th>
+              <th>Rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Emily Roberts</td>
+              <td>Mental Health</td>
+              <td>March 1, 2026</td>
+              <td>★★★★★</td>
+            </tr>
+            <tr>
+              <td>David Chen</td>
+              <td>Wellness Coaching</td>
+              <td>February 28, 2026</td>
+              <td>★★★★☆</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="#">About us</a>
+          <a href="mailto:">Contact us</a>
+        </div>
+        <p>&copy; 2026 Stack Builders. Built with wellness in mind.</p>
+      </footer>
+    </div>
+
+    <div class="profile-overlay" id="profileOverlay" hidden>
+      <div class="profile-frame-shell" role="dialog" aria-modal="true" aria-label="My Profile">
+        <button
+          class="profile-overlay-close"
+          id="profileDrawerBackBtn"
+          type="button"
+          aria-label="Close profile panel"
+        >
+          Back
+        </button>
+        <iframe
+          class="profile-frame"
+          src="profile.html?role=wellness"
+          title="Wellness profile"
+        ></iframe>
+      </div>
+    </div>
+
+    <script src="expertAuth.js"></script>
+    <script src="consultationStorage.js"></script>
+    <script src="Wellness_Consultation_Dashboard.js"></script>
+  </body>
+</html>

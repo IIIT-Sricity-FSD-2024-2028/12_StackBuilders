@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Add Company</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Playfair+Display:ital,wght@1,700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="admin_addcompany.css" />
+  </head>
+  <body>
+    <main class="company-page">
+      <section class="company-shell">
+        <div class="brand">StackBuilders</div>
+
+        <header class="page-copy">
+          <h1>Add Company</h1>
+          <p>Create a company account with the core contact and login details for admin access.</p>
+        </header>
+
+        <section class="form-card">
+          <form class="company-form" action="#" novalidate>
+            <div class="field-group">
+              <label for="companyName">Company Name</label>
+              <input id="companyName" type="text" placeholder="Enter company name" />
+            </div>
+
+            <div class="field-group">
+              <label for="phoneNumber">Phone Number</label>
+              <div class="input-icon-wrap">
+                <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                <input id="phoneNumber" type="tel" placeholder="+91 98765 43210" />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="address">Address</label>
+              <div class="input-icon-wrap">
+                <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                <input id="address" type="text" placeholder="Enter address" />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="emailAddress">Gmail Address</label>
+              <div class="input-icon-wrap">
+                <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                <input id="emailAddress" type="email" placeholder="Enter Gmail" />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="submit-btn" type="submit">Add Company</button>
+              <a class="back-btn" href="datamgmt.html">Back</a>
+            </div>
+            <p class="form-message" id="companyFormMessage" aria-live="polite"></p>
+          </form>
+        </section>
+      </section>
+    </main>
+<script src="adminAuth.js"></script>
+<script src="script.js"></script>
+  </body>
+</html>

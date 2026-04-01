@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create New Consultation Session</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="Create_New_Consultation.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">CONSULTATION SETUP</p>
+      <h1 id="createConsultationHeading">Create New Consultation Session</h1>
+      <p class="hero-copy" id="createConsultationSubheading">
+        Schedule the accepted one-on-one consultation and share the joining link.
+      </p>
+    </section>
+
+    <section class="summary-card" id="consultationSummaryCard">
+      <div class="summary-row">
+        <span>Employee</span>
+        <strong id="consultationEmployeeName">-</strong>
+      </div>
+      <div class="summary-row">
+        <span>Category</span>
+        <strong id="consultationCategory">-</strong>
+      </div>
+      <div class="summary-row summary-row-wide">
+        <span>Purpose</span>
+        <strong id="consultationPurpose">-</strong>
+      </div>
+      <div class="summary-row">
+        <span>Requested On</span>
+        <strong id="consultationRequestedOn">-</strong>
+      </div>
+      <div class="summary-row">
+        <span>Assigned Expert</span>
+        <strong id="consultationExpertName">-</strong>
+      </div>
+    </section>
+
+    <section class="form-card">
+      <form class="session-form" id="consultationSessionForm">
+        <div class="field">
+          <label for="session-title">Session Title</label>
+          <input
+            id="session-title"
+            name="title"
+            type="text"
+            placeholder="Enter session title"
+            required
+          />
+        </div>
+
+        <div class="row two-col">
+          <div class="field">
+            <label for="date">Date</label>
+            <input
+              id="date"
+              name="date"
+              type="date"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="time">Time</label>
+            <input id="time" name="time" type="time" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="duration">Session Duration</label>
+          <input id="duration" name="duration" type="text" placeholder="45 min" required />
+        </div>
+
+        <div class="field">
+          <label for="meeting-link">Meeting Link</label>
+          <input
+            id="meeting-link"
+            name="meetingLink"
+            type="url"
+            placeholder="https://meet.example.com/session"
+            required
+          />
+        </div>
+
+        <p class="form-status" id="consultationFormStatus" hidden></p>
+
+        <div class="actions">
+          <button type="button" class="btn btn-secondary" id="cancelCreateConsultationBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Session</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="expertAuth.js"></script>
+  <script src="consultationStorage.js"></script>
+  <script src="Create_New_Consultation.js"></script>
+</body>
+</html>
