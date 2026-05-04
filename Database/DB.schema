@@ -292,7 +292,6 @@ CREATE TABLE reward (
         CHECK (claimed_count >= 0)
 );
 
--- Materialized relationship: EMPLOYEE claims REWARD
 CREATE TABLE employee_reward_claim (
     employee_id VARCHAR(64) NOT NULL,
     reward_id VARCHAR(64) NOT NULL,
@@ -306,7 +305,6 @@ CREATE TABLE employee_reward_claim (
         ON DELETE CASCADE
 );
 
--- Materialized relationship: EMPLOYEE attends LIVE_SESSION
 CREATE TABLE employee_live_session_attendance (
     employee_id VARCHAR(64) NOT NULL,
     live_session_id VARCHAR(64) NOT NULL,
@@ -320,7 +318,6 @@ CREATE TABLE employee_live_session_attendance (
         ON DELETE CASCADE
 );
 
--- Materialized relationship: EMPLOYEE watches VIDEO
 CREATE TABLE employee_video_watch (
     employee_id VARCHAR(64) NOT NULL,
     video_id VARCHAR(64) NOT NULL,
@@ -334,7 +331,6 @@ CREATE TABLE employee_video_watch (
         ON DELETE CASCADE
 );
 
--- Materialized relationship: EMPLOYEE participates in CHALLENGE
 CREATE TABLE employee_challenge_participation (
     employee_id VARCHAR(64) NOT NULL,
     challenge_id VARCHAR(64) NOT NULL,
