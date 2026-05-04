@@ -1,0 +1,6189 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getStatus",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Basic backend readiness endpoint.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "message": "NestJS backend scaffold is ready",
+                    "docsPath": "/api/docs"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/challenges": {
+      "get": {
+        "operationId": "ChallengesController_findAll",
+        "parameters": [
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "creatorHrId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyName",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChallengeEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List challenges",
+        "tags": [
+          "challenges"
+        ]
+      },
+      "post": {
+        "operationId": "ChallengesController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChallengeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for the submitted challenge payload."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create a challenge",
+        "tags": [
+          "challenges"
+        ]
+      }
+    },
+    "/challenges/{id}": {
+      "get": {
+        "operationId": "ChallengesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Challenge not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get a challenge by id",
+        "tags": [
+          "challenges"
+        ]
+      },
+      "patch": {
+        "operationId": "ChallengesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChallengeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for the submitted challenge payload."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Challenge not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update a challenge",
+        "tags": [
+          "challenges"
+        ]
+      },
+      "delete": {
+        "operationId": "ChallengesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Challenge not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete a challenge",
+        "tags": [
+          "challenges"
+        ]
+      }
+    },
+    "/companies": {
+      "get": {
+        "operationId": "CompaniesController_findAll",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CompanyEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List companies",
+        "tags": [
+          "companies"
+        ]
+      },
+      "post": {
+        "operationId": "CompaniesController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCompanyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or company already exists."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create a company",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/companies/{id}": {
+      "get": {
+        "operationId": "CompaniesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Company not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get a company by id",
+        "tags": [
+          "companies"
+        ]
+      },
+      "patch": {
+        "operationId": "CompaniesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCompanyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or conflicting company details."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Company not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update a company",
+        "tags": [
+          "companies"
+        ]
+      },
+      "delete": {
+        "operationId": "CompaniesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Company not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete a company and linked HR profile records",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/checkin-responses": {
+      "get": {
+        "operationId": "CheckinResponsesController_findAll",
+        "parameters": [
+          {
+            "name": "checkinId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "employeeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expertId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyName",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CheckinResponseEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List check-in responses",
+        "tags": [
+          "checkin-responses"
+        ]
+      },
+      "post": {
+        "operationId": "CheckinResponsesController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckinResponseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckinResponseEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for the expert response payload."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create a check-in response",
+        "tags": [
+          "checkin-responses"
+        ]
+      }
+    },
+    "/checkin-responses/{id}": {
+      "get": {
+        "operationId": "CheckinResponsesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckinResponseEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Check-in response not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get a check-in response by id",
+        "tags": [
+          "checkin-responses"
+        ]
+      },
+      "patch": {
+        "operationId": "CheckinResponsesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCheckinResponseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckinResponseEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for the expert response payload."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Check-in response not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update a check-in response",
+        "tags": [
+          "checkin-responses"
+        ]
+      },
+      "delete": {
+        "operationId": "CheckinResponsesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckinResponseEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Check-in response not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete a check-in response",
+        "tags": [
+          "checkin-responses"
+        ]
+      }
+    },
+    "/experts": {
+      "get": {
+        "operationId": "ExpertsController_findAll",
+        "parameters": [
+          {
+            "name": "email",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyName",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "specialization",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExpertEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List wellness experts",
+        "tags": [
+          "experts"
+        ]
+      },
+      "post": {
+        "operationId": "ExpertsController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateExpertDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the wellness expert conflicts with existing users."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create a wellness expert",
+        "tags": [
+          "experts"
+        ]
+      }
+    },
+    "/experts/{id}": {
+      "get": {
+        "operationId": "ExpertsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Wellness expert not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get a wellness expert by id",
+        "tags": [
+          "experts"
+        ]
+      },
+      "patch": {
+        "operationId": "ExpertsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateExpertDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the wellness expert conflicts with existing users."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Wellness expert not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update a wellness expert",
+        "tags": [
+          "experts"
+        ]
+      },
+      "delete": {
+        "operationId": "ExpertsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Wellness expert not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete a wellness expert",
+        "tags": [
+          "experts"
+        ]
+      }
+    },
+    "/wellness-checkins": {
+      "get": {
+        "operationId": "WellnessCheckinsController_findAll",
+        "parameters": [
+          {
+            "name": "checkinType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "employeeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyName",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WellnessCheckinEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List wellness check-ins",
+        "tags": [
+          "wellness-checkins"
+        ]
+      },
+      "post": {
+        "operationId": "WellnessCheckinsController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWellnessCheckinDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellnessCheckinEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for the submitted check-in values."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create a wellness check-in",
+        "tags": [
+          "wellness-checkins"
+        ]
+      }
+    },
+    "/wellness-checkins/{id}": {
+      "get": {
+        "operationId": "WellnessCheckinsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellnessCheckinEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Wellness check-in not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get a wellness check-in by id",
+        "tags": [
+          "wellness-checkins"
+        ]
+      },
+      "patch": {
+        "operationId": "WellnessCheckinsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWellnessCheckinDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellnessCheckinEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for the submitted check-in values."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Wellness check-in not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update a wellness check-in",
+        "tags": [
+          "wellness-checkins"
+        ]
+      },
+      "delete": {
+        "operationId": "WellnessCheckinsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellnessCheckinEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Wellness check-in not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete a wellness check-in",
+        "tags": [
+          "wellness-checkins"
+        ]
+      }
+    },
+    "/employees": {
+      "get": {
+        "operationId": "EmployeesController_findAll",
+        "parameters": [
+          {
+            "name": "email",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyName",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "department",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmployeeEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List employees",
+        "tags": [
+          "employees"
+        ]
+      },
+      "post": {
+        "operationId": "EmployeesController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEmployeeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the employee conflicts with existing users."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create an employee",
+        "tags": [
+          "employees"
+        ]
+      }
+    },
+    "/employees/{id}": {
+      "get": {
+        "operationId": "EmployeesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Employee not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get an employee by id",
+        "tags": [
+          "employees"
+        ]
+      },
+      "patch": {
+        "operationId": "EmployeesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEmployeeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the employee conflicts with existing users."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Employee not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update an employee",
+        "tags": [
+          "employees"
+        ]
+      },
+      "delete": {
+        "operationId": "EmployeesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Employee not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete an employee",
+        "tags": [
+          "employees"
+        ]
+      }
+    },
+    "/consultations": {
+      "get": {
+        "operationId": "ConsultationsController_findAll",
+        "parameters": [
+          {
+            "name": "employeeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expertId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyName",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "createdByExpert",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceCheckinId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConsultationEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List consultations",
+        "tags": [
+          "consultations"
+        ]
+      },
+      "post": {
+        "operationId": "ConsultationsController_createRequest",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConsultationRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the expert/employee record is invalid."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create a consultation request",
+        "tags": [
+          "consultations"
+        ]
+      }
+    },
+    "/consultations/{id}": {
+      "get": {
+        "operationId": "ConsultationsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Consultation not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get a consultation by id",
+        "tags": [
+          "consultations"
+        ]
+      },
+      "patch": {
+        "operationId": "ConsultationsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateConsultationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for consultation status or session details."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Consultation not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update a consultation status or add/edit accepted consultation session details",
+        "tags": [
+          "consultations"
+        ]
+      },
+      "delete": {
+        "operationId": "ConsultationsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Consultation not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete a consultation",
+        "tags": [
+          "consultations"
+        ]
+      }
+    },
+    "/consultations/open-latest/search": {
+      "get": {
+        "operationId": "ConsultationsController_getLatestOpen",
+        "parameters": [
+          {
+            "name": "employeeId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expertId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyName",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationLookupResultEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get the latest open consultation for a given employee and wellness expert pair",
+        "tags": [
+          "consultations"
+        ]
+      }
+    },
+    "/consultations/follow-up": {
+      "post": {
+        "operationId": "ConsultationsController_createFollowUp",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFollowUpConsultationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationFollowUpResultEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the employee/expert record is invalid."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create or reuse an expert follow-up consultation from an employee check-in workflow",
+        "tags": [
+          "consultations"
+        ]
+      }
+    },
+    "/hr-profiles": {
+      "get": {
+        "operationId": "HrProfilesController_findAll",
+        "parameters": [
+          {
+            "name": "email",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyName",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HrProfileEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List HR profiles",
+        "tags": [
+          "hr-profiles"
+        ]
+      },
+      "post": {
+        "operationId": "HrProfilesController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHrProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "hrProfile": {
+                      "id": "hr-1777718400000-a1b2c3d4",
+                      "name": "Priya Sharma",
+                      "email": "priya.sharma@gmail.com",
+                      "username": "priya.sharma@gmail.com",
+                      "phoneNumber": "+91 98765 43210",
+                      "department": "HR",
+                      "designation": "HR Admin",
+                      "location": "",
+                      "companyId": "CMP-1001",
+                      "companyName": "Stack Builders Pvt Ltd",
+                      "status": "Active",
+                      "createdBySuperUser": true,
+                      "password": "secure123",
+                      "createdAt": "2026-05-02T12:30:00.000Z",
+                      "updatedAt": "2026-05-02T12:30:00.000Z"
+                    },
+                    "replacedProfiles": []
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or company reference is invalid."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create an HR profile and replace any existing HR mapped to the same company",
+        "tags": [
+          "hr-profiles"
+        ]
+      }
+    },
+    "/hr-profiles/{id}": {
+      "get": {
+        "operationId": "HrProfilesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrProfileEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "HR profile not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get an HR profile by id",
+        "tags": [
+          "hr-profiles"
+        ]
+      },
+      "patch": {
+        "operationId": "HrProfilesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateHrProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrProfileEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or conflicting company/email details."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "HR profile not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update an HR profile",
+        "tags": [
+          "hr-profiles"
+        ]
+      },
+      "delete": {
+        "operationId": "HrProfilesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrProfileEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "HR profile not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete an HR profile",
+        "tags": [
+          "hr-profiles"
+        ]
+      }
+    },
+    "/live-sessions": {
+      "get": {
+        "operationId": "LiveSessionsController_findAll",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expertId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyName",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LiveSessionEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List live sessions",
+        "tags": [
+          "live-sessions"
+        ]
+      },
+      "post": {
+        "operationId": "LiveSessionsController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLiveSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveSessionEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for the submitted live session payload."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create a live session",
+        "tags": [
+          "live-sessions"
+        ]
+      }
+    },
+    "/live-sessions/{id}": {
+      "get": {
+        "operationId": "LiveSessionsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveSessionEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Live session not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get a live session by id",
+        "tags": [
+          "live-sessions"
+        ]
+      },
+      "patch": {
+        "operationId": "LiveSessionsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": true,
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLiveSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveSessionEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for the submitted live session payload."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Live session not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update a live session",
+        "tags": [
+          "live-sessions"
+        ]
+      },
+      "delete": {
+        "operationId": "LiveSessionsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveSessionEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Live session not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete a live session",
+        "tags": [
+          "live-sessions"
+        ]
+      }
+    },
+    "/company-onboarding-requests": {
+      "get": {
+        "operationId": "OnboardingRequestsController_findAll",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OnboardingRequestEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List pending company onboarding requests",
+        "tags": [
+          "company-onboarding-requests"
+        ]
+      },
+      "post": {
+        "operationId": "OnboardingRequestsController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role header is optional for public company request submission. Logged-in users may still send it.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOnboardingRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingRequestEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request conflicts with existing records."
+          }
+        },
+        "summary": "Create a public company onboarding request",
+        "tags": [
+          "company-onboarding-requests"
+        ]
+      }
+    },
+    "/company-onboarding-requests/{id}": {
+      "get": {
+        "operationId": "OnboardingRequestsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingRequestEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Company onboarding request not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get a company onboarding request by id",
+        "tags": [
+          "company-onboarding-requests"
+        ]
+      },
+      "delete": {
+        "operationId": "OnboardingRequestsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingRequestEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Company onboarding request not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete a pending company onboarding request",
+        "tags": [
+          "company-onboarding-requests"
+        ]
+      }
+    },
+    "/company-onboarding-requests/{id}/approve": {
+      "post": {
+        "operationId": "OnboardingRequestsController_approve",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApproveOnboardingResultEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request conflicts with existing company or HR data."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Company onboarding request not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Approve a company onboarding request and create the company + HR profile",
+        "tags": [
+          "company-onboarding-requests"
+        ]
+      }
+    },
+    "/rewards": {
+      "get": {
+        "operationId": "RewardsController_findAll",
+        "parameters": [
+          {
+            "name": "creatorHrId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyName",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RewardEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List rewards",
+        "tags": [
+          "rewards"
+        ]
+      },
+      "post": {
+        "operationId": "RewardsController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRewardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for the submitted reward payload."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create a reward",
+        "tags": [
+          "rewards"
+        ]
+      }
+    },
+    "/rewards/{id}": {
+      "get": {
+        "operationId": "RewardsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Reward not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get a reward by id",
+        "tags": [
+          "rewards"
+        ]
+      },
+      "patch": {
+        "operationId": "RewardsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRewardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for the submitted reward payload."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Reward not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update a reward",
+        "tags": [
+          "rewards"
+        ]
+      },
+      "delete": {
+        "operationId": "RewardsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Reward not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete a reward",
+        "tags": [
+          "rewards"
+        ]
+      }
+    },
+    "/rewards/{id}/claim": {
+      "post": {
+        "operationId": "RewardsController_claim",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimRewardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewardClaimResultEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, the reward is already claimed, or the employee does not have enough points."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Reward or employee was not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Claim a reward for an employee",
+        "tags": [
+          "rewards"
+        ]
+      }
+    },
+    "/role-permissions/{group}": {
+      "get": {
+        "operationId": "RolePermissionsController_findOne",
+        "parameters": [
+          {
+            "name": "group",
+            "required": true,
+            "in": "path",
+            "description": "Role group: hr, employee, or wellness-expert.",
+            "schema": {
+              "example": "hr",
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": true,
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolePermissionEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unsupported permission group."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get permissions for a role group",
+        "tags": [
+          "role-permissions"
+        ]
+      },
+      "put": {
+        "operationId": "RolePermissionsController_update",
+        "parameters": [
+          {
+            "name": "group",
+            "required": true,
+            "in": "path",
+            "description": "Role group: hr, employee, or wellness-expert.",
+            "schema": {
+              "example": "hr",
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRolePermissionsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolePermissionEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unsupported permission group or permission key."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update permissions for a role group",
+        "tags": [
+          "role-permissions"
+        ]
+      },
+      "delete": {
+        "operationId": "RolePermissionsController_reset",
+        "parameters": [
+          {
+            "name": "group",
+            "required": true,
+            "in": "path",
+            "description": "Role group: hr, employee, or wellness-expert.",
+            "schema": {
+              "example": "hr",
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolePermissionEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unsupported permission group."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Reset a role group back to default permissions",
+        "tags": [
+          "role-permissions"
+        ]
+      }
+    },
+    "/videos": {
+      "get": {
+        "operationId": "VideosController_findAll",
+        "parameters": [
+          {
+            "name": "creatorExpertId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyName",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VideoEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List company video library records",
+        "tags": [
+          "videos"
+        ]
+      },
+      "post": {
+        "operationId": "VideosController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVideoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for the submitted video payload."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create a company video",
+        "tags": [
+          "videos"
+        ]
+      }
+    },
+    "/videos/{id}": {
+      "get": {
+        "operationId": "VideosController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Video not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get a company video by id",
+        "tags": [
+          "videos"
+        ]
+      },
+      "patch": {
+        "operationId": "VideosController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVideoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed for the submitted video payload."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Video not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update a company video",
+        "tags": [
+          "videos"
+        ]
+      },
+      "delete": {
+        "operationId": "VideosController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "Video not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete a company video",
+        "tags": [
+          "videos"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Wellness Platform API",
+    "description": "REST APIs for the evaluation backend. Authorization is enforced using the request header role.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "role": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "role",
+        "description": "Role required for RBAC. Supported values: Admin, HR, Employee, Wellness Expert"
+      }
+    },
+    "schemas": {
+      "ChallengeEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "challenge-1777718400000-a1b2c3d4"
+          },
+          "name": {
+            "type": "string",
+            "example": "10k Step Sprint"
+          },
+          "type": {
+            "type": "string",
+            "example": "Fitness"
+          },
+          "reward": {
+            "type": "string",
+            "example": "500"
+          },
+          "deadline": {
+            "type": "string",
+            "example": "2099-12-31"
+          },
+          "goal": {
+            "type": "string",
+            "example": "Complete 10,000 steps for 7 days."
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-05-02T14:25:00.000Z"
+          },
+          "creatorHrId": {
+            "type": "string",
+            "example": "hr-1777718400000-a1b2c3d4"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "reward",
+          "deadline",
+          "goal",
+          "createdAt",
+          "creatorHrId",
+          "companyId",
+          "companyName"
+        ]
+      },
+      "CreateChallengeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "10k Step Sprint"
+          },
+          "type": {
+            "type": "string",
+            "example": "Fitness"
+          },
+          "reward": {
+            "type": "string",
+            "example": "500"
+          },
+          "deadline": {
+            "type": "string",
+            "example": "2099-12-31"
+          },
+          "goal": {
+            "type": "string",
+            "example": "Complete 10,000 steps for 7 days."
+          },
+          "creatorHrId": {
+            "type": "string",
+            "example": "hr-1777718400000-a1b2c3d4"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "reward",
+          "goal"
+        ]
+      },
+      "UpdateChallengeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "10k Step Sprint"
+          },
+          "type": {
+            "type": "string",
+            "example": "Fitness"
+          },
+          "reward": {
+            "type": "string",
+            "example": "500"
+          },
+          "deadline": {
+            "type": "string",
+            "example": "2099-12-31"
+          },
+          "goal": {
+            "type": "string",
+            "example": "Complete 10,000 steps for 7 days."
+          },
+          "creatorHrId": {
+            "type": "string",
+            "example": "hr-1777718400000-a1b2c3d4"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          }
+        }
+      },
+      "CompanyEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "name": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+91 98765 43210"
+          },
+          "address": {
+            "type": "string",
+            "example": "Bengaluru, Karnataka"
+          },
+          "email": {
+            "type": "string",
+            "example": "contact@stackbuilders.com"
+          },
+          "createdAt": {
+            "type": "number",
+            "example": 1777718400000
+          },
+          "createdLabel": {
+            "type": "string",
+            "example": "02 May 2026"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "phone",
+          "address",
+          "email",
+          "createdAt",
+          "createdLabel"
+        ]
+      },
+      "CreateCompanyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "phone": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "address": {
+            "type": "string",
+            "example": "Bengaluru, Karnataka"
+          },
+          "email": {
+            "type": "string",
+            "example": "contact@stackbuilders.com"
+          }
+        },
+        "required": [
+          "name",
+          "phone",
+          "address",
+          "email"
+        ]
+      },
+      "UpdateCompanyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "phone": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "address": {
+            "type": "string",
+            "example": "Bengaluru, Karnataka"
+          },
+          "email": {
+            "type": "string",
+            "example": "contact@stackbuilders.com"
+          }
+        }
+      },
+      "CheckinResponseEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "response-1777718400000-a1b2c3d4"
+          },
+          "checkinId": {
+            "type": "string",
+            "example": "checkin-1777718400000-a1b2c3d4"
+          },
+          "checkinType": {
+            "type": "string",
+            "example": "mental"
+          },
+          "employeeId": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          },
+          "employeeName": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "expertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "expertName": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "message": {
+            "type": "string",
+            "example": "Please take a short break and let us follow up tomorrow."
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-05-02T12:45:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "checkinId",
+          "checkinType",
+          "employeeId",
+          "employeeName",
+          "expertId",
+          "expertName",
+          "companyId",
+          "companyName",
+          "message",
+          "createdAt"
+        ]
+      },
+      "CreateCheckinResponseDto": {
+        "type": "object",
+        "properties": {
+          "checkinId": {
+            "type": "string",
+            "example": "checkin-1777718400000-a1b2c3d4"
+          },
+          "checkinType": {
+            "type": "string",
+            "example": "mental"
+          },
+          "employeeId": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          },
+          "employeeName": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "expertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "expertName": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "message": {
+            "type": "string",
+            "example": "Please take a short break and let us follow up tomorrow."
+          }
+        },
+        "required": [
+          "checkinId",
+          "checkinType",
+          "employeeId",
+          "message"
+        ]
+      },
+      "UpdateCheckinResponseDto": {
+        "type": "object",
+        "properties": {
+          "checkinId": {
+            "type": "string",
+            "example": "checkin-1777718400000-a1b2c3d4"
+          },
+          "checkinType": {
+            "type": "string",
+            "example": "mental"
+          },
+          "employeeId": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          },
+          "employeeName": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "expertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "expertName": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "message": {
+            "type": "string",
+            "example": "Please take a short break and let us follow up tomorrow."
+          }
+        }
+      },
+      "ExpertEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "name": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "email": {
+            "type": "string",
+            "example": "neha.verma@gmail.com"
+          },
+          "username": {
+            "type": "string",
+            "example": "neha.verma@gmail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "specialization": {
+            "type": "string",
+            "example": "Nutritionist"
+          },
+          "experience": {
+            "type": "string",
+            "example": "5"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+91 98765 43210"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "status": {
+            "type": "string",
+            "example": "Active"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-05-02T12:30:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-05-02T12:45:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "username",
+          "password",
+          "specialization",
+          "experience",
+          "phoneNumber",
+          "companyId",
+          "companyName",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateExpertDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "specialization": {
+            "type": "string",
+            "example": "Nutritionist"
+          },
+          "experience": {
+            "type": "string",
+            "example": "5"
+          },
+          "email": {
+            "type": "string",
+            "example": "neha.verma@gmail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "status": {
+            "type": "string",
+            "example": "Active"
+          }
+        },
+        "required": [
+          "name",
+          "specialization",
+          "experience",
+          "email",
+          "password",
+          "companyId"
+        ]
+      },
+      "UpdateExpertDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "specialization": {
+            "type": "string",
+            "example": "Nutritionist"
+          },
+          "experience": {
+            "type": "string",
+            "example": "5"
+          },
+          "email": {
+            "type": "string",
+            "example": "neha.verma@gmail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "status": {
+            "type": "string",
+            "example": "Active"
+          }
+        }
+      },
+      "WellnessCheckinEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "checkin-1777718400000-a1b2c3d4"
+          },
+          "checkinType": {
+            "type": "string",
+            "example": "mental"
+          },
+          "employeeId": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          },
+          "employeeName": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "employeeEmail": {
+            "type": "string",
+            "example": "aarav.sharma@gmail.com"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Feeling low after a stressful deadline."
+          },
+          "submittedAt": {
+            "type": "string",
+            "example": "2026-05-02T12:30:00.000Z"
+          },
+          "moodScore": {
+            "type": "string",
+            "example": "4"
+          },
+          "stressScore": {
+            "type": "string",
+            "example": "8"
+          },
+          "sleepHours": {
+            "type": "string",
+            "example": "5.5"
+          },
+          "focusScore": {
+            "type": "string",
+            "example": "3"
+          },
+          "anxietyTrigger": {
+            "type": "string",
+            "example": "Project deadlines"
+          },
+          "supportNeeded": {
+            "type": "string",
+            "example": "Need support as soon as possible"
+          },
+          "mealConsistency": {
+            "type": "string",
+            "example": "6"
+          },
+          "waterIntakeLiters": {
+            "type": "string",
+            "example": "2.2"
+          },
+          "energyScore": {
+            "type": "string",
+            "example": "7"
+          },
+          "servingsCount": {
+            "type": "string",
+            "example": "4"
+          },
+          "nutritionGoal": {
+            "type": "string",
+            "example": "More energy during work"
+          },
+          "dietChallenge": {
+            "type": "string",
+            "example": "Skipped breakfast"
+          },
+          "activityMinutes": {
+            "type": "string",
+            "example": "45"
+          },
+          "stepCount": {
+            "type": "string",
+            "example": "8500"
+          },
+          "painScore": {
+            "type": "string",
+            "example": "2"
+          },
+          "mobilityScore": {
+            "type": "string",
+            "example": "8"
+          },
+          "recoveryScore": {
+            "type": "string",
+            "example": "7"
+          },
+          "workoutFocus": {
+            "type": "string",
+            "example": "Walking or cardio"
+          }
+        },
+        "required": [
+          "id",
+          "checkinType",
+          "employeeId",
+          "employeeName",
+          "employeeEmail",
+          "companyId",
+          "companyName",
+          "notes",
+          "submittedAt",
+          "moodScore",
+          "stressScore",
+          "sleepHours",
+          "focusScore",
+          "anxietyTrigger",
+          "supportNeeded",
+          "mealConsistency",
+          "waterIntakeLiters",
+          "energyScore",
+          "servingsCount",
+          "nutritionGoal",
+          "dietChallenge",
+          "activityMinutes",
+          "stepCount",
+          "painScore",
+          "mobilityScore",
+          "recoveryScore",
+          "workoutFocus"
+        ]
+      },
+      "CreateWellnessCheckinDto": {
+        "type": "object",
+        "properties": {
+          "checkinType": {
+            "type": "string",
+            "example": "mental"
+          },
+          "employeeId": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          },
+          "employeeName": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "employeeEmail": {
+            "type": "string",
+            "example": "aarav.sharma@gmail.com"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Feeling low after a stressful deadline."
+          },
+          "moodScore": {
+            "type": "string",
+            "example": "4"
+          },
+          "stressScore": {
+            "type": "string",
+            "example": "8"
+          },
+          "sleepHours": {
+            "type": "string",
+            "example": "5.5"
+          },
+          "focusScore": {
+            "type": "string",
+            "example": "3"
+          },
+          "anxietyTrigger": {
+            "type": "string",
+            "example": "Project deadlines"
+          },
+          "supportNeeded": {
+            "type": "string",
+            "example": "Need support as soon as possible"
+          },
+          "mealConsistency": {
+            "type": "string",
+            "example": "6"
+          },
+          "waterIntakeLiters": {
+            "type": "string",
+            "example": "2.2"
+          },
+          "energyScore": {
+            "type": "string",
+            "example": "7"
+          },
+          "servingsCount": {
+            "type": "string",
+            "example": "4"
+          },
+          "nutritionGoal": {
+            "type": "string",
+            "example": "More energy during work"
+          },
+          "dietChallenge": {
+            "type": "string",
+            "example": "Skipped breakfast"
+          },
+          "activityMinutes": {
+            "type": "string",
+            "example": "45"
+          },
+          "stepCount": {
+            "type": "string",
+            "example": "8500"
+          },
+          "painScore": {
+            "type": "string",
+            "example": "2"
+          },
+          "mobilityScore": {
+            "type": "string",
+            "example": "8"
+          },
+          "recoveryScore": {
+            "type": "string",
+            "example": "7"
+          },
+          "workoutFocus": {
+            "type": "string",
+            "example": "Walking or cardio"
+          }
+        },
+        "required": [
+          "checkinType"
+        ]
+      },
+      "UpdateWellnessCheckinDto": {
+        "type": "object",
+        "properties": {
+          "checkinType": {
+            "type": "string",
+            "example": "mental"
+          },
+          "employeeId": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          },
+          "employeeName": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "employeeEmail": {
+            "type": "string",
+            "example": "aarav.sharma@gmail.com"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Feeling low after a stressful deadline."
+          },
+          "moodScore": {
+            "type": "string",
+            "example": "4"
+          },
+          "stressScore": {
+            "type": "string",
+            "example": "8"
+          },
+          "sleepHours": {
+            "type": "string",
+            "example": "5.5"
+          },
+          "focusScore": {
+            "type": "string",
+            "example": "3"
+          },
+          "anxietyTrigger": {
+            "type": "string",
+            "example": "Project deadlines"
+          },
+          "supportNeeded": {
+            "type": "string",
+            "example": "Need support as soon as possible"
+          },
+          "mealConsistency": {
+            "type": "string",
+            "example": "6"
+          },
+          "waterIntakeLiters": {
+            "type": "string",
+            "example": "2.2"
+          },
+          "energyScore": {
+            "type": "string",
+            "example": "7"
+          },
+          "servingsCount": {
+            "type": "string",
+            "example": "4"
+          },
+          "nutritionGoal": {
+            "type": "string",
+            "example": "More energy during work"
+          },
+          "dietChallenge": {
+            "type": "string",
+            "example": "Skipped breakfast"
+          },
+          "activityMinutes": {
+            "type": "string",
+            "example": "45"
+          },
+          "stepCount": {
+            "type": "string",
+            "example": "8500"
+          },
+          "painScore": {
+            "type": "string",
+            "example": "2"
+          },
+          "mobilityScore": {
+            "type": "string",
+            "example": "8"
+          },
+          "recoveryScore": {
+            "type": "string",
+            "example": "7"
+          },
+          "workoutFocus": {
+            "type": "string",
+            "example": "Walking or cardio"
+          }
+        }
+      },
+      "EmployeeEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          },
+          "name": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "email": {
+            "type": "string",
+            "example": "aarav.sharma@gmail.com"
+          },
+          "username": {
+            "type": "string",
+            "example": "aarav.sharma@gmail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "department": {
+            "type": "string",
+            "example": "Engineering"
+          },
+          "status": {
+            "type": "string",
+            "example": "Active"
+          },
+          "age": {
+            "type": "string",
+            "example": "28"
+          },
+          "gender": {
+            "type": "string",
+            "example": "Male"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+91 98765 43210"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "heightCm": {
+            "type": "string",
+            "example": "175"
+          },
+          "weightKg": {
+            "type": "string",
+            "example": "72"
+          },
+          "rewardPointsBalance": {
+            "type": "string",
+            "example": "500"
+          },
+          "claimedRewardIds": {
+            "example": [
+              "reward-1777718400000-a1b2c3d4"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-05-02T12:30:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-05-02T12:45:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "username",
+          "password",
+          "department",
+          "status",
+          "age",
+          "gender",
+          "phoneNumber",
+          "companyId",
+          "companyName",
+          "heightCm",
+          "weightKg",
+          "rewardPointsBalance",
+          "claimedRewardIds",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateEmployeeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "department": {
+            "type": "string",
+            "example": "Engineering"
+          },
+          "email": {
+            "type": "string",
+            "example": "aarav.sharma@gmail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "status": {
+            "type": "string",
+            "example": "Active"
+          },
+          "age": {
+            "type": "string",
+            "example": "28"
+          },
+          "gender": {
+            "type": "string",
+            "example": "Male"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "heightCm": {
+            "type": "string",
+            "example": "175"
+          },
+          "weightKg": {
+            "type": "string",
+            "example": "72"
+          },
+          "rewardPointsBalance": {
+            "type": "string",
+            "example": "500"
+          },
+          "claimedRewardIds": {
+            "example": [
+              "reward-1777718400000-a1b2c3d4"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "department",
+          "email",
+          "password",
+          "companyId"
+        ]
+      },
+      "UpdateEmployeeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "department": {
+            "type": "string",
+            "example": "Engineering"
+          },
+          "email": {
+            "type": "string",
+            "example": "aarav.sharma@gmail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "status": {
+            "type": "string",
+            "example": "Active"
+          },
+          "age": {
+            "type": "string",
+            "example": "28"
+          },
+          "gender": {
+            "type": "string",
+            "example": "Male"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "heightCm": {
+            "type": "string",
+            "example": "175"
+          },
+          "weightKg": {
+            "type": "string",
+            "example": "72"
+          },
+          "rewardPointsBalance": {
+            "type": "string",
+            "example": "500"
+          },
+          "claimedRewardIds": {
+            "example": [
+              "reward-1777718400000-a1b2c3d4"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ConsultationEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "consult-1777718400000-a1b2c3d4"
+          },
+          "employeeId": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          },
+          "employeeName": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "expertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "expertName": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "purpose": {
+            "type": "string",
+            "example": "Need guidance for nutrition planning."
+          },
+          "category": {
+            "type": "string",
+            "example": "Nutritionist"
+          },
+          "requestedOn": {
+            "type": "string",
+            "example": "02 May 2026 @ 6:15 pm"
+          },
+          "status": {
+            "type": "string",
+            "example": "requested"
+          },
+          "rejectionReason": {
+            "type": "string",
+            "example": ""
+          },
+          "sessionTitle": {
+            "type": "string",
+            "example": "Nutrition Consultation with Aarav Sharma"
+          },
+          "sessionDate": {
+            "type": "string",
+            "example": "2026-05-03"
+          },
+          "sessionTime": {
+            "type": "string",
+            "example": "18:30"
+          },
+          "sessionDuration": {
+            "type": "string",
+            "example": "45 min"
+          },
+          "sessionMeetingLink": {
+            "type": "string",
+            "example": "https://meet.example.com/session"
+          },
+          "sessionCreatedAt": {
+            "type": "string",
+            "example": "2026-05-02T13:00:00.000Z"
+          },
+          "createdByExpert": {
+            "type": "boolean",
+            "example": false
+          },
+          "sourceCheckinId": {
+            "type": "string",
+            "example": "checkin-1777718400000-a1b2c3d4"
+          },
+          "followUpPriority": {
+            "type": "string",
+            "example": "high"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-05-02T12:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "employeeId",
+          "employeeName",
+          "expertId",
+          "expertName",
+          "purpose",
+          "category",
+          "requestedOn",
+          "status",
+          "rejectionReason",
+          "sessionTitle",
+          "sessionDate",
+          "sessionTime",
+          "sessionDuration",
+          "sessionMeetingLink",
+          "sessionCreatedAt",
+          "createdByExpert",
+          "sourceCheckinId",
+          "followUpPriority",
+          "companyId",
+          "companyName",
+          "createdAt"
+        ]
+      },
+      "ConsultationLookupResultEntity": {
+        "type": "object",
+        "properties": {
+          "consultation": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsultationEntity"
+              }
+            ]
+          }
+        }
+      },
+      "CreateConsultationRequestDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          },
+          "employeeName": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "expertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "expertName": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "purpose": {
+            "type": "string",
+            "example": "Need guidance for nutrition planning."
+          }
+        },
+        "required": [
+          "employeeId",
+          "expertId",
+          "purpose"
+        ]
+      },
+      "CreateFollowUpConsultationDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          },
+          "employeeName": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "expertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "expertName": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "purpose": {
+            "type": "string",
+            "example": "High nutrition follow-up recommended based on the latest employee update."
+          },
+          "sourceCheckinId": {
+            "type": "string",
+            "example": "checkin-1777718400000-a1b2c3d4"
+          },
+          "followUpPriority": {
+            "type": "string",
+            "example": "high"
+          }
+        },
+        "required": [
+          "employeeId",
+          "expertId"
+        ]
+      },
+      "ConsultationFollowUpResultEntity": {
+        "type": "object",
+        "properties": {
+          "consultation": {
+            "$ref": "#/components/schemas/ConsultationEntity"
+          },
+          "reused": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "consultation",
+          "reused"
+        ]
+      },
+      "UpdateConsultationDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "requested"
+          },
+          "rejectionReason": {
+            "type": "string",
+            "example": "Consultation request could not be scheduled."
+          },
+          "sessionTitle": {
+            "type": "string",
+            "example": "Nutrition Consultation with Aarav Sharma"
+          },
+          "sessionDate": {
+            "type": "string",
+            "example": "2026-05-03"
+          },
+          "sessionTime": {
+            "type": "string",
+            "example": "18:30"
+          },
+          "sessionDuration": {
+            "type": "string",
+            "example": "45 min"
+          },
+          "sessionMeetingLink": {
+            "type": "string",
+            "example": "https://meet.example.com/session"
+          },
+          "sessionCreatedAt": {
+            "type": "string",
+            "example": "2026-05-02T13:00:00.000Z"
+          },
+          "createdByExpert": {
+            "type": "boolean",
+            "example": true
+          },
+          "sourceCheckinId": {
+            "type": "string",
+            "example": "checkin-1777718400000-a1b2c3d4"
+          },
+          "followUpPriority": {
+            "type": "string",
+            "example": "high"
+          },
+          "purpose": {
+            "type": "string",
+            "example": "Need guidance for nutrition planning."
+          }
+        }
+      },
+      "HrProfileEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "hr-1777718400000-a1b2c3d4"
+          },
+          "name": {
+            "type": "string",
+            "example": "Priya Sharma"
+          },
+          "email": {
+            "type": "string",
+            "example": "priya.sharma@gmail.com"
+          },
+          "username": {
+            "type": "string",
+            "example": "priya.sharma@gmail.com"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+91 98765 43210"
+          },
+          "department": {
+            "type": "string",
+            "example": "Operations"
+          },
+          "designation": {
+            "type": "string",
+            "example": "HR Manager"
+          },
+          "location": {
+            "type": "string",
+            "example": "Bengaluru"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "status": {
+            "type": "string",
+            "example": "Active"
+          },
+          "createdBySuperUser": {
+            "type": "boolean",
+            "example": true
+          },
+          "password": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-05-02T12:30:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-05-02T12:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "username",
+          "phoneNumber",
+          "department",
+          "designation",
+          "location",
+          "companyId",
+          "companyName",
+          "status",
+          "createdBySuperUser",
+          "password",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateHrProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Priya Sharma"
+          },
+          "email": {
+            "type": "string",
+            "example": "priya.sharma@gmail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "department": {
+            "type": "string",
+            "example": "HR"
+          },
+          "designation": {
+            "type": "string",
+            "example": "HR Admin"
+          },
+          "location": {
+            "type": "string",
+            "example": "Bengaluru"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "status": {
+            "type": "string",
+            "example": "Active"
+          },
+          "createdBySuperUser": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "password"
+        ]
+      },
+      "UpdateHrProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Priya Sharma"
+          },
+          "email": {
+            "type": "string",
+            "example": "priya.sharma@gmail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "department": {
+            "type": "string",
+            "example": "HR"
+          },
+          "designation": {
+            "type": "string",
+            "example": "HR Admin"
+          },
+          "location": {
+            "type": "string",
+            "example": "Bengaluru"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "status": {
+            "type": "string",
+            "example": "Active"
+          },
+          "createdBySuperUser": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "LiveSessionEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "live-1777718400000-a1b2c3d4"
+          },
+          "title": {
+            "type": "string",
+            "example": "Mindful Breathing Circle"
+          },
+          "category": {
+            "type": "string",
+            "example": "Mental Wellness"
+          },
+          "sessionType": {
+            "type": "string",
+            "example": "Group Session"
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-05-10"
+          },
+          "startTime": {
+            "type": "string",
+            "example": "18:30"
+          },
+          "duration": {
+            "type": "string",
+            "example": "45 min"
+          },
+          "maxParticipants": {
+            "type": "string",
+            "example": "50"
+          },
+          "meetingLink": {
+            "type": "string",
+            "example": "https://meet.example.com/live-session"
+          },
+          "description": {
+            "type": "string",
+            "example": "A live guided breathing and stress reset session."
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-05-02T12:45:00.000Z"
+          },
+          "status": {
+            "type": "string",
+            "example": "scheduled"
+          },
+          "expertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "hostName": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "category",
+          "sessionType",
+          "date",
+          "startTime",
+          "duration",
+          "maxParticipants",
+          "meetingLink",
+          "description",
+          "createdAt",
+          "status",
+          "expertId",
+          "hostName",
+          "companyId",
+          "companyName"
+        ]
+      },
+      "CreateLiveSessionDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Mindful Breathing Circle"
+          },
+          "category": {
+            "type": "string",
+            "example": "Mental Wellness"
+          },
+          "sessionType": {
+            "type": "string",
+            "example": "Group Session"
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-05-10"
+          },
+          "startTime": {
+            "type": "string",
+            "example": "18:30"
+          },
+          "duration": {
+            "type": "string",
+            "example": "45 min"
+          },
+          "maxParticipants": {
+            "type": "string",
+            "example": "50"
+          },
+          "meetingLink": {
+            "type": "string",
+            "example": "https://meet.example.com/live-session"
+          },
+          "description": {
+            "type": "string",
+            "example": "A live guided breathing and stress reset session."
+          },
+          "expertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "hostName": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          }
+        },
+        "required": [
+          "title",
+          "category",
+          "sessionType",
+          "date",
+          "startTime",
+          "duration",
+          "maxParticipants",
+          "meetingLink",
+          "description"
+        ]
+      },
+      "UpdateLiveSessionDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Mindful Breathing Circle"
+          },
+          "category": {
+            "type": "string",
+            "example": "Mental Wellness"
+          },
+          "sessionType": {
+            "type": "string",
+            "example": "Group Session"
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-05-10"
+          },
+          "startTime": {
+            "type": "string",
+            "example": "18:30"
+          },
+          "duration": {
+            "type": "string",
+            "example": "45 min"
+          },
+          "maxParticipants": {
+            "type": "string",
+            "example": "50"
+          },
+          "meetingLink": {
+            "type": "string",
+            "example": "https://meet.example.com/live-session"
+          },
+          "description": {
+            "type": "string",
+            "example": "A live guided breathing and stress reset session."
+          },
+          "expertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "hostName": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "status": {
+            "type": "string",
+            "example": "scheduled"
+          }
+        }
+      },
+      "OnboardingRequestEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "request-1777718400000-a1b2c3d4"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "companyPhone": {
+            "type": "string",
+            "example": "+91 98765 43210"
+          },
+          "companyAddress": {
+            "type": "string",
+            "example": "Bengaluru, Karnataka"
+          },
+          "companyEmail": {
+            "type": "string",
+            "example": "contact@stackbuilders.com"
+          },
+          "hrName": {
+            "type": "string",
+            "example": "Priya Sharma"
+          },
+          "hrEmail": {
+            "type": "string",
+            "example": "priya.sharma@gmail.com"
+          },
+          "hrPassword": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "hrPhoneNumber": {
+            "type": "string",
+            "example": "+91 98765 43210"
+          },
+          "status": {
+            "type": "string",
+            "example": "pending"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-05-02T12:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "companyName",
+          "companyPhone",
+          "companyAddress",
+          "companyEmail",
+          "hrName",
+          "hrEmail",
+          "hrPassword",
+          "hrPhoneNumber",
+          "status",
+          "createdAt"
+        ]
+      },
+      "CreateOnboardingRequestDto": {
+        "type": "object",
+        "properties": {
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "companyPhone": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "companyAddress": {
+            "type": "string",
+            "example": "Bengaluru, Karnataka"
+          },
+          "companyEmail": {
+            "type": "string",
+            "example": "contact@stackbuilders.com"
+          },
+          "hrName": {
+            "type": "string",
+            "example": "Priya Sharma"
+          },
+          "hrPhoneNumber": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "hrEmail": {
+            "type": "string",
+            "example": "priya.sharma@gmail.com"
+          },
+          "hrPassword": {
+            "type": "string",
+            "example": "secure123"
+          }
+        },
+        "required": [
+          "companyName",
+          "companyPhone",
+          "companyAddress",
+          "companyEmail",
+          "hrName",
+          "hrEmail",
+          "hrPassword"
+        ]
+      },
+      "ApproveOnboardingResultEntity": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/CompanyEntity"
+          },
+          "hrProfile": {
+            "$ref": "#/components/schemas/HrProfileEntity"
+          },
+          "removedRequestId": {
+            "type": "string",
+            "example": "request-1777718400000-a1b2c3d4"
+          }
+        },
+        "required": [
+          "company",
+          "hrProfile",
+          "removedRequestId"
+        ]
+      },
+      "RewardEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "reward-1777718400000-a1b2c3d4"
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "https://example.com/reward.png"
+          },
+          "name": {
+            "type": "string",
+            "example": "Amazon Voucher"
+          },
+          "description": {
+            "type": "string",
+            "example": "Redeem this reward after completing the challenge."
+          },
+          "points": {
+            "type": "string",
+            "example": "500"
+          },
+          "claimableCount": {
+            "type": "string",
+            "example": "10"
+          },
+          "claimedCount": {
+            "type": "string",
+            "example": "0"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-05-02T14:25:00.000Z"
+          },
+          "creatorHrId": {
+            "type": "string",
+            "example": "hr-1777718400000-a1b2c3d4"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          }
+        },
+        "required": [
+          "id",
+          "imageUrl",
+          "name",
+          "description",
+          "points",
+          "claimableCount",
+          "claimedCount",
+          "createdAt",
+          "creatorHrId",
+          "companyId",
+          "companyName"
+        ]
+      },
+      "CreateRewardDto": {
+        "type": "object",
+        "properties": {
+          "imageUrl": {
+            "type": "string",
+            "example": "https://example.com/reward.png"
+          },
+          "name": {
+            "type": "string",
+            "example": "Amazon Voucher"
+          },
+          "description": {
+            "type": "string",
+            "example": "Redeem this reward after completing the challenge."
+          },
+          "points": {
+            "type": "string",
+            "example": "500"
+          },
+          "claimableCount": {
+            "type": "string",
+            "example": "10"
+          },
+          "claimedCount": {
+            "type": "string",
+            "example": "0"
+          },
+          "creatorHrId": {
+            "type": "string",
+            "example": "hr-1777718400000-a1b2c3d4"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          }
+        },
+        "required": [
+          "imageUrl",
+          "name",
+          "description",
+          "points",
+          "claimableCount"
+        ]
+      },
+      "UpdateRewardDto": {
+        "type": "object",
+        "properties": {
+          "imageUrl": {
+            "type": "string",
+            "example": "https://example.com/reward.png"
+          },
+          "name": {
+            "type": "string",
+            "example": "Amazon Voucher"
+          },
+          "description": {
+            "type": "string",
+            "example": "Redeem this reward after completing the challenge."
+          },
+          "points": {
+            "type": "string",
+            "example": "500"
+          },
+          "claimableCount": {
+            "type": "string",
+            "example": "10"
+          },
+          "claimedCount": {
+            "type": "string",
+            "example": "0"
+          },
+          "creatorHrId": {
+            "type": "string",
+            "example": "hr-1777718400000-a1b2c3d4"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          }
+        }
+      },
+      "ClaimRewardDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          }
+        },
+        "required": [
+          "employeeId"
+        ]
+      },
+      "RewardClaimResultEntity": {
+        "type": "object",
+        "properties": {
+          "reward": {
+            "$ref": "#/components/schemas/RewardEntity"
+          },
+          "employee": {
+            "$ref": "#/components/schemas/EmployeeEntity"
+          }
+        },
+        "required": [
+          "reward",
+          "employee"
+        ]
+      },
+      "RolePermissionEntity": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string",
+            "example": "hr"
+          },
+          "permissions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "example": {
+              "user-management-create": true,
+              "user-management-read": true,
+              "user-management-update": true,
+              "user-management-delete": true,
+              "client-management-create": true,
+              "client-management-read": true,
+              "client-management-update": true,
+              "client-management-delete": true,
+              "reports-create": true,
+              "reports-read": true,
+              "reports-update": true,
+              "reports-delete": true,
+              "challenge-management-create": true,
+              "challenge-management-read": true,
+              "challenge-management-update": true,
+              "challenge-management-delete": true
+            }
+          }
+        },
+        "required": [
+          "group",
+          "permissions"
+        ]
+      },
+      "UpdateRolePermissionsDto": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "example": {
+              "user-management-create": true,
+              "user-management-read": true,
+              "user-management-update": true,
+              "user-management-delete": true,
+              "client-management-create": true,
+              "client-management-read": true,
+              "client-management-update": true,
+              "client-management-delete": true,
+              "reports-create": true,
+              "reports-read": true,
+              "reports-update": true,
+              "reports-delete": true,
+              "challenge-management-create": true,
+              "challenge-management-read": true,
+              "challenge-management-update": true,
+              "challenge-management-delete": true
+            },
+            "description": "Permission flags keyed by the existing frontend permission identifiers."
+          }
+        },
+        "required": [
+          "permissions"
+        ]
+      },
+      "VideoEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "video-1777718400000-a1b2c3d4"
+          },
+          "title": {
+            "type": "string",
+            "example": "Mindful Breathing for Busy Days"
+          },
+          "category": {
+            "type": "string",
+            "example": "Mind Relaxation"
+          },
+          "duration": {
+            "type": "string",
+            "example": "12:45"
+          },
+          "videoLink": {
+            "type": "string",
+            "example": "https://www.youtube.com/watch?v=inpok4MKVLM"
+          },
+          "thumbnailLink": {
+            "type": "string",
+            "example": "https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=900&q=80"
+          },
+          "description": {
+            "type": "string",
+            "example": "A short guided reset for stress and focus."
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-05-03T10:15:00.000Z"
+          },
+          "creatorExpertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "creatorExpertName": {
+            "type": "string",
+            "example": "Dr. Emily Chen"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "category",
+          "duration",
+          "videoLink",
+          "thumbnailLink",
+          "description",
+          "createdAt",
+          "creatorExpertId",
+          "creatorExpertName",
+          "companyId",
+          "companyName"
+        ]
+      },
+      "CreateVideoDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Mindful Breathing for Busy Days"
+          },
+          "category": {
+            "type": "string",
+            "example": "Mind Relaxation"
+          },
+          "duration": {
+            "type": "string",
+            "example": "12:45"
+          },
+          "videoLink": {
+            "type": "string",
+            "example": "https://www.youtube.com/watch?v=inpok4MKVLM"
+          },
+          "thumbnailLink": {
+            "type": "string",
+            "example": "https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=900&q=80"
+          },
+          "description": {
+            "type": "string",
+            "example": "A short guided reset for stress and focus."
+          },
+          "creatorExpertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "creatorExpertName": {
+            "type": "string",
+            "example": "Dr. Emily Chen"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          }
+        },
+        "required": [
+          "title",
+          "category",
+          "duration",
+          "videoLink",
+          "thumbnailLink",
+          "description"
+        ]
+      },
+      "UpdateVideoDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Mindful Breathing for Busy Days"
+          },
+          "category": {
+            "type": "string",
+            "example": "Mind Relaxation"
+          },
+          "duration": {
+            "type": "string",
+            "example": "12:45"
+          },
+          "videoLink": {
+            "type": "string",
+            "example": "https://www.youtube.com/watch?v=inpok4MKVLM"
+          },
+          "thumbnailLink": {
+            "type": "string",
+            "example": "https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=900&q=80"
+          },
+          "description": {
+            "type": "string",
+            "example": "A short guided reset for stress and focus."
+          },
+          "creatorExpertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "creatorExpertName": {
+            "type": "string",
+            "example": "Dr. Emily Chen"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          }
+        }
+      }
+    }
+  }
+}

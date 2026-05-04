@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wellness Profile | Edit</title>
+    <link rel="stylesheet" href="Employee_Manage_Profile.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="main-wrapper">
+    <header class="profile-header">
+        <div class="header-content">
+            <div class="text-group">
+                <h1>Manage Profile</h1>
+                <p>View and manage your wellness profile information</p>
+            </div>
+            <button class="btn-back" id="manageProfileBackBtn">Back</button>
+        </div>
+    </header>
+
+    <div class="profile-container">
+        <section class="glass-card">
+            <div class="profile-hero">
+                <div class="avatar-wrapper">
+                    <div class="avatar-circle" id="manageProfileAvatar">NA</div>
+                    <button class="edit-photo-btn" type="button">Photo</button>
+                </div>
+                <div class="hero-text">
+                    <h2 id="manageProfileHeading">Employee User</h2>
+                    <span id="manageProfileSubheading">@employee</span>
+                </div>
+            </div>
+
+            <div class="input-grid">
+                <div class="field">
+                    <label>Username</label>
+                    <input type="text" id="manageProfileUsername" value="" disabled>
+                    <span class="hint">Username cannot be changed</span>
+                </div>
+                <div class="field">
+                    <label>Full Name</label>
+                    <input type="text" id="manageProfileName" value="">
+                </div>
+                <div class="field">
+                    <label>Age</label>
+                    <input type="number" id="manageProfileAge" min="18" max="99" value="">
+                </div>
+                <div class="field">
+                    <label>Phone Number</label>
+                    <input type="text" id="manageProfilePhoneNumber" value="">
+                </div>
+                <div class="field">
+                    <label>Gender</label>
+                    <input type="text" id="manageProfileGender" value="">
+                </div>
+            </div>
+            <button class="btn-primary" id="saveProfileBtn" type="button">Save Profile</button>
+            <span class="hint" id="manageProfileStatus" hidden></span>
+        </section>
+
+        <section class="glass-card">
+            <div class="section-title">
+                <h3>Health Measurements</h3>
+                <div class="bmi-badge" id="manageProfileBmiBadge">BMI: --</div>
+            </div>
+            <div class="input-grid">
+                <div class="field">
+                    <label>Height (cm)</label>
+                    <input type="number" id="manageProfileHeight" min="80" max="250" value="">
+                </div>
+                <div class="field">
+                    <label>Weight (kg)</label>
+                    <input type="number" id="manageProfileWeight" min="20" max="300" value="">
+                </div>
+            </div>
+            <button class="btn-primary" id="updateMeasurementsBtn" type="button">Update Measurements</button>
+        </section>
+
+        <section class="glass-card">
+            <h3>Security</h3>
+            <div class="input-grid">
+                <div class="field full">
+                    <label>Current Password</label>
+                    <input type="password" id="manageProfileCurrentPassword" placeholder="Enter current password">
+                </div>
+                <div class="field">
+                    <label>New Password</label>
+                    <input type="password" id="manageProfileNewPassword" minlength="6">
+                </div>
+                <div class="field">
+                    <label>Confirm Password</label>
+                    <input type="password" id="manageProfileConfirmPassword">
+                </div>
+            </div>
+            <button class="btn-primary" id="changePasswordBtn" type="button">Change Password</button>
+        </section>
+    </div>
+</div>
+
+<script src="employeeAuth.js?v=20260504a"></script>
+<script src="apiClient.js?v=20260504a"></script>
+<script src="Employee_ManageProfile.js?v=20260504a"></script>
+</body>
+</html>

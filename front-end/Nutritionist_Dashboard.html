@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nutritionist Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Outfit:wght@400;500;600;700;800&family=Lobster&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="Expert_Specialized_Dashboard.css" />
+    <link rel="stylesheet" href="dashboardNavbar.css" />
+  </head>
+  <body data-expert-track="nutrition">
+    <div class="shell">
+      <nav class="navbar dashboard-nav">
+        <div class="logo">Stack Builders</div>
+
+        <div class="nav-links">
+          <a href="#" class="active" id="navHome"><i class="fa-solid fa-house"></i> Home</a>
+          <a href="#" id="navConsultation"
+            ><i class="fa-regular fa-calendar"></i> Consultation</a
+          >
+          <a href="Expert_Employee_Checkins.html" id="navEmployeeCheckins"
+            ><i class="fa-solid fa-notes-medical"></i> Employee Check-ins</a
+          >
+          <a href="#" id="navLiveSession"
+            ><i class="fa-solid fa-tower-broadcast"></i> Live Session</a
+          >
+          <a href="#" id="navVideoLibrary"
+            ><i class="fa-solid fa-video"></i> Video Library</a
+          >
+        </div>
+
+        <div class="nav-right">
+          <span id="wellnessWelcomeMessage">Welcome back, Wellness Expert!</span>
+          <i class="fa-regular fa-bell"></i>
+          <i class="fa-regular fa-user" id="profileNavIcon"></i>
+        </div>
+      </nav>
+
+      <main class="dashboard">
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow" id="dashboardEyebrow">Nutritionist</p>
+            <h1 id="dashboardTitle">Nutritionist Dashboard</h1>
+            <p id="dashboardSubtitle"></p>
+          </div>
+
+          <aside class="hero-card">
+            <h2>When employees should enter details</h2>
+            <p id="dashboardScheduleNote"></p>
+          </aside>
+        </section>
+
+        <section class="stats-grid">
+          <article class="stat-card">
+            <span class="stat-label">Total check-ins</span>
+            <h2 id="checkinCountValue">0</h2>
+            <p>Diet plan updates submitted by employees.</p>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">Need follow-up</span>
+            <h2 id="followupCountValue">0</h2>
+            <p>Employees whose latest diet update suggests attention is needed.</p>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">Upcoming consultations</span>
+            <h2 id="consultationCountValue">0</h2>
+            <p>Accepted consultation sessions already scheduled for you.</p>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">Upcoming live sessions</span>
+            <h2 id="liveSessionCountValue">0</h2>
+            <p>Live sessions you are scheduled to host soon.</p>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Priority Queue</p>
+              <h2>Employees who may need faster follow-up</h2>
+              <p>Latest diet plan submissions with higher priority signals.</p>
+            </div>
+            <span class="panel-pill">Latest by employee</span>
+          </div>
+          <div class="priority-list" id="priorityCheckinsList"></div>
+        </section>
+
+        <section class="panel" id="employeeCheckinsSection">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Employee Details</p>
+              <h2>Latest diet plan details by employee</h2>
+              <p>Each card shows the most recent nutritionist-facing update.</p>
+            </div>
+            <span class="panel-pill">Employee Check-ins</span>
+          </div>
+          <div class="latest-grid" id="employeeLatestCheckins"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Activity Log</p>
+              <h2>Recent diet plan submissions</h2>
+              <p>Employee check-ins submitted from time to time appear here in reverse order.</p>
+            </div>
+            <span class="panel-pill">Latest 12 rows</span>
+          </div>
+          <div class="table-wrap">
+            <table class="activity-table">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Submitted</th>
+                  <th>Summary</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="expertCheckinActivityBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="#">About us</a>
+          <a href="mailto:">Contact us</a>
+        </div>
+        <p>&copy; 2026 Stack Builders. Built with wellness in mind.</p>
+      </footer>
+    </div>
+
+    <div class="profile-overlay" id="profileOverlay" hidden>
+      <div class="profile-frame-shell" role="dialog" aria-modal="true" aria-label="My Profile">
+        <button
+          class="profile-overlay-close"
+          id="profileDrawerBackBtn"
+          type="button"
+          aria-label="Close profile panel"
+        >
+          Back
+        </button>
+        <iframe
+          class="profile-frame"
+          src="profile.html?role=wellness"
+          title="Wellness profile"
+        ></iframe>
+      </div>
+    </div>
+
+    <script src="expertAuth.js"></script>
+    <script src="apiClient.js"></script>
+    <script src="consultationStorage.js"></script>
+    <script src="liveSessionStorage.js"></script>
+    <script src="rolePermissions.js"></script>
+    <script src="wellnessCheckinStorage.js"></script>
+    <script src="Expert_Specialized_Dashboard.js"></script>
+  </body>
+</html>

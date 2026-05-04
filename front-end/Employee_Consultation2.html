@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Consultation Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Lobster&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="Employee_Consultation2.css">
+  <link rel="stylesheet" href="dashboardNavbar.css">
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  >
+</head>
+<body>
+
+<header class="navbar dashboard-nav">
+  <div class="logo">Stack Builders</div>
+  <div class="nav-links">
+    <a href="Employee_Dashbaord.html" id="homeNavLink"><i class="fa-solid fa-house"></i> Home</a>
+    <a href="Employee_Consultation2.html" class="active"><i class="fa-regular fa-calendar"></i> Consultation</a>
+    <a href="Employee_Wellness_Checkins.html" id="employeeWellnessCheckinsNavLink"><i class="fa-solid fa-notes-medical"></i> Wellness Check-ins</a>
+    <a href="Live_Session.html"><i class="fa-solid fa-tower-broadcast"></i> Live Session</a>
+    <a href="Video_Library.html?role=employee"><i class="fa-solid fa-video"></i> Video Library</a>
+  </div>
+  <div class="nav-right">
+    <span id="employeeWelcomeMessage">Welcome back, Employee!</span>
+    <i class="fa-regular fa-bell"></i>
+    <i class="fa-regular fa-user" id="profileNavIcon"></i>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="header">
+    <h1>Consultation Dashboard</h1>
+    <button class="btn" id="requestConsultationBtn">+ Request Consultation</button>
+  </div>
+
+  <div class="main-layout">
+
+    <div class="left">
+      <div class="upcoming-scroll-container section-panel">
+        <h3>Upcoming Consultations</h3>
+        <div id="upcomingConsultationsList"></div>
+      </div>
+    </div>
+
+    <div class="right">
+
+      <div class="rejected-scroll-container section-panel">
+        <h3>Rejected</h3>
+        <div id="rejectedConsultationsList"></div>
+      </div>
+
+      <div class="requested-scroll-container section-panel">
+        <h3>Requested</h3>
+        <div id="requestedConsultationsList"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="card section-panel previous-consultations-panel">
+    <h3>Previous Consultations</h3>
+    <div id="previousConsultationsList"></div>
+  </div>
+
+</div>
+
+<div class="request-modal-overlay" id="requestModalOverlay" hidden>
+  <div class="request-modal" role="dialog" aria-modal="true" aria-labelledby="requestModalTitle">
+    <div class="request-modal-header">
+      <div>
+        <span class="request-modal-tag">NEW REQUEST</span>
+        <h2 id="requestModalTitle">Request For Consultation</h2>
+        <p>Describe your purpose and we'll match you with the right experts.</p>
+      </div>
+      <button class="request-close-btn" id="requestModalCloseBtn" type="button">Close</button>
+    </div>
+
+    <form id="consultationModalForm" class="request-modal-form">
+      <label for="modalPurpose">Purpose</label>
+      <textarea id="modalPurpose" name="purpose" placeholder="Describe the purpose of your request." required></textarea>
+
+      <label for="modalExpertName">Expert Name</label>
+      <select id="modalExpertName" name="expertId" required>
+        <option value="">Select expert</option>
+      </select>
+
+      <div class="request-modal-actions">
+        <button class="request-secondary-btn" id="requestModalBackBtn" type="button">Back</button>
+        <button class="request-primary-btn" type="submit">Submit Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="profile-overlay" id="profileOverlay" hidden>
+  <div class="profile-frame-shell" role="dialog" aria-modal="true" aria-label="My Profile">
+    <button
+      class="profile-overlay-close"
+      id="profileDrawerBackBtn"
+      type="button"
+      aria-label="Close profile panel"
+    >
+      Back
+    </button>
+    <iframe class="profile-frame" src="profile.html?role=employee" title="Employee profile"></iframe>
+  </div>
+</div>
+
+<script src="employeeAuth.js"></script>
+<script src="expertAuth.js"></script>
+<script src="apiClient.js"></script>
+<script src="consultationStorage.js"></script>
+<script src="rolePermissions.js"></script>
+<script src="Employee_Consultation2.js"></script>
+</body>
+</html>

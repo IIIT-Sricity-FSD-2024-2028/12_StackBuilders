@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wellness Video Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Lobster&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
+  <link rel="stylesheet" href="Expert_Video_Library.css" />
+</head>
+<body>
+  <div class="shell">
+    <nav class="navbar">
+      <div class="logo">Stack Builders</div>
+      <div class="nav-links">
+        <a href="Wellness_Dashboard.html" id="navHome"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="Wellness_Consultation_Dashboard.html" id="navConsultation"><i class="fa-regular fa-calendar"></i> Consultation</a>
+        <a href="Expert_Employee_Checkins.html" id="navEmployeeCheckins"><i class="fa-solid fa-notes-medical"></i> Employee Check-ins</a>
+        <a href="Expert_Live_Session.html" id="navLiveSession"><i class="fa-solid fa-tower-broadcast"></i> Live Session</a>
+        <a href="Expert_Video_Library.html" id="navVideoLibrary" class="active"><i class="fa-solid fa-video"></i> Video Library</a>
+      </div>
+      <div class="nav-right">
+        <span id="expertWelcomeMessage">Welcome back, Wellness Expert!</span>
+        <i class="fa-regular fa-bell"></i>
+        <i class="fa-regular fa-user" id="profileNavIcon"></i>
+      </div>
+    </nav>
+
+    <main class="library-page">
+      <section class="library-hero">
+        <div>
+          <p class="eyebrow">Expert Video Library</p>
+          <h1>Video Library</h1>
+          <p class="subtitle">Explore our collection of wellness videos curated for your health journey.</p>
+        </div>
+        <button class="add-video-btn" id="openAddVideoModalBtn" type="button">
+          <i class="fa-solid fa-plus"></i> Add Video
+        </button>
+      </section>
+
+      <section class="filter-panel">
+        <label class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input id="videoSearchInput" type="text" placeholder="Search for videos..." />
+        </label>
+      </section>
+
+      <section class="video-category" data-category-section="health">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon pink"><i class="fa-solid fa-heart-pulse"></i></span>
+            <div>
+              <h2>Health Related Videos</h2>
+              <p>Nutrition, sleep, and healthy daily habits.</p>
+            </div>
+          </div>
+          <div class="section-controls">
+            <button class="circle-btn" type="button" data-direction="prev" aria-label="Previous videos">&lsaquo;</button>
+            <button class="circle-btn active" type="button" data-direction="next" aria-label="Next videos">&rsaquo;</button>
+          </div>
+        </div>
+        <div class="video-viewport">
+        <div class="video-grid">
+
+
+
+
+</div>
+        </div>
+      </section>
+
+      <section class="video-category" data-category-section="mind">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon purple"><i class="fa-solid fa-brain"></i></span>
+            <div>
+              <h2>Mind Relaxation Videos</h2>
+              <p>Calming routines, mindfulness, and stress relief.</p>
+            </div>
+          </div>
+          <div class="section-controls">
+            <button class="circle-btn" type="button" data-direction="prev" aria-label="Previous videos">&lsaquo;</button>
+            <button class="circle-btn active" type="button" data-direction="next" aria-label="Next videos">&rsaquo;</button>
+          </div>
+        </div>
+        <div class="video-viewport">
+        <div class="video-grid">
+
+
+
+
+</div>
+        </div>
+      </section>
+
+      <section class="video-category" data-category-section="physical">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon green"><i class="fa-solid fa-dumbbell"></i></span>
+            <div>
+              <h2>Physical Wellness Videos</h2>
+              <p>Movement, mobility, stretching, and fitness routines.</p>
+            </div>
+          </div>
+          <div class="section-controls">
+            <button class="circle-btn" type="button" data-direction="prev" aria-label="Previous videos">&lsaquo;</button>
+            <button class="circle-btn active" type="button" data-direction="next" aria-label="Next videos">&rsaquo;</button>
+          </div>
+        </div>
+        <div class="video-viewport">
+        <div class="video-grid">
+
+
+
+
+</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="profile-overlay" id="profileOverlay" hidden>
+    <div class="profile-frame-shell" role="dialog" aria-modal="true" aria-label="My Profile">
+      <button
+        class="profile-overlay-close"
+        id="profileDrawerBackBtn"
+        type="button"
+        aria-label="Close profile panel"
+      >
+        Back
+      </button>
+      <iframe
+        class="profile-frame"
+        src="profile.html?role=wellness"
+        title="Wellness profile"
+      ></iframe>
+    </div>
+  </div>
+
+  <div class="video-modal-overlay" id="videoModalOverlay" hidden>
+    <div class="video-modal" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
+      <div class="video-modal-header">
+        <div>
+          <p class="video-modal-eyebrow">VIDEO LIBRARY</p>
+          <h2 id="videoModalTitle">Add New Video</h2>
+          <p class="video-modal-copy">Add the details for a new wellness video without leaving this page.</p>
+        </div>
+        <button class="video-close-btn" id="closeAddVideoModalBtn" type="button">Close</button>
+      </div>
+
+      <form class="video-modal-form" id="videoModalForm" novalidate>
+        <p class="video-form-error" id="videoFormError" hidden></p>
+        <div class="video-form-grid">
+          <label class="video-field video-field-wide" data-field-name="title">
+            <span>Video Title</span>
+            <input type="text" name="title" placeholder="Enter video title" required />
+            <small class="video-field-error" hidden>Please add content here.</small>
+          </label>
+          <label class="video-field" data-field-name="category">
+            <span>Category</span>
+            <select name="category" required>
+              <option value="">Select category</option>
+              <option>Health Related</option>
+              <option>Mind Relaxation</option>
+              <option>Physical Wellness</option>
+            </select>
+            <small class="video-field-error" hidden>Please add content here.</small>
+          </label>
+          <label class="video-field" data-field-name="duration">
+            <span>Duration</span>
+            <input type="text" name="duration" placeholder="12:45" required />
+            <small class="video-field-error" hidden>Please add content here.</small>
+          </label>
+          <label class="video-field video-field-wide" data-field-name="videoLink">
+            <span>Video Link</span>
+            <input type="url" name="videoLink" placeholder="Paste YouTube or video URL" required />
+            <small class="video-field-error" hidden>Please add content here.</small>
+          </label>
+          <label class="video-field video-field-wide" data-field-name="thumbnailLink">
+            <span>Thumbnail Link</span>
+            <input type="url" name="thumbnailLink" placeholder="Paste thumbnail image URL" required />
+            <small class="video-field-error" hidden>Please add content here.</small>
+          </label>
+          <label class="video-field video-field-wide" data-field-name="description">
+            <span>Description</span>
+            <textarea name="description" rows="4" placeholder="Write a short summary for this video." required></textarea>
+            <small class="video-field-error" hidden>Please add content here.</small>
+          </label>
+        </div>
+
+        <div class="video-modal-actions">
+          <button class="video-secondary-btn" id="cancelAddVideoModalBtn" type="button">Cancel</button>
+          <button class="video-primary-btn" type="submit">Save Video</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="expertAuth.js"></script>
+  <script src="apiClient.js?v=20260503h"></script>
+  <script src="videoLibraryStorage.js?v=20260503h"></script>
+  <script src="rolePermissions.js"></script>
+  <script src="Expert_Video_Library.js?v=20260503h"></script>
+</body>
+</html>

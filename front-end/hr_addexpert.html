@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Wellness Expert</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Playfair+Display:ital,wght@1,700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="hr_addexpert.css" />
+  </head>
+  <body>
+    <main class="expert-page">
+      <section class="expert-shell">
+        <div class="brand">StackBuilders</div>
+
+        <header class="page-copy">
+          <h1>Add Wellness Expert</h1>
+          <p>
+            Empowering employees through data-driven health and expert-led
+            guidance.
+          </p>
+        </header>
+
+        <section class="form-card">
+          <form class="expert-form">
+            <div class="field-group">
+              <label for="expertName">Full Name</label>
+              <input
+                id="expertName"
+                type="text"
+                placeholder="Enter expert name"
+                required
+              />
+            </div>
+
+            <div class="field-group">
+              <label for="expertExperience">Experience (Years)</label>
+              <div class="input-icon-wrap">
+                <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+                <input
+                  id="expertExperience"
+                  type="text"
+                  placeholder="e.g., 5 years"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="expertEmail">Gmail Address</label>
+              <div class="input-icon-wrap">
+                <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                <input
+                  id="expertEmail"
+                  type="email"
+                  placeholder="Enter Gmail"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="expertPassword">Password</label>
+              <input
+                id="expertPassword"
+                type="password"
+                placeholder="Enter Password"
+                minlength="6"
+                required
+              />
+            </div>
+
+            <div class="field-group">
+              <label>Specialization</label>
+              <div class="specialization-grid">
+                <label class="special-card">
+                  <input
+                    type="radio"
+                    name="specialization"
+                    value="Physical Trainer"
+                    required
+                  />
+                  <span class="special-card-inner">
+                    <i class="fa-solid fa-wave-square" aria-hidden="true"></i>
+                    <strong>Physical Trainer</strong>
+                  </span>
+                </label>
+
+                <label class="special-card active">
+                  <input
+                    type="radio"
+                    name="specialization"
+                    value="Nutritionist"
+                    checked
+                  />
+                  <span class="special-card-inner">
+                    <i class="fa-solid fa-stethoscope" aria-hidden="true"></i>
+                    <strong>Nutritionist</strong>
+                  </span>
+                </label>
+
+                <label class="special-card">
+                  <input
+                    type="radio"
+                    name="specialization"
+                    value="Psychologist"
+                  />
+                  <span class="special-card-inner">
+                    <i class="fa-solid fa-brain" aria-hidden="true"></i>
+                    <strong>Psychologist</strong>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="submit-btn" type="submit">Add Expert</button>
+                <a class="back-btn" href="hr_dashboard.html" aria-label="Back"
+                >Back</a
+              >
+            </div>
+          </form>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employee Check-ins</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Lobster&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="Wellness_Dashboard.css" />
+    <link rel="stylesheet" href="Expert_Employee_Checkins.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <nav class="navbar">
+        <div class="logo">Stack Builders</div>
+
+        <div class="nav-links">
+          <a href="Wellness_Dashboard.html" id="navHome"><i class="fa-solid fa-house"></i> Home</a>
+          <a href="Wellness_Consultation_Dashboard.html" id="navConsultation"><i class="fa-regular fa-calendar"></i> Consultation</a>
+          <a href="Expert_Employee_Checkins.html" class="active" id="navEmployeeCheckins"><i class="fa-solid fa-notes-medical"></i> Employee Check-ins</a>
+          <a href="Expert_Live_Session.html" id="navLiveSession"
+            ><i class="fa-solid fa-tower-broadcast"></i> Live Session</a
+          >
+          <a href="Expert_Video_Library.html" id="navVideoLibrary"><i class="fa-solid fa-video"></i> Video Library</a>
+        </div>
+
+        <div class="nav-right">
+          <span id="wellnessWelcomeMessage">Welcome back, Wellness Expert!</span>
+          <i class="fa-regular fa-bell"></i>
+          <i class="fa-regular fa-user" id="profileNavIcon"></i>
+        </div>
+      </nav>
+
+      <main class="dashboard employee-checkins-page">
+        <section class="panel checkins-hero-panel">
+          <div class="panel-head">
+            <div>
+              <h3 id="employeeCheckinsPageTitle">Employee Check-ins</h3>
+              <p id="employeeCheckinsPageSubtitle">
+                Review multiple employee wellness check-ins shared over time.
+              </p>
+            </div>
+            <a class="view-all" href="Wellness_Consultation_Dashboard.html"
+              >Consultations <span>&gt;</span></a
+            >
+          </div>
+          <div class="checkins-hero-note" id="employeeCheckinsSchedule"></div>
+        </section>
+
+        <section class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-icon mint">
+              <span aria-hidden="true"><i class="fa-solid fa-notes-medical"></i></span>
+            </div>
+            <div>
+              <p class="eyebrow">Total Check-ins</p>
+              <h2 id="totalCheckinsCount">0</h2>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon coral">
+              <span aria-hidden="true"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            </div>
+            <div>
+              <p class="eyebrow">High Priority</p>
+              <h2 id="highPriorityCheckinsCount">0</h2>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon violet">
+              <span aria-hidden="true"><i class="fa-solid fa-users"></i></span>
+            </div>
+            <div>
+              <p class="eyebrow">Employees Tracked</p>
+              <h2 id="trackedEmployeesCount">0</h2>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>High Priority Check-ins</h3>
+              <p>Employees who may need immediate follow-up based on the latest submitted details</p>
+            </div>
+            <span class="checkins-panel-tag">Priority Queue</span>
+          </div>
+          <div class="cards three-col" id="highPriorityCheckinsCards"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>All Employee Check-ins</h3>
+              <p>Every submitted employee check-in for your specialization, including multiple entries over time</p>
+            </div>
+            <span class="checkins-panel-tag">Full Activity</span>
+          </div>
+          <div class="cards three-col" id="allEmployeeCheckinsCards"></div>
+          <div class="dashboard-pager" id="allEmployeeCheckinsPager" hidden>
+            <button class="dashboard-pager-btn" id="allEmployeeCheckinsPrevBtn" type="button">Previous</button>
+            <span class="dashboard-pager-btn dashboard-pager-indicator" id="allEmployeeCheckinsPageNumber">1</span>
+            <button class="dashboard-pager-btn" id="allEmployeeCheckinsNextBtn" type="button">Next</button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="#">About us</a>
+          <a href="mailto:">Contact us</a>
+        </div>
+        <p>&copy; 2026 Stack Builders. Built with wellness in mind.</p>
+      </footer>
+    </div>
+
+    <div class="checkin-detail-overlay" id="checkinDetailOverlay" hidden>
+      <div
+        class="checkin-detail-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="checkinDetailTitle"
+      >
+        <button
+          class="checkin-detail-close"
+          id="checkinDetailCloseBtn"
+          type="button"
+          aria-label="Close employee check-in details"
+        >
+          Close
+        </button>
+
+        <div class="checkin-detail-hero">
+          <div class="checkin-detail-person">
+            <div class="avatar dashboard-consultation-avatar" id="checkinDetailAvatar">EE</div>
+            <div>
+              <p class="checkin-detail-eyebrow" id="checkinDetailEyebrow">Employee Check-in</p>
+              <h2 id="checkinDetailTitle">Employee Details</h2>
+              <p class="checkin-detail-meta" id="checkinDetailMeta"></p>
+            </div>
+          </div>
+          <span class="status green" id="checkinDetailPriority">Stable</span>
+        </div>
+
+        <div class="checkin-detail-layout">
+          <section class="checkin-detail-main">
+            <div class="checkin-detail-section">
+              <div class="checkin-detail-section-head">
+                <h3>Complete submitted details</h3>
+                <p>All values entered by the employee for this check-in</p>
+              </div>
+              <div class="checkin-detail-metrics" id="checkinDetailMetrics"></div>
+            </div>
+
+            <div class="checkin-detail-section">
+              <div class="checkin-detail-section-head">
+                <h3>Additional notes</h3>
+                <p>Extra context the employee shared with this submission</p>
+              </div>
+              <div class="checkin-detail-notes" id="checkinDetailNotes"></div>
+            </div>
+
+            <div class="checkin-detail-section">
+              <div class="checkin-detail-section-head">
+                <h3>Expert response history</h3>
+                <p>Suggestion messages sent for this employee check-in</p>
+              </div>
+              <div class="checkin-detail-responses" id="checkinDetailResponses"></div>
+            </div>
+          </section>
+
+          <aside class="checkin-detail-sidebar">
+            <div class="checkin-detail-sidecard">
+              <h3>Review summary</h3>
+              <div class="checkin-detail-summary-list">
+                <div class="checkin-detail-summary-item">
+                  <span>Priority reason</span>
+                  <strong id="checkinDetailReason"></strong>
+                </div>
+                <div class="checkin-detail-summary-item">
+                  <span>Consultation status</span>
+                  <strong id="checkinDetailConsultationStatus"></strong>
+                </div>
+                <div class="checkin-detail-summary-item">
+                  <span>Suggested action</span>
+                  <strong id="checkinDetailSuggestedAction"></strong>
+                </div>
+              </div>
+              <div class="checkin-detail-sidebar-actions">
+                <button
+                  class="primary-btn"
+                  id="checkinDetailConsultationBtn"
+                  type="button"
+                  hidden
+                ></button>
+                <a
+                  class="ghost-btn"
+                  id="checkinDetailConsultationsLink"
+                  href="Wellness_Consultation_Dashboard.html"
+                >
+                  Consultations
+                </a>
+              </div>
+            </div>
+
+            <div class="checkin-detail-sidecard">
+              <h3>Send suggestion message</h3>
+              <p class="checkin-detail-helper" id="checkinDetailMessageHelper">
+                Share guidance, suggestions, or next steps for this employee.
+              </p>
+              <form id="checkinResponseForm" novalidate>
+                <label class="checkin-response-field" for="checkinResponseMessage">
+                  <span>Message</span>
+                  <textarea
+                    id="checkinResponseMessage"
+                    name="message"
+                    rows="5"
+                    placeholder="Write practical suggestions or supportive guidance for the employee."
+                  ></textarea>
+                </label>
+                <p class="checkin-response-status" id="checkinResponseStatus" hidden></p>
+                <button class="primary-btn full" id="checkinResponseSubmitBtn" type="submit">
+                  Send Message
+                </button>
+              </form>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-overlay" id="profileOverlay" hidden>
+      <div class="profile-frame-shell" role="dialog" aria-modal="true" aria-label="My Profile">
+        <button
+          class="profile-overlay-close"
+          id="profileDrawerBackBtn"
+          type="button"
+          aria-label="Close profile panel"
+        >
+          Back
+        </button>
+        <iframe
+          class="profile-frame"
+          src="profile.html?role=wellness"
+          title="Wellness profile"
+        ></iframe>
+      </div>
+    </div>
+
+    <script src="expertAuth.js"></script>
+    <script src="apiClient.js"></script>
+    <script src="consultationStorage.js"></script>
+    <script src="rolePermissions.js"></script>
+    <script src="wellnessCheckinStorage.js"></script>
+    <script src="checkinResponseStorage.js"></script>
+    <script src="Expert_Employee_Checkins.js"></script>
+  </body>
+</html>

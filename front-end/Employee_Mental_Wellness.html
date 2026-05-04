@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mental Wellness Check-in</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="Employee_Wellness_Form.css" />
+  </head>
+  <body data-checkin-type="mental" class="form-only-page">
+    <div class="page-shell form-page-shell">
+      <main class="page">
+        <div class="form-page-top">
+          <a class="back-link" href="Employee_Wellness_Checkins.html">
+            <i class="fa-solid fa-arrow-left"></i> Back to wellness check-ins
+          </a>
+        </div>
+
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow" id="wellnessFormEyebrow">Psychologist Review</p>
+            <h1 id="wellnessFormTitle">Mental Wellness Check-in</h1>
+            <p id="wellnessFormIntro"></p>
+          </div>
+
+          <aside class="schedule-card">
+            <h2>When to enter details</h2>
+            <p id="wellnessFormSchedule"></p>
+          </aside>
+        </section>
+
+        <section class="content-grid">
+          <section class="panel">
+            <h2>Submit your update</h2>
+            <p class="panel-copy">
+              Fill in the fields below so your wellness expert can review your
+              latest mental wellness status.
+            </p>
+            <p class="status-message" id="wellnessFormStatus" hidden></p>
+
+            <form id="wellnessCheckinForm" novalidate>
+              <div class="form-grid" id="wellnessCheckinFields"></div>
+              <label class="form-field form-field-wide">
+                <span>Additional notes</span>
+                <textarea
+                  name="notes"
+                  rows="5"
+                  placeholder="Add anything else your wellness expert should know."
+                ></textarea>
+                <small class="field-helper"
+                  >Use this for context that does not fit inside the score-based
+                  fields.</small
+                >
+              </label>
+
+              <div class="form-actions">
+                <button class="primary-btn" type="submit">Save Check-in</button>
+                <a class="secondary-btn" href="Employee_Wellness_Checkins.html"
+                  >Back to wellness check-ins</a
+                >
+              </div>
+            </form>
+          </section>
+
+          <aside class="panel">
+            <h2>Recent submissions</h2>
+            <p class="panel-copy">
+              Your recent mental wellness updates appear here after each save.
+            </p>
+            <div class="history-list" id="employeeTrackHistory"></div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script src="employeeAuth.js"></script>
+    <script src="apiClient.js"></script>
+    <script src="rolePermissions.js"></script>
+    <script src="wellnessCheckinStorage.js"></script>
+    <script src="checkinResponseStorage.js"></script>
+    <script src="Employee_Wellness_Form.js"></script>
+  </body>
+</html>

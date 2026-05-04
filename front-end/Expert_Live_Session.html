@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Session</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Lobster&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
+  <link rel="stylesheet" href="Expert_Live_Session.css?v=20260503j" />
+</head>
+<body>
+  <div class="shell">
+    <nav class="navbar">
+      <div class="logo">Stack Builders</div>
+
+      <div class="nav-links">
+        <a href="Wellness_Dashboard.html" id="navHome"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="Wellness_Consultation_Dashboard.html" id="navConsultation"><i class="fa-regular fa-calendar"></i> Consultation</a>
+        <a href="Expert_Employee_Checkins.html" id="navEmployeeCheckins"><i class="fa-solid fa-notes-medical"></i> Employee Check-ins</a>
+        <a href="Expert_Live_Session.html" class="active" id="navLiveSession"><i class="fa-solid fa-tower-broadcast"></i> Live Session</a>
+        <a href="Expert_Video_Library.html" id="navVideoLibrary"><i class="fa-solid fa-video"></i> Video Library</a>
+      </div>
+
+      <div class="nav-right">
+        <span id="expertWelcomeMessage">Welcome back, Wellness Expert!</span>
+        <i class="fa-regular fa-bell"></i>
+        <i class="fa-regular fa-user" id="profileNavIcon"></i>
+      </div>
+    </nav>
+
+    <main class="page">
+      <section class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fa-regular fa-calendar"></i></div>
+          <div>
+            <p>Upcoming Sessions</p>
+            <h2 id="upcomingSessionsCount">0</h2>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon mint"><i class="fa-regular fa-calendar-check"></i></div>
+          <div>
+            <p>Completed Sessions</p>
+            <h2 id="completedSessionsCount">0</h2>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon yellow"><i class="fa-regular fa-star"></i></div>
+          <div>
+            <p>Average Rating</p>
+            <h2 id="averageRatingValue">0.0</h2>
+          </div>
+        </div>
+
+        <div class="create-wrap">
+          <button class="create-btn" id="createLiveSessionBtn">+ Create Live Session</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon"><i class="fa-regular fa-calendar"></i></div>
+            <div>
+              <h2>Upcoming Sessions</h2>
+              <p id="upcomingSessionsSubtitle">No sessions scheduled</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="session-list" id="expertUpcomingSessionList"></div>
+        <div class="pagination" id="upcomingSessionsPagination" hidden>
+          <button type="button" id="upcomingSessionsPrevBtn">Previous</button>
+          <span class="page-number active" id="upcomingSessionsPageNumber">1</span>
+          <button type="button" id="upcomingSessionsNextBtn">Next</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon"><i class="fa-regular fa-calendar"></i></div>
+            <div>
+              <h2>Session History</h2>
+              <p id="sessionHistorySubtitle">No completed sessions</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="session-list" id="expertSessionHistoryList"></div>
+        <div class="pagination" id="sessionHistoryPagination" hidden>
+          <button type="button" id="sessionHistoryPrevBtn">Previous</button>
+          <span class="page-number active" id="sessionHistoryPageNumber">1</span>
+          <button type="button" id="sessionHistoryNextBtn">Next</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="#">About us</a>
+        <a href="mailto:">Contact us</a>
+      </div>
+      <p>© 2026 Stack Builders. Built with wellness in mind.</p>
+    </footer>
+  </div>
+
+  <div class="profile-overlay" id="profileOverlay" hidden>
+    <div class="profile-frame-shell" role="dialog" aria-modal="true" aria-label="My Profile">
+      <button
+        class="profile-overlay-close"
+        id="profileDrawerBackBtn"
+        type="button"
+        aria-label="Close profile panel"
+      >
+        Back
+      </button>
+      <iframe
+        class="profile-frame"
+        src="profile.html?role=wellness"
+        title="Wellness profile"
+      ></iframe>
+    </div>
+  </div>
+
+  <div class="session-modal-overlay" id="sessionModalOverlay" hidden>
+    <div class="session-modal" role="dialog" aria-modal="true" aria-labelledby="sessionModalTitle">
+      <div class="session-modal-header">
+        <div>
+          <p class="session-modal-eyebrow">LIVE SESSION SETUP</p>
+          <h2 id="sessionModalTitle">Create Live Session</h2>
+          <p class="session-modal-copy">Add the title, schedule, and details for your next session. The category is assigned from your expert profile.</p>
+        </div>
+        <button class="session-close-btn" id="sessionModalCloseBtn" type="button">Close</button>
+      </div>
+
+      <form class="session-modal-form" id="sessionModalForm">
+        <div class="session-form-grid">
+          <label class="session-field session-field-wide">
+            <span>Session Title</span>
+            <input type="text" name="title" placeholder="Enter session title" required />
+          </label>
+
+          <label class="session-field">
+            <span>Category</span>
+            <input
+              type="text"
+              id="sessionCategoryDisplay"
+              name="categoryLabel"
+              placeholder="Assigned from your wellness category"
+              readonly
+            />
+            <input type="hidden" id="sessionCategoryInput" name="category" />
+            <small class="session-field-note">Assigned automatically from your expert category.</small>
+          </label>
+
+          <label class="session-field">
+            <span>Session Type</span>
+            <select name="sessionType" required>
+              <option>Video Session</option>
+              <option>Workshop</option>
+              <option>Webinar</option>
+            </select>
+          </label>
+
+          <label class="session-field">
+            <span>Date</span>
+            <input type="date" name="date" required />
+          </label>
+
+          <label class="session-field">
+            <span>Start Time</span>
+            <input type="time" name="startTime" required />
+          </label>
+
+          <label class="session-field">
+            <span>Duration</span>
+            <select name="duration" required>
+              <option>30 Minutes</option>
+              <option>45 Minutes</option>
+              <option>60 Minutes</option>
+              <option>90 Minutes</option>
+            </select>
+          </label>
+
+          <label class="session-field">
+            <span>Max Participants</span>
+            <input type="number" name="maxParticipants" min="1" placeholder="50" required />
+          </label>
+
+          <label class="session-field">
+            <span>Meeting Link</span>
+            <input type="url" name="meetingLink" placeholder="Paste session link" required />
+          </label>
+
+          <label class="session-field session-field-wide">
+            <span>Description</span>
+            <textarea rows="4" name="description" placeholder="Describe what this session covers." required></textarea>
+          </label>
+        </div>
+
+        <div class="session-modal-actions">
+          <button class="session-secondary-btn" id="sessionModalBackBtn" type="button">Cancel</button>
+          <button class="session-primary-btn" type="submit">Create Session</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="expertAuth.js"></script>
+  <script src="apiClient.js"></script>
+  <script src="liveSessionStorage.js?v=20260503j"></script>
+  <script src="rolePermissions.js"></script>
+  <script src="Expert_Live_Session.js?v=20260503j"></script>
+</body>
+</html>

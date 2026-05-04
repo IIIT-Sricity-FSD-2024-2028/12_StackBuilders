@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Employee</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="hr_addemployee.css">
+</head>
+<body>
+    <main class="employee-page">
+        <section class="employee-shell">
+            <div class="brand">StackBuilders</div>
+
+            <header class="page-copy">
+                <h1>Add Employee to Wellness Program</h1>
+                <p>A centralized platform to plan, manage, and track employee wellness.</p>
+            </header>
+
+            <section class="form-card">
+                <form class="employee-form">
+                    <div class="field-group">
+                        <label for="employeeName">Employee Name</label>
+                        <input id="employeeName" type="text" placeholder="Enter Employee Name" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="department">Department</label>
+                        <div class="select-wrap">
+                            <select id="department" required>
+                                <option value="" selected disabled>Select Department</option>
+                                <option>Engineering</option>
+                                <option>Marketing</option>
+                                <option>Sales</option>
+                                <option>Operations</option>
+                                <option>Advertising</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="employeeEmail">Gmail Address</label>
+                        <div class="input-icon-wrap">
+                            <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                            <input id="employeeEmail" type="email" placeholder="Enter Gmail" required>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="employeePassword">Password</label>
+                        <input id="employeePassword" type="password" placeholder="Enter Password" minlength="6" required>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="submit-btn" type="submit">Add Employee</button>
+                <a class="back-btn" href="hr_dashboard.html" aria-label="Back">
+                            Back
+                        </a>
+                    </div>
+                </form>
+            </section>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employee Wellness Check-ins</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="Employee_Wellness_Checkins.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <nav class="navbar">
+        <div class="logo">Stack Builders</div>
+
+        <div class="nav-links">
+          <a href="Employee_Dashbaord.html"><i class="fa-solid fa-house"></i> Home</a>
+          <a href="Employee_Consultation2.html"
+            ><i class="fa-regular fa-calendar"></i> Consultation</a
+          >
+          <a href="Employee_Wellness_Checkins.html" class="active"
+            ><i class="fa-solid fa-notes-medical"></i> Wellness Check-ins</a
+          >
+          <a href="Live_Session.html"
+            ><i class="fa-solid fa-tower-broadcast"></i> Live Session</a
+          >
+          <a href="Video_Library.html?role=employee"
+            ><i class="fa-solid fa-video"></i> Video Library</a
+          >
+        </div>
+
+        <div class="nav-right">
+          <span id="employeeCheckinWelcomeMessage">Welcome back, Employee!</span>
+          <i class="fa-regular fa-bell"></i>
+          <i class="fa-regular fa-user" id="profileNavIcon"></i>
+        </div>
+      </nav>
+
+      <main class="page">
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Employee Wellness Updates</p>
+            <h1>Share the right details with the right wellness expert.</h1>
+            <p class="hero-text">
+              Use these check-ins to send your latest mental wellness, physical
+              wellness, and diet plan details to the psychologist,
+              physical wellness instructor, and nutritionist.
+            </p>
+          </div>
+
+          <aside class="hero-card">
+            <h2>Quick reminder</h2>
+            <p>
+              These updates are designed for repeated use, so you can enter
+              details from time to time and your wellness experts can track
+              changes over time.
+            </p>
+          </aside>
+        </section>
+
+        <section class="track-switcher" aria-label="Wellness check-in options">
+          <a class="switch-pill mental" href="Employee_Mental_Wellness.html">
+            <i class="fa-solid fa-brain"></i> Mental Wellness
+          </a>
+          <a class="switch-pill physical" href="Employee_Physical_Wellness.html">
+            <i class="fa-solid fa-dumbbell"></i> Physical Wellness
+          </a>
+          <a class="switch-pill nutrition" href="Employee_Diet_Plan.html">
+            <i class="fa-solid fa-apple-whole"></i> Diet Plan
+          </a>
+        </section>
+
+        <section class="track-grid">
+          <article class="track-card mental">
+            <div class="track-icon">
+              <i class="fa-solid fa-brain"></i>
+            </div>
+            <div class="track-copy">
+              <p class="track-label">Psychologist</p>
+              <h2>Mental Wellness</h2>
+              <p>
+                Share mood, stress, sleep, focus, and support needs with the
+                psychologist.
+              </p>
+            </div>
+            <div class="track-meta">
+              <p class="meta-title">When to enter details</p>
+              <p id="mentalSchedule"></p>
+              <div class="meta-row">
+                <span>Entries</span>
+                <strong id="mentalEntriesCount">0</strong>
+              </div>
+              <div class="meta-row">
+                <span>Last update</span>
+                <strong id="mentalLastUpdated">Not submitted yet</strong>
+              </div>
+            </div>
+            <a class="track-link" href="Employee_Mental_Wellness.html">Open mental wellness page</a>
+          </article>
+
+          <article class="track-card physical">
+            <div class="track-icon">
+              <i class="fa-solid fa-dumbbell"></i>
+            </div>
+            <div class="track-copy">
+              <p class="track-label">Physical Wellness Instructor</p>
+              <h2>Physical Wellness</h2>
+              <p>
+                Share activity, step count, pain, mobility, and recovery
+                updates with your physical wellness instructor.
+              </p>
+            </div>
+            <div class="track-meta">
+              <p class="meta-title">When to enter details</p>
+              <p id="physicalSchedule"></p>
+              <div class="meta-row">
+                <span>Entries</span>
+                <strong id="physicalEntriesCount">0</strong>
+              </div>
+              <div class="meta-row">
+                <span>Last update</span>
+                <strong id="physicalLastUpdated">Not submitted yet</strong>
+              </div>
+            </div>
+            <a class="track-link" href="Employee_Physical_Wellness.html"
+              >Open physical wellness page</a
+            >
+          </article>
+
+          <article class="track-card nutrition">
+            <div class="track-icon">
+              <i class="fa-solid fa-apple-whole"></i>
+            </div>
+            <div class="track-copy">
+              <p class="track-label">Nutritionist</p>
+              <h2>Diet Plan</h2>
+              <p>
+                Share meal consistency, water intake, energy, and diet goal
+                updates with the nutritionist.
+              </p>
+            </div>
+            <div class="track-meta">
+              <p class="meta-title">When to enter details</p>
+              <p id="nutritionSchedule"></p>
+              <div class="meta-row">
+                <span>Entries</span>
+                <strong id="nutritionEntriesCount">0</strong>
+              </div>
+              <div class="meta-row">
+                <span>Last update</span>
+                <strong id="nutritionLastUpdated">Not submitted yet</strong>
+              </div>
+            </div>
+            <a class="track-link" href="Employee_Diet_Plan.html">Open diet plan page</a>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Recent Activity</p>
+              <h2>Your latest wellness check-ins</h2>
+            </div>
+            <span class="panel-pill">Latest 6 submissions</span>
+          </div>
+          <div class="recent-list" id="employeeRecentCheckins"></div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="#">About us</a>
+          <a href="mailto:">Contact us</a>
+        </div>
+        <p>&copy; 2026 Stack Builders. Built with wellness in mind.</p>
+      </footer>
+    </div>
+
+    <div class="profile-overlay" id="profileOverlay" hidden>
+      <div class="profile-frame-shell" role="dialog" aria-modal="true" aria-label="My Profile">
+        <button
+          class="profile-overlay-close"
+          id="profileDrawerBackBtn"
+          type="button"
+          aria-label="Close profile panel"
+        >
+          Back
+        </button>
+        <iframe class="profile-frame" src="profile.html?role=employee" title="Employee profile"></iframe>
+      </div>
+    </div>
+
+    <script src="employeeAuth.js"></script>
+    <script src="apiClient.js"></script>
+    <script src="rolePermissions.js"></script>
+    <script src="wellnessCheckinStorage.js"></script>
+    <script src="checkinResponseStorage.js"></script>
+    <script src="Employee_Wellness_Checkins.js"></script>
+  </body>
+</html>

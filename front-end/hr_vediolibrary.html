@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="hr_vediolibrary.css">
+</head>
+<body>
+    <div class="shell">
+        <nav class="navbar" aria-label="Main navigation">
+            <div class="logo">Stack Builders</div>
+
+            <div class="nav-links">
+                <a href="hr_dashboard.html"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="hr_challenges.html"><i class="fa-regular fa-calendar"></i> Challenges</a>
+                <a href="hr_vediolibrary.html" class="active"><i class="fa-solid fa-video"></i> Video Library</a>
+            </div>
+
+            <div class="nav-right">
+                <i class="fa-regular fa-bell" aria-hidden="true"></i>
+          <span id="hrWelcomeMessage">Welcome</span>
+                <i class="fa-regular fa-user" id="profileNavIcon" aria-hidden="true"></i>
+            </div>
+        </nav>
+
+        <main class="library-page">
+            <section class="library-hero">
+                <div>
+                    <p class="eyebrow">HR Video Library</p>
+                    <h1>Video Library</h1>
+                    <p class="subtitle">Review curated wellness content, spotlight key learning tracks, and organize videos employees can use across health, mind, and fitness programs.</p>
+                </div>
+            </section>
+
+            <section class="filter-panel">
+                <label class="search-box">
+                    <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+                    <input type="text" id="hrVideoSearchInput" placeholder="Search for videos...">
+                </label>
+            </section>
+
+            <section class="video-category" data-category-section="health">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span class="section-icon pink"><i class="fa-solid fa-heart-pulse"></i></span>
+                        <div>
+                            <h2>Health Related Videos</h2>
+                            <p>Nutrition, recovery, sleep, and practical daily health guidance.</p>
+                        </div>
+                    </div>
+                    <div class="section-controls">
+                        <button class="circle-btn" type="button" data-direction="prev" aria-label="Previous videos">&lsaquo;</button>
+                        <button class="circle-btn active" type="button" data-direction="next" aria-label="Next videos">&rsaquo;</button>
+                    </div>
+                </div>
+
+                <div class="video-viewport">
+                    <div class="video-grid">
+
+
+
+
+</div>
+                </div>
+            </section>
+
+            <section class="video-category" data-category-section="mind">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span class="section-icon purple"><i class="fa-solid fa-brain"></i></span>
+                        <div>
+                            <h2>Mind Relaxation Videos</h2>
+                            <p>Mindfulness, stress relief, calming routines, and guided resets.</p>
+                        </div>
+                    </div>
+                    <div class="section-controls">
+                        <button class="circle-btn" type="button" data-direction="prev" aria-label="Previous videos">&lsaquo;</button>
+                        <button class="circle-btn active" type="button" data-direction="next" aria-label="Next videos">&rsaquo;</button>
+                    </div>
+                </div>
+
+                <div class="video-viewport">
+                    <div class="video-grid">
+
+
+
+
+</div>
+                </div>
+            </section>
+
+            <section class="video-category" data-category-section="physical">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span class="section-icon green"><i class="fa-solid fa-dumbbell"></i></span>
+                        <div>
+                            <h2>Physical Wellness Videos</h2>
+                            <p>Movement, flexibility, desk mobility, and energizing body routines.</p>
+                        </div>
+                    </div>
+                    <div class="section-controls">
+                        <button class="circle-btn" type="button" data-direction="prev" aria-label="Previous videos">&lsaquo;</button>
+                        <button class="circle-btn active" type="button" data-direction="next" aria-label="Next videos">&rsaquo;</button>
+                    </div>
+                </div>
+
+                <div class="video-viewport">
+                    <div class="video-grid">
+
+
+
+
+</div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div class="profile-overlay" id="profileOverlay" hidden>
+        <div class="profile-frame-shell" role="dialog" aria-modal="true" aria-label="My Profile">
+            <button
+                class="profile-overlay-close"
+                id="profileDrawerBackBtn"
+                type="button"
+                aria-label="Close profile panel"
+            >
+                Back
+            </button>
+            <iframe class="profile-frame" src="profile.html?role=hr" title="HR profile"></iframe>
+        </div>
+    </div>
+    <script src="hrProfileStore.js"></script>
+    <script src="hrAuth.js"></script>
+    <script src="apiClient.js?v=20260503h"></script>
+    <script src="videoLibraryStorage.js?v=20260503h"></script>
+    <script src="rolePermissions.js"></script>
+    <script src="hr_vediolibrary.js?v=20260503h"></script>
+</body>
+</html>

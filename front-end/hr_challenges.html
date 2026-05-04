@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StackBuilders - Challenges and Rewards</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hr_challenges.css?v=20260503c">
+</head>
+<body data-page="challenges">
+    <div class="page-wrapper">
+        <header class="page-topbar">
+            <nav class="navbar" aria-label="Main navigation">
+                <div class="logo">Stack Builders</div>
+
+                <div class="nav-links">
+                    <a href="hr_dashboard.html"><i class="fa-solid fa-house"></i> Home</a>
+                    <a href="hr_challenges.html" class="active"><i class="fa-regular fa-calendar"></i> Challenges</a>
+                    <a href="hr_vediolibrary.html"><i class="fa-solid fa-video"></i> Video Library</a>
+                </div>
+
+                <div class="nav-right">
+                    <i class="fa-regular fa-bell" aria-hidden="true"></i>
+          <span id="hrWelcomeMessage">Welcome</span>
+                    <i class="fa-regular fa-user" id="profileNavIcon" aria-hidden="true"></i>
+                </div>
+            </nav>
+        </header>
+
+        <main class="challenge-shell">
+            <section class="challenge-hero">
+                <div class="hero-left">
+                    <span class="hero-icon" aria-hidden="true"><i class="fa-solid fa-trophy"></i></span>
+                    <div>
+                        <h1>Challenges &amp; Rewards</h1>
+                        <p>Track your progress and earn points</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="challenge-board">
+                <div class="board-toolbar">
+                    <div class="board-copy">
+                        <h2>Active Challenges</h2>
+                        <p>Complete challenges to earn rewards</p>
+                    </div>
+                    <button class="btn-create" id="openChallengeModal" type="button">
+                        <span class="icon-plus" aria-hidden="true">+</span>
+                        Create New Challenge
+                    </button>
+                </div>
+
+                <div class="challenges-grid" id="challengeGrid"></div>
+                <div class="section-pager">
+                    <button type="button" class="reward-nav-btn" id="prevChallengesBtn">
+                        Previous
+                    </button>
+                    <button type="button" class="reward-nav-btn" id="nextChallengesBtn">
+                        Next
+                    </button>
+                </div>
+            </section>
+
+            <section class="challenge-board rewards-board">
+                <div class="board-toolbar">
+                    <div class="board-copy">
+                        <h2>Rewards Catalog</h2>
+                        <p>Highlight the incentives employees can unlock by completing wellness goals.</p>
+                    </div>
+                    <button class="btn-create btn-create-reward" id="openRewardModal" type="button">
+                        <span class="icon-plus" aria-hidden="true">+</span>
+                        Create New Reward
+                    </button>
+                </div>
+
+                <div class="rewards-grid" id="rewardGrid"></div>
+                <div class="section-pager">
+                    <button type="button" class="reward-nav-btn" id="prevHrRewardsBtn">
+                        Previous
+                    </button>
+                    <button type="button" class="reward-nav-btn" id="nextHrRewardsBtn">
+                        Next
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="challengeModal" hidden>
+        <div class="modal-card challenge-modal-card" role="dialog" aria-modal="true" aria-labelledby="challengeModalTitle">
+            <button class="modal-close" type="button" aria-label="Close challenge form" data-close-modal>
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+
+            <section class="challenge-shell modal-shell">
+                <div class="brand">StackBuilders</div>
+
+                <header class="page-copy">
+                    <h1 id="challengeModalTitle">Launch a New Challenge</h1>
+                    <p>Create engaging wellness challenges for our team</p>
+                </header>
+
+                <section class="form-card">
+                    <form class="challenge-form">
+                        <div class="field-group">
+                            <label for="challengeName">
+                                <i class="fa-regular fa-bookmark" aria-hidden="true"></i>
+                                Challenge Name
+                            </label>
+                            <input id="challengeName" name="challengeName" type="text" placeholder="Enter Challenge Name" required>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="challengeTitle">
+                                <i class="fa-regular fa-bookmark" aria-hidden="true"></i>
+                                Challenge Type
+                            </label>
+                            <input id="challengeTitle" name="challengeTitle" type="text" placeholder="Enter Challenge Title" required>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="challengeReward">
+                                <i class="fa-regular fa-bookmark" aria-hidden="true"></i>
+                                Reward
+                            </label>
+                            <input id="challengeReward" name="challengeReward" type="number" min="1" step="1" placeholder="Enter reward points" required>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="challengeDeadline">
+                                <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                                Deadline
+                            </label>
+                            <input id="challengeDeadline" name="challengeDeadline" type="date">
+                        </div>
+
+                        <div class="field-group">
+                            <label for="challengeGoal">
+                                <i class="fa-regular fa-circle-dot" aria-hidden="true"></i>
+                                Goal
+                            </label>
+                            <input id="challengeGoal" name="challengeGoal" type="text" placeholder="Enter Goal (e.g., 10000 steps)" required>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="submit-btn" type="submit">
+                                <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+                                Launch Challenge
+                            </button>
+                            <button class="back-btn" type="button" data-close-modal>Back</button>
+                        </div>
+                        <p class="form-message" id="challengeFormMessage" hidden></p>
+                    </form>
+                </section>
+            </section>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="rewardModal" hidden>
+        <div class="modal-card challenge-modal-card" role="dialog" aria-modal="true" aria-labelledby="rewardModalTitle">
+            <button class="modal-close" type="button" aria-label="Close reward form" data-close-reward-modal>
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+
+            <section class="challenge-shell modal-shell">
+                <div class="brand">StackBuilders</div>
+
+                <header class="page-copy">
+                    <h1 id="rewardModalTitle">Create a New Reward</h1>
+                    <p>Add the reward content employees should see in the rewards catalog.</p>
+                </header>
+
+                <section class="form-card">
+                    <form class="challenge-form" id="rewardForm">
+                        <div class="field-group">
+                            <label for="rewardImageUrl">
+                                <i class="fa-regular fa-image" aria-hidden="true"></i>
+                                Image URL
+                            </label>
+                            <input id="rewardImageUrl" name="rewardImageUrl" type="url" placeholder="https://example.com/reward-image.jpg" required>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="rewardName">
+                                <i class="fa-regular fa-bookmark" aria-hidden="true"></i>
+                                Reward Name
+                            </label>
+                            <input id="rewardName" name="rewardName" type="text" placeholder="Enter Reward Name" required>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="rewardDescription">
+                                <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+                                Reward Description
+                            </label>
+                            <input id="rewardDescription" name="rewardDescription" type="text" placeholder="Describe the reward employees will receive" required>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="rewardPoints">
+                                <i class="fa-solid fa-award" aria-hidden="true"></i>
+                                Points Needed
+                            </label>
+                            <input id="rewardPoints" name="rewardPoints" type="number" min="1" step="1" placeholder="e.g., 800" required>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="rewardClaimableCount">
+                                <i class="fa-solid fa-users" aria-hidden="true"></i>
+                                Number of People Who Can Claim
+                            </label>
+                            <input id="rewardClaimableCount" name="rewardClaimableCount" type="number" min="1" placeholder="e.g., 50" required>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="submit-btn" type="submit">
+                                <i class="fa-solid fa-gift" aria-hidden="true"></i>
+                                Save Reward
+                            </button>
+                            <button class="back-btn" type="button" data-close-reward-modal>Back</button>
+                        </div>
+                        <p class="form-message" id="rewardFormMessage" hidden></p>
+                    </form>
+                </section>
+            </section>
+        </div>
+    </div>
+
+    <button class="scroll-top-btn" type="button" aria-label="Scroll to top">↑</button>
+    <div class="profile-overlay" id="profileOverlay" hidden>
+        <div class="profile-frame-shell" role="dialog" aria-modal="true" aria-label="My Profile">
+            <button
+                class="profile-overlay-close"
+                id="profileDrawerBackBtn"
+                type="button"
+                aria-label="Close profile panel"
+            >
+                Back
+            </button>
+            <iframe class="profile-frame" src="profile.html?role=hr" title="HR profile"></iframe>
+        </div>
+    </div>
+    <script src="hrProfileStore.js"></script>
+    <script src="hrAuth.js"></script>
+    <script src="apiClient.js"></script>
+    <script src="challengeStorage.js"></script>
+    <script src="rolePermissions.js"></script>
+    <script src="hr_challenges.js?v=20260503c"></script>
+</body>
+</html>
