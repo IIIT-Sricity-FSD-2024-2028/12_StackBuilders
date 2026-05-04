@@ -40,7 +40,6 @@ FFSD/
 |   |-- docs/
 |   |   |-- swagger.json
 |   |-- src/
-|   `-- test/
 `-- Videos/
 ```
 
