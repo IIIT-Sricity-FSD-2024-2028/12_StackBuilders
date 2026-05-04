@@ -1,12 +1,3 @@
--- Wellness Program Management Platform
--- Updated to match Database/ER Diagram.pdf
---
--- Notes:
--- 1. The ER diagram includes SUPER_USER as a system actor, so it is included here
---    as a table even though the current prototype hardcodes it in the frontend.
--- 2. Array-valued or many-to-many workflow relations from the ER diagram are
---    materialized as bridge tables in this relational schema.
-
 DROP DATABASE IF EXISTS wellness_platform;
 CREATE DATABASE wellness_platform
     CHARACTER SET utf8mb4
