@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service';
 import { ApiRoleHeader } from './common/decorators/api-role-header.decorator';
 import { Roles } from './common/decorators/roles.decorator';
@@ -13,6 +13,7 @@ export class AppController {
   @Get()
   @Roles(Role.Admin, Role.HR, Role.Employee, Role.WellnessExpert)
   @ApiRoleHeader()
+  @ApiOperation({ summary: 'Check backend readiness' })
   @ApiOkResponse({
     description: 'Basic backend readiness endpoint.',
     schema: {
