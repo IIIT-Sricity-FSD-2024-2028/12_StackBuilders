@@ -20,6 +20,7 @@ export class LoggingMiddleware implements NestMiddleware {
       // 'finish' fires the whole request lifecycle (including guards) has
       // already completed, so it's populated whenever a role was required.
       const role = (req as unknown as { role?: string }).role || 'unknown';
+      const userAgent = req.get('user-agent') || 'unknown';
 
       const line = [
         new Date().toISOString(),
@@ -29,6 +30,7 @@ export class LoggingMiddleware implements NestMiddleware {
         `${durationMs}ms`,
         `role=${role}`,
         req.ip,
+        `user-agent=${userAgent}`,
       ].join(' | ');
 
       if (res.statusCode >= 500) this.logger.error(line);
