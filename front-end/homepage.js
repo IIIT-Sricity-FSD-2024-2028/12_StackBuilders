@@ -121,8 +121,8 @@
       clearSigninError();
 
       const formData = new FormData(signinForm);
-      const username = formData.get("username");
-      const password = formData.get("password");
+      const username = String(formData.get("username") || "").trim();
+      const password = String(formData.get("password") || "");
       const employeeResult = window.employeeAuthStore?.authenticateEmployee(
         username,
         password
