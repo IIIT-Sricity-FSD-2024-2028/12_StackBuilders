@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment - Stack Builders</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="pricing.css">
+</head>
+<body class="pricing-body">
+
+  <nav class="pricing-nav">
+    <a href="homepage.html" class="logo">Stack Builders</a>
+    <div class="nav-links">
+      <a href="homepage.html#pricing">Pricing</a>
+    </div>
+  </nav>
+
+  <div class="payment-container">
+    <!-- Payment Form -->
+    <div class="payment-card" id="paymentForm">
+      <h2>Complete Your Payment</h2>
+      <p class="payment-subtitle">You're subscribing to the <strong id="selectedPlanName">—</strong> plan</p>
+
+      <div class="plan-summary">
+        <div class="plan-info">
+          <h3 id="summaryPlanName">—</h3>
+          <p id="summaryPlanLimits">—</p>
+        </div>
+        <div class="plan-total" id="summaryPrice">$0</div>
+      </div>
+
+      <!-- Company Selection -->
+      <div class="company-select-section">
+        <div class="form-group">
+          <label>Select Company</label>
+          <select id="companySelect">
+            <option value="">— Select your company —</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Mock Card Form -->
+      <div class="form-group">
+        <label>Cardholder Name</label>
+        <input type="text" id="cardName" placeholder="John Doe" value="Demo User">
+      </div>
+      <div class="form-group">
+        <label>Card Number</label>
+        <input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242" maxlength="19">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Expiry Date</label>
+          <input type="text" id="cardExpiry" placeholder="MM/YY" value="12/28" maxlength="5">
+        </div>
+        <div class="form-group">
+          <label>CVV</label>
+          <input type="text" id="cardCvv" placeholder="123" value="123" maxlength="4">
+        </div>
+      </div>
+
+      <button class="pay-btn" id="payBtn">
+        <i class="fa fa-lock"></i>&nbsp; Pay $<span id="payAmount">0</span>/mo
+      </button>
+    </div>
+
+    <!-- Success State -->
+    <div class="payment-card payment-success" id="paymentSuccess" style="display:none;">
+      <div class="check-circle"><i class="fa fa-check"></i></div>
+      <h2>Payment Successful!</h2>
+      <p>Your <strong id="successPlanName">—</strong> plan is now active for <strong id="successCompanyName">—</strong>.</p>
+      <a href="homepage.html" class="continue-btn">Continue to Dashboard</a>
+    </div>
+  </div>
+
+  <script src="apiClient.js"></script>
+  <script src="planStore.js"></script>
+  <script src="companyOnboardingRequestStore.js"></script>
+  <script src="hrAuth.js"></script>
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var planId = params.get('plan') || 'starter';
+      var plan = window.planStore.PLANS[planId];
+
+      if (!plan) {
+        alert('Invalid plan selected.');
+        window.location.href = 'homepage.html#pricing';
+        return;
+      }
+
+      // Fill plan details
+      document.getElementById('selectedPlanName').textContent = plan.name;
+      document.getElementById('summaryPlanName').textContent = plan.name + ' Plan';
+      document.getElementById('summaryPlanLimits').textContent =
+        plan.employeeLimit.toLocaleString() + ' employees · ' + plan.expertLimit + ' experts';
+      document.getElementById('summaryPrice').textContent = '$' + plan.price;
+      document.getElementById('payAmount').textContent = plan.price;
+
+      // Populate company dropdown
+      var companySelect = document.getElementById('companySelect');
+      var knownCompanies = [];
+      try {
+        knownCompanies = JSON.parse(localStorage.getItem('stack-builders-companies') || '[]');
+        knownCompanies.forEach(function(c) {
+          var opt = document.createElement('option');
+          opt.value = c.name || c.companyName || '';
+          opt.textContent = c.name || c.companyName || 'Unknown';
+          companySelect.appendChild(opt);
+        });
+      } catch(e) {}
+
+      // Also add a manual entry option
+      var manualOpt = document.createElement('option');
+      manualOpt.value = '__manual__';
+      manualOpt.textContent = '+ Enter company name manually';
+      companySelect.appendChild(manualOpt);
+
+      // Auto-select HR's company if logged in
+      var currentHr = window.hrAuthStore ? window.hrAuthStore.getCurrentHr() : null;
+      if (currentHr && currentHr.companyName) {
+        var existingOption = Array.from(companySelect.options).find(o => o.value === currentHr.companyName);
+        if (!existingOption) {
+          var opt = document.createElement('option');
+          opt.value = currentHr.companyName;
+          opt.textContent = currentHr.companyName;
+          companySelect.insertBefore(opt, manualOpt);
+        }
+        companySelect.value = currentHr.companyName;
+        companySelect.disabled = true; // Lock it for HR
+      }
+
+      companySelect.addEventListener('change', function() {
+        if (this.value === '__manual__') {
+          var name = prompt('Enter your company name:');
+          if (name && name.trim()) {
+            var opt = document.createElement('option');
+            opt.value = name.trim();
+            opt.textContent = name.trim();
+            companySelect.insertBefore(opt, manualOpt);
+            companySelect.value = name.trim();
+          } else {
+            companySelect.value = '';
+          }
+        }
+      });
+
+      // Pay button
+      document.getElementById('payBtn').addEventListener('click', async function() {
+        var companyName = companySelect.value;
+        if (!companyName || companyName === '__manual__') {
+          alert('Please select a company.');
+          return;
+        }
+
+        this.disabled = true;
+        this.textContent = 'Processing...';
+
+        try {
+          var result = await window.planStore.subscribe(companyName, planId);
+          if (!result.ok) {
+            alert(result.error);
+            this.disabled = false;
+            this.innerHTML = '<i class="fa fa-lock"></i>&nbsp; Pay $' + plan.price + '/mo';
+            return;
+          }
+
+          // Show success
+          document.getElementById('paymentForm').style.display = 'none';
+          document.getElementById('paymentSuccess').style.display = 'block';
+          document.getElementById('successPlanName').textContent = plan.name;
+          document.getElementById('successCompanyName').textContent = companyName;
+        } catch (e) {
+          console.error(e);
+          alert('An error occurred during payment processing. Please try again.');
+          this.disabled = false;
+          this.innerHTML = '<i class="fa fa-lock"></i>&nbsp; Pay $' + plan.price + '/mo';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

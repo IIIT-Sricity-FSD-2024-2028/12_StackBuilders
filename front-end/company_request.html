@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Request Company Approval</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="signup.css" />
+  </head>
+  <body>
+    <main class="login-page">
+      <section class="auth-card auth-card--request">
+        <div class="brand-block">
+          <h1>Stack Builders</h1>
+          <span class="brand-underline"></span>
+        </div>
+
+        <div class="auth-copy">
+          <h2>Request Company Approval</h2>
+          <p>
+            Submit your company details and HR account details for admin review.
+          </p>
+        </div>
+
+        <form class="auth-form auth-form--request" id="companyRequestForm" action="#">
+          <div class="auth-section">
+            <h3>Company Details</h3>
+            <div class="auth-grid">
+              <label class="field">
+                <span>Company Name</span>
+                <div class="input-wrap">
+                  <i class="fa-solid fa-building"></i>
+                  <input
+                    id="companyName"
+                    name="companyName"
+                    type="text"
+                    placeholder="Enter company name"
+                    required
+                  />
+                </div>
+              </label>
+
+              <label class="field">
+                <span>Company Phone</span>
+                <div class="input-wrap">
+                  <i class="fa-solid fa-phone"></i>
+                  <input
+                    name="companyPhone"
+                    type="tel"
+                    placeholder="+91 98765 43210"
+                    required
+                  />
+                </div>
+              </label>
+
+              <label class="field field--full">
+                <span>Company Address</span>
+                <div class="input-wrap">
+                  <i class="fa-solid fa-location-dot"></i>
+                  <input
+                    name="companyAddress"
+                    type="text"
+                    placeholder="Enter company address"
+                    required
+                  />
+                </div>
+              </label>
+
+              <label class="field field--full">
+                <span>Company Email</span>
+                <div class="input-wrap">
+                  <i class="fa-regular fa-envelope"></i>
+                  <input
+                    name="companyEmail"
+                    type="email"
+                    placeholder="Enter company email"
+                    required
+                  />
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="auth-section">
+            <h3>HR Details</h3>
+            <div class="auth-grid">
+              <label class="field">
+                <span>HR Name</span>
+                <div class="input-wrap">
+                  <i class="fa-regular fa-user"></i>
+                  <input
+                    name="hrName"
+                    type="text"
+                    placeholder="Enter HR full name"
+                    required
+                  />
+                </div>
+              </label>
+
+              <label class="field">
+                <span>HR Phone</span>
+                <div class="input-wrap">
+                  <i class="fa-solid fa-phone"></i>
+                  <input
+                    name="hrPhoneNumber"
+                    type="tel"
+                    placeholder="+91 98765 43210"
+                  />
+                </div>
+              </label>
+
+              <label class="field field--full">
+                <span>HR Gmail</span>
+                <div class="input-wrap">
+                  <i class="fa-regular fa-envelope"></i>
+                  <input
+                    name="hrEmail"
+                    type="email"
+                    placeholder="Enter HR Gmail"
+                    required
+                  />
+                </div>
+              </label>
+
+              <label class="field field--full">
+                <span>HR Password</span>
+                <div class="input-wrap">
+                  <i class="fa-solid fa-lock"></i>
+                  <input
+                    name="hrPassword"
+                    type="password"
+                    placeholder="Set the HR password"
+                    minlength="6"
+                    required
+                  />
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <p class="auth-helper">
+            After admin approval, use the HR Gmail and password above to sign in to the HR dashboard.
+          </p>
+
+          <p class="auth-error" id="companyRequestError" hidden></p>
+          <p class="auth-success" id="companyRequestSuccess" hidden></p>
+
+          <div class="action-row">
+            <button type="submit" class="submit-btn">Submit Request</button>
+            <a href="homepage.html" class="back-btn">Back to Sign In</a>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script src="apiClient.js"></script>
+    <script src="companyOnboardingRequestStore.js"></script>
+    <script src="company_request.js"></script>
+  </body>
+</html>

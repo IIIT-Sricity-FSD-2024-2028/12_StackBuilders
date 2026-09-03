@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Queries</title>
+  <link rel="stylesheet" href="usermgmystyles.css">
+  <link rel="stylesheet" href="layout.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="supervisor_theme.css">
+</head>
+<body class="app-body">
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-lockup">
+        <div class="brand-mark"><i class="fa fa-layer-group"></i></div>
+        <div class="brand-copy">
+          <strong>Stack Builders</strong>
+          <span>Supervisor Console</span>
+        </div>
+      </div>
+      <div class="sidebar-section-label">Workspace</div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="supervisor_dash.html"><i class="fa fa-chart-pie"></i>Dashboard</a>
+        <a class="sidebar-link" href="supervisor_usermgmt.html"><i class="fa fa-users"></i>User Management</a>
+        <a class="sidebar-link" href="supervisor_roles.html"><i class="fa fa-user-shield"></i>Roles &amp; Access</a>
+        <a class="sidebar-link" href="supervisor_datamgmt.html"><i class="fa fa-database"></i>Company Management</a>
+        <a class="sidebar-link" href="supervisor_reports.html"><i class="fa fa-chart-column"></i>Reports</a>
+        <a class="sidebar-link" href="supervisor_revenue.html"><i class="fa fa-dollar-sign"></i>Revenue</a>
+      <a class="sidebar-link active" href="supervisor_queries.html"><i class="fa fa-envelope"></i>Queries</a>
+        <a class="sidebar-link" href="supervisor_settings.html"><i class="fa fa-gear"></i>Settings</a>
+      </nav>
+      <div class="sidebar-card">
+        <h3>User Directory</h3>
+        <p>Connect your identity data source here to manage accounts, roles, and recent access changes.</p>
+        <a class="mini-button" href="supervisor_roles.html"><i class="fa fa-key"></i>Review access</a>
+      </div>
+    </aside>
+    <div class="app-main">
+      <main class="container">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Queries</p>
+            <h1>User Queries</h1>
+            <p class="subtitle">Review and reply to queries submitted by users</p>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>User Name</th>
+                <th>Role</th>
+                <th>Company</th>
+                <th>Query Description</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="queriesTableBody">
+              <tr class="empty-row"><td colspan="7">No queries submitted yet.</td></tr>
+            </tbody>
+          </table>
+          <div class="footer" id="queriesTableFooter">Showing 0 queries</div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Reply Modal -->
+  <div id="replyModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:2rem; border-radius:8px; width:90%; max-width:500px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+      <h2 style="margin-top:0;">Reply to Query</h2>
+      <p style="margin-bottom:1rem; color:#666;" id="replyingToDesc"></p>
+      <textarea id="replyDescription" rows="5" style="width:100%; padding:0.5rem; border:1px solid #ccc; border-radius:4px; margin-bottom:1rem; font-family:inherit; resize:vertical;" placeholder="Type your reply..."></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:1rem;">
+        <button id="cancelReplyBtn" style="padding:0.5rem 1rem; border:none; background:#f3f4f6; color:#333; border-radius:4px; cursor:pointer;">Cancel</button>
+        <button id="submitReplyBtn" style="padding:0.5rem 1rem; border:none; background:#ff914d; color:white; border-radius:4px; cursor:pointer;">Send Reply</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="adminAuth.js"></script>
+  <script src="apiClient.js"></script>
+  <script src="script.js"></script>
+  <script src="querySystem.js?v=20260504b"></script>
+
+  <script>
+    (function() {
+      var currentReplyingQueryId = null;
+
+      function getQuerySystem() {
+        return window.querySystem || null;
+      }
+
+      function getCompanyNameForQuery(q) {
+        if (q.companyName && q.companyName !== 'N/A') return q.companyName;
+        if (typeof getManagedUsers === 'function') {
+           var users = getManagedUsers();
+           for (var i = 0; i < users.length; i++) {
+             if (users[i].email.toLowerCase() === (q.userEmail || '').toLowerCase()) {
+               return users[i].companyName !== '--' ? users[i].companyName : 'N/A';
+             }
+           }
+        }
+        return 'N/A';
+      }
+
+      function renderQueries() {
+        var tableBody = document.getElementById('queriesTableBody');
+        var footer = document.getElementById('queriesTableFooter');
+        if (!tableBody) return;
+
+        var qs = getQuerySystem();
+        var queries = qs ? qs.readQueries() : [];
+
+        if (queries.length === 0) {
+          tableBody.innerHTML = '<tr class="empty-row"><td colspan="7">No queries submitted yet.</td></tr>';
+          if (footer) footer.textContent = 'Showing 0 queries';
+          return;
+        }
+
+        var sorted = queries.slice().sort(function(a, b) { return b.createdAt - a.createdAt; });
+        var html = '';
+        for (var i = 0; i < sorted.length; i++) {
+          var q = sorted[i];
+          var isReplied = q.status === 'Replied';
+          var resolvedCompanyName = getCompanyNameForQuery(q);
+          
+          html += '<tr>';
+          html += '<td>' + q.id + '</td>';
+          html += '<td>' + q.userName + '<br/><small>' + q.userEmail + '</small></td>';
+          html += '<td><span class="status-badge status-active">' + q.userType + '</span></td>';
+          html += '<td>' + resolvedCompanyName + '</td>';
+          html += '<td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + q.description + '">' + q.description + '</td>';
+          html += '<td><span class="status-badge ' + (isReplied ? 'status-active' : 'status-pending') + '">' + q.status + '</span></td>';
+          html += '<td><div class="table-actions">';
+          html += '<button class="action-btn reply-btn" data-query-id="' + q.id + '" title="Reply"' + (isReplied ? ' disabled' : '') + '>';
+          html += '<i class="fa fa-reply" style="color:' + (isReplied ? '#ccc' : '#4caf50') + ';"></i>';
+          html += '</button>';
+          html += '</div></td>';
+          html += '</tr>';
+        }
+        tableBody.innerHTML = html;
+        if (footer) footer.textContent = 'Showing ' + queries.length + ' queries';
+      }
+
+      function openReplyModal(queryId) {
+        var qs = getQuerySystem();
+        if (!qs) return;
+        var queries = qs.readQueries();
+        var query = null;
+        for (var i = 0; i < queries.length; i++) {
+          if (queries[i].id === queryId) { query = queries[i]; break; }
+        }
+        if (!query) return;
+
+        currentReplyingQueryId = queryId;
+        document.getElementById('replyingToDesc').textContent = 'User Query: ' + query.description;
+        var modal = document.getElementById('replyModal');
+        modal.style.display = 'flex';
+      }
+
+      function closeReplyModal() {
+        document.getElementById('replyModal').style.display = 'none';
+        document.getElementById('replyDescription').value = '';
+        currentReplyingQueryId = null;
+      }
+
+      function submitReply() {
+        var text = document.getElementById('replyDescription').value.trim();
+        if (!text) { alert('Please enter a reply.'); return; }
+
+        var qs = getQuerySystem();
+        if (!qs) return;
+        var queries = qs.readQueries();
+        for (var i = 0; i < queries.length; i++) {
+          if (queries[i].id === currentReplyingQueryId) {
+            queries[i].reply = text;
+            queries[i].status = 'Replied';
+            queries[i].readBySender = false;
+            break;
+          }
+        }
+        qs.writeQueries(queries);
+        closeReplyModal();
+        renderQueries();
+      }
+
+      // Use event delegation for reply buttons (works for dynamically created buttons)
+      document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.reply-btn');
+        if (btn && !btn.disabled) {
+          e.preventDefault();
+          var queryId = btn.getAttribute('data-query-id');
+          if (queryId) {
+            openReplyModal(queryId);
+          }
+        }
+      });
+
+      // Cancel button
+      document.getElementById('cancelReplyBtn').addEventListener('click', function() {
+        closeReplyModal();
+      });
+
+      // Submit reply button
+      document.getElementById('submitReplyBtn').addEventListener('click', function() {
+        submitReply();
+      });
+
+      // Initial render — use a small timeout to ensure querySystem.js has fully initialized
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+          renderQueries();
+        });
+      } else {
+        // DOM already loaded, render immediately
+        renderQueries();
+      }
+
+      window.addEventListener('queriesSynced', function() {
+        renderQueries();
+      });
+    })();
+  </script>
+</body>
+</html>

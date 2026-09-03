@@ -1,0 +1,386 @@
+-- Wellness Program Management Platform
+-- Updated to match Database/ER Diagram.pdf
+--
+-- Notes:
+-- 1. The ER diagram includes SUPER_USER as a system actor, so it is included here
+--    as a table even though the current prototype hardcodes it in the frontend.
+-- 2. Array-valued or many-to-many workflow relations from the ER diagram are
+--    materialized as bridge tables in this relational schema.
+
+DROP DATABASE IF EXISTS wellness_platform;
+CREATE DATABASE wellness_platform
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+USE wellness_platform;
+
+CREATE TABLE super_user (
+    username VARCHAR(100) PRIMARY KEY,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    role VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE onboarding_request (
+    request_id VARCHAR(64) PRIMARY KEY,
+    company_name VARCHAR(150) NOT NULL,
+    company_phone VARCHAR(20) NOT NULL,
+    company_address TEXT NOT NULL,
+    company_email VARCHAR(150) NOT NULL,
+    hr_name VARCHAR(100) NOT NULL,
+    hr_email VARCHAR(150) NOT NULL,
+    hr_password VARCHAR(255) NOT NULL,
+    hr_phone_number VARCHAR(20),
+    status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE company (
+    company_id VARCHAR(64) PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    address TEXT NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE role_permission (
+    role_group VARCHAR(50) PRIMARY KEY,
+    permissions JSON NOT NULL
+);
+
+CREATE TABLE hr_profile (
+    hr_id VARCHAR(64) PRIMARY KEY,
+    company_id VARCHAR(64) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(20),
+    department VARCHAR(100) NOT NULL DEFAULT 'HR',
+    designation VARCHAR(100) NOT NULL DEFAULT 'HR Admin',
+    location VARCHAR(100),
+    status VARCHAR(50) NOT NULL DEFAULT 'Active',
+    created_by_super_user BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_hr_profile_company
+        FOREIGN KEY (company_id) REFERENCES company(company_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE employee (
+    employee_id VARCHAR(64) PRIMARY KEY,
+    company_id VARCHAR(64) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    department VARCHAR(100),
+    status VARCHAR(50) NOT NULL DEFAULT 'Active',
+    age INT,
+    gender VARCHAR(30),
+    phone_number VARCHAR(20),
+    height_cm INT,
+    weight_kg INT,
+    reward_points_balance INT NOT NULL DEFAULT 500,
+    claimed_reward_ids JSON NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_employee_company
+        FOREIGN KEY (company_id) REFERENCES company(company_id)
+        ON DELETE CASCADE,
+    CONSTRAINT chk_employee_age
+        CHECK (age IS NULL OR age >= 0),
+    CONSTRAINT chk_employee_height
+        CHECK (height_cm IS NULL OR height_cm > 0),
+    CONSTRAINT chk_employee_weight
+        CHECK (weight_kg IS NULL OR weight_kg > 0),
+    CONSTRAINT chk_employee_reward_points
+        CHECK (reward_points_balance >= 0)
+);
+
+CREATE TABLE expert (
+    expert_id VARCHAR(64) PRIMARY KEY,
+    company_id VARCHAR(64) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    specialization VARCHAR(100) NOT NULL,
+    experience_years DECIMAL(5,2),
+    phone_number VARCHAR(20),
+    status VARCHAR(50) NOT NULL DEFAULT 'Active',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_expert_company
+        FOREIGN KEY (company_id) REFERENCES company(company_id)
+        ON DELETE CASCADE,
+    CONSTRAINT chk_expert_experience
+        CHECK (experience_years IS NULL OR experience_years >= 0)
+);
+
+CREATE TABLE wellness_checkin (
+    checkin_id VARCHAR(64) PRIMARY KEY,
+    company_id VARCHAR(64) NOT NULL,
+    employee_id VARCHAR(64) NOT NULL,
+    checkin_type VARCHAR(50) NOT NULL,
+    notes TEXT,
+    submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mood_score INT,
+    stress_score INT,
+    sleep_hours DECIMAL(4,1),
+    focus_score INT,
+    anxiety_trigger TEXT,
+    support_needed TEXT,
+    meal_consistency INT,
+    water_intake_liters DECIMAL(4,1),
+    energy_score INT,
+    servings_count INT,
+    nutrition_goal TEXT,
+    diet_challenge TEXT,
+    activity_minutes INT,
+    step_count INT,
+    pain_score INT,
+    mobility_score INT,
+    recovery_score INT,
+    workout_focus TEXT,
+    CONSTRAINT fk_wellness_checkin_company
+        FOREIGN KEY (company_id) REFERENCES company(company_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_wellness_checkin_employee
+        FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE consultation (
+    consultation_id VARCHAR(64) PRIMARY KEY,
+    company_id VARCHAR(64) NOT NULL,
+    employee_id VARCHAR(64) NOT NULL,
+    expert_id VARCHAR(64) NOT NULL,
+    source_checkin_id VARCHAR(64),
+    purpose TEXT NOT NULL,
+    category VARCHAR(100),
+    requested_on VARCHAR(50),
+    status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+    rejection_reason TEXT,
+    session_title VARCHAR(150),
+    session_date DATE,
+    session_time TIME,
+    session_duration VARCHAR(50),
+    session_meeting_link VARCHAR(255),
+    session_created_at DATETIME,
+    created_by_expert BOOLEAN NOT NULL DEFAULT FALSE,
+    follow_up_priority VARCHAR(50),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_consultation_company
+        FOREIGN KEY (company_id) REFERENCES company(company_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_consultation_employee
+        FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_consultation_expert
+        FOREIGN KEY (expert_id) REFERENCES expert(expert_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_consultation_source_checkin
+        FOREIGN KEY (source_checkin_id) REFERENCES wellness_checkin(checkin_id)
+        ON DELETE SET NULL
+);
+
+CREATE TABLE checkin_response (
+    response_id VARCHAR(64) PRIMARY KEY,
+    company_id VARCHAR(64) NOT NULL,
+    checkin_id VARCHAR(64) NOT NULL,
+    employee_id VARCHAR(64) NOT NULL,
+    expert_id VARCHAR(64) NOT NULL,
+    checkin_type VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_checkin_response_company
+        FOREIGN KEY (company_id) REFERENCES company(company_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_checkin_response_checkin
+        FOREIGN KEY (checkin_id) REFERENCES wellness_checkin(checkin_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_checkin_response_employee
+        FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_checkin_response_expert
+        FOREIGN KEY (expert_id) REFERENCES expert(expert_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE live_session (
+    live_session_id VARCHAR(64) PRIMARY KEY,
+    company_id VARCHAR(64) NOT NULL,
+    expert_id VARCHAR(64) NOT NULL,
+    title VARCHAR(150) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    session_type VARCHAR(50) NOT NULL,
+    date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    duration VARCHAR(50) NOT NULL,
+    max_participants INT,
+    meeting_link VARCHAR(255),
+    description TEXT,
+    status VARCHAR(50) NOT NULL DEFAULT 'Scheduled',
+    host_name VARCHAR(100),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_live_session_company
+        FOREIGN KEY (company_id) REFERENCES company(company_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_live_session_expert
+        FOREIGN KEY (expert_id) REFERENCES expert(expert_id)
+        ON DELETE CASCADE,
+    CONSTRAINT chk_live_session_max_participants
+        CHECK (max_participants IS NULL OR max_participants > 0)
+);
+
+CREATE TABLE video (
+    video_id VARCHAR(64) PRIMARY KEY,
+    company_id VARCHAR(64) NOT NULL,
+    creator_expert_id VARCHAR(64) NOT NULL,
+    creator_expert_name VARCHAR(100),
+    title VARCHAR(150) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    duration VARCHAR(50),
+    video_link VARCHAR(255) NOT NULL,
+    thumbnail_link VARCHAR(255),
+    description TEXT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_video_company
+        FOREIGN KEY (company_id) REFERENCES company(company_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_video_expert
+        FOREIGN KEY (creator_expert_id) REFERENCES expert(expert_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE challenge (
+    challenge_id VARCHAR(64) PRIMARY KEY,
+    company_id VARCHAR(64) NOT NULL,
+    creator_hr_id VARCHAR(64),
+    name VARCHAR(150) NOT NULL,
+    type VARCHAR(100),
+    reward INT NOT NULL,
+    deadline DATE,
+    goal TEXT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_challenge_company
+        FOREIGN KEY (company_id) REFERENCES company(company_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_challenge_hr
+        FOREIGN KEY (creator_hr_id) REFERENCES hr_profile(hr_id)
+        ON DELETE SET NULL,
+    CONSTRAINT chk_challenge_reward
+        CHECK (reward > 0)
+);
+
+CREATE TABLE reward (
+    reward_id VARCHAR(64) PRIMARY KEY,
+    company_id VARCHAR(64) NOT NULL,
+    creator_hr_id VARCHAR(64),
+    image_url VARCHAR(255),
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    points_required INT NOT NULL,
+    claimable_count INT NOT NULL DEFAULT 0,
+    claimed_count INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_reward_company
+        FOREIGN KEY (company_id) REFERENCES company(company_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_reward_hr
+        FOREIGN KEY (creator_hr_id) REFERENCES hr_profile(hr_id)
+        ON DELETE SET NULL,
+    CONSTRAINT chk_reward_points_required
+        CHECK (points_required > 0),
+    CONSTRAINT chk_reward_claimable_count
+        CHECK (claimable_count >= 0),
+    CONSTRAINT chk_reward_claimed_count
+        CHECK (claimed_count >= 0)
+);
+
+-- Materialized relationship: EMPLOYEE claims REWARD
+CREATE TABLE employee_reward_claim (
+    employee_id VARCHAR(64) NOT NULL,
+    reward_id VARCHAR(64) NOT NULL,
+    claimed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (employee_id, reward_id),
+    CONSTRAINT fk_employee_reward_claim_employee
+        FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_employee_reward_claim_reward
+        FOREIGN KEY (reward_id) REFERENCES reward(reward_id)
+        ON DELETE CASCADE
+);
+
+-- Materialized relationship: EMPLOYEE attends LIVE_SESSION
+CREATE TABLE employee_live_session_attendance (
+    employee_id VARCHAR(64) NOT NULL,
+    live_session_id VARCHAR(64) NOT NULL,
+    joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (employee_id, live_session_id),
+    CONSTRAINT fk_employee_live_session_attendance_employee
+        FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_employee_live_session_attendance_session
+        FOREIGN KEY (live_session_id) REFERENCES live_session(live_session_id)
+        ON DELETE CASCADE
+);
+
+-- Materialized relationship: EMPLOYEE watches VIDEO
+CREATE TABLE employee_video_watch (
+    employee_id VARCHAR(64) NOT NULL,
+    video_id VARCHAR(64) NOT NULL,
+    watched_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (employee_id, video_id),
+    CONSTRAINT fk_employee_video_watch_employee
+        FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_employee_video_watch_video
+        FOREIGN KEY (video_id) REFERENCES video(video_id)
+        ON DELETE CASCADE
+);
+
+-- Materialized relationship: EMPLOYEE participates in CHALLENGE
+CREATE TABLE employee_challenge_participation (
+    employee_id VARCHAR(64) NOT NULL,
+    challenge_id VARCHAR(64) NOT NULL,
+    joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    participation_status VARCHAR(50) NOT NULL DEFAULT 'Participating',
+    PRIMARY KEY (employee_id, challenge_id),
+    CONSTRAINT fk_employee_challenge_participation_employee
+        FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_employee_challenge_participation_challenge
+        FOREIGN KEY (challenge_id) REFERENCES challenge(challenge_id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_onboarding_request_status
+    ON onboarding_request(status);
+
+CREATE INDEX idx_employee_company
+    ON employee(company_id);
+
+CREATE INDEX idx_expert_company
+    ON expert(company_id);
+
+CREATE INDEX idx_wellness_checkin_company_employee
+    ON wellness_checkin(company_id, employee_id);
+
+CREATE INDEX idx_consultation_company_status
+    ON consultation(company_id, status);
+
+CREATE INDEX idx_live_session_company_status
+    ON live_session(company_id, status);
+
+CREATE INDEX idx_video_company_category
+    ON video(company_id, category);
+
+CREATE INDEX idx_challenge_company_deadline
+    ON challenge(company_id, deadline);
+
+CREATE INDEX idx_reward_company_points
+    ON reward(company_id, points_required);

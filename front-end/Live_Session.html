@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wellness Sessions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Lobster&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="Live_Session.css?v=20260503j" />
+    <link rel="stylesheet" href="dashboardNavbar.css" />
+  </head>
+  <body>
+    <nav class="navbar dashboard-nav">
+      <div class="logo">Stack Builders</div>
+      <div class="nav-links">
+        <a href="Employee_Dashbaord.html"
+          ><i class="fa-solid fa-house"></i> Home</a
+        >
+        <a href="Employee_Consultation2.html"
+          ><i class="fa-regular fa-calendar"></i> Consultation</a
+        >
+        <a href="Employee_Wellness_Checkins.html"
+          ><i class="fa-solid fa-notes-medical"></i> Wellness Check-ins</a
+        >
+        <a href="Live_Session.html" class="active"
+          ><i class="fa-solid fa-tower-broadcast"></i> Live Session</a
+        >
+        <a href="Video_Library.html?role=employee"
+          ><i class="fa-solid fa-video"></i> Video Library</a
+        >
+      </div>
+      <div class="nav-right">
+        <span id="employeeWelcomeMessage">Welcome back, Employee!</span>
+        <i class="fa-regular fa-bell"></i>
+        <i class="fa-regular fa-user" id="profileNavIcon"></i>
+      </div>
+    </nav>
+
+    <div class="sessions-page">
+      <header class="sessions-header">
+        <div class="icon-box">📹</div>
+        <div>
+          <h1>Wellness Sessions</h1>
+          <p>Join live wellness classes and view your session history</p>
+        </div>
+      </header>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="scheduled">
+          Scheduled <span id="scheduledCount">0</span>
+        </button>
+        <button class="tab" data-tab="ongoing">
+          Ongoing <span class="red" id="ongoingCount">0</span>
+        </button>
+        <button class="tab" data-tab="attended">
+          Attended <span class="green" id="attendedCount">0</span>
+        </button>
+      </div>
+
+      <section class="sessions-panel">
+        <section class="cards-grid" id="liveSessionsGrid"></section>
+        <div class="sessions-pager" id="liveSessionsPager" hidden>
+          <button
+            class="sessions-pager-btn"
+            id="liveSessionsPrevBtn"
+            type="button"
+          >
+            Previous
+          </button>
+          <span
+            class="sessions-pager-btn sessions-pager-indicator"
+            id="liveSessionsPageNumber"
+            >1</span
+          >
+          <button
+            class="sessions-pager-btn"
+            id="liveSessionsNextBtn"
+            type="button"
+          >
+            Next
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div class="profile-overlay" id="profileOverlay" hidden>
+      <div
+        class="profile-frame-shell"
+        role="dialog"
+        aria-modal="true"
+        aria-label="My Profile"
+      >
+        <button
+          class="profile-overlay-close"
+          id="profileDrawerBackBtn"
+          type="button"
+          aria-label="Close profile panel"
+        >
+          Back
+        </button>
+        <iframe
+          class="profile-frame"
+          src="profile.html?role=employee"
+          title="Employee profile"
+        ></iframe>
+      </div>
+    </div>
+
+    <script src="employeeAuth.js"></script>
+    <script src="apiClient.js"></script>
+    <script src="liveSessionStorage.js?v=20260503j"></script>
+    <script src="rolePermissions.js"></script>
+    <script src="Live_Session.js?v=20260503j"></script>
+  </body>
+</html>

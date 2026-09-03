@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile Panel - Side Menu</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="profile.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <div class="side-panel">
+        <div class="panel-content">
+          <div class="panel-header">
+            <div class="header-content">
+              <div>
+                <h2 class="header-title">My Profile</h2>
+                <p class="header-subtitle" id="profileHeaderSubtitle">
+                  Manage your personal and wellness information
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="profile-card">
+              <div class="decorative-bg"></div>
+
+              <div class="profile-content">
+                <div class="profile-header">
+                  <div class="avatar-container">
+                    <div class="avatar">
+                      <i class="fas fa-user"></i>
+                    </div>
+                    <div class="online-status">
+                      <div class="status-dot"></div>
+                    </div>
+                  </div>
+                  <div class="profile-info">
+                    <h3 class="profile-name" id="profileName">Profile</h3>
+                    <span class="profile-badge" id="profileRoleBadge">User</span>
+                  </div>
+                </div>
+
+                <div class="profile-actions">
+                  <a
+                    class="btn-primary"
+                    id="editProfileLink"
+                    href="Employee_ManageProfile.html"
+                    target="_top"
+                  >
+                    <i class="fas fa-edit"></i>
+                    Edit Profile
+                  </a>
+                  <a
+                    class="btn-outline"
+                    id="logoutProfileLink"
+                    href="homepage.html"
+                    target="_top"
+                  >
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="card-title">
+                <div class="title-icon">
+                  <i class="fas fa-user"></i>
+                </div>
+                <span id="infoSectionTitle">Personal Information</span>
+              </h3>
+
+              <div class="info-list">
+                <div class="info-item">
+                  <div class="info-icon emerald">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <div class="info-content">
+                    <p class="info-label">Full Name</p>
+                    <p class="info-value">Not available</p>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-icon blue">
+                    <i class="fas fa-envelope"></i>
+                  </div>
+                  <div class="info-content">
+                    <p class="info-label">Email Address</p>
+                    <p class="info-value">Not available</p>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-icon purple">
+                    <i class="fas fa-phone"></i>
+                  </div>
+                  <div class="info-content">
+                    <p class="info-label">Phone Number</p>
+                    <p class="info-value">Not added</p>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-icon blue">
+                    <i class="fas fa-building"></i>
+                  </div>
+                  <div class="info-content">
+                    <p class="info-label">Department</p>
+                    <p class="info-value">Not added</p>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-icon amber">
+                    <i class="fas fa-calendar"></i>
+                  </div>
+                  <div class="info-content">
+                    <p class="info-label">Age</p>
+                    <p class="info-value">Not added</p>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-icon pink">
+                    <i class="fas fa-user-circle"></i>
+                  </div>
+                  <div class="info-content">
+                    <p class="info-label">Gender</p>
+                    <p class="info-value">Not added</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="health-card">
+              <div class="health-header">
+                <div class="health-icon">
+                  <i class="fas fa-heart-pulse"></i>
+                </div>
+                <h3 class="card-title" id="metricsSectionTitle">Health Metrics</h3>
+              </div>
+
+              <div class="metrics-grid">
+                <div class="metric-card blue-metric">
+                  <div class="metric-decorative"></div>
+                  <div class="metric-content">
+                    <p class="metric-label">
+                      <i class="fas fa-chart-line"></i>
+                      Height
+                    </p>
+                    <p class="metric-value">--</p>
+                    <p class="metric-unit">centimeters</p>
+                  </div>
+                </div>
+
+                <div class="metric-card orange-metric">
+                  <div class="metric-decorative"></div>
+                  <div class="metric-content">
+                    <p class="metric-label">
+                      <i class="fas fa-weight"></i>
+                      Weight
+                    </p>
+                    <p class="metric-value">--</p>
+                    <p class="metric-unit">kilograms</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bmi-card">
+                <div class="bmi-decorative-1"></div>
+                <div class="bmi-decorative-2"></div>
+
+                <div class="bmi-content">
+                  <div class="bmi-header">
+                    <div class="bmi-title-group">
+                      <div class="bmi-icon">
+                        <i class="fas fa-heart"></i>
+                      </div>
+                      <p class="bmi-title" id="summaryMetricTitle">
+                        BMI (Body Mass Index)
+                      </p>
+                    </div>
+                    <span class="bmi-status" id="summaryMetricStatus">
+                      Not Available
+                    </span>
+                  </div>
+
+                  <div class="bmi-value-group">
+                    <p class="bmi-value" id="summaryMetricValue">--</p>
+                    <p class="bmi-unit" id="summaryMetricUnit">kg/m2</p>
+                  </div>
+
+                  <div class="bmi-indicator">
+                    <div class="bmi-range-bar">
+                      <div class="range-segment cyan"></div>
+                      <div class="range-segment green"></div>
+                      <div class="range-segment yellow"></div>
+                      <div class="range-segment orange"></div>
+                      <div class="range-segment red"></div>
+
+                      <div class="bmi-pointer">
+                        <div class="pointer-circle">
+                          <div class="pointer-dot"></div>
+                        </div>
+                        <div class="pointer-line"></div>
+                      </div>
+                    </div>
+
+                    <div class="range-labels">
+                      <div class="range-label">
+                        <span class="label-value">18.5</span>
+                        <span class="label-text">Under</span>
+                      </div>
+                      <div class="range-label center">
+                        <span class="label-value">24.9</span>
+                        <span class="label-text">Normal</span>
+                      </div>
+                      <div class="range-label center">
+                        <span class="label-value">29.9</span>
+                        <span class="label-text">Over</span>
+                      </div>
+                      <div class="range-label right">
+                        <span class="label-value">40+</span>
+                        <span class="label-text">Obese</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p class="bmi-message" id="summaryMetricMessage">
+                    Profile details will appear here after your data is loaded.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="employeeAuth.js"></script>
+    <script src="expertAuth.js"></script>
+    <script src="hrProfileStore.js"></script>
+    <script src="hrAuth.js"></script>
+    <script>
+      const requestedRole = new URLSearchParams(window.location.search).get("role");
+      const profileRole = ["employee", "wellness", "hr"].includes(requestedRole)
+        ? requestedRole
+        : "employee";
+
+      const profileHeaderSubtitle = document.getElementById("profileHeaderSubtitle");
+      const profileName = document.getElementById("profileName");
+      const roleBadge = document.getElementById("profileRoleBadge");
+      const editProfileLink = document.getElementById("editProfileLink");
+      const logoutProfileLink = document.getElementById("logoutProfileLink");
+      const infoSectionTitle = document.getElementById("infoSectionTitle");
+      const metricsSectionTitle = document.getElementById("metricsSectionTitle");
+      const infoItems = Array.from(document.querySelectorAll(".info-item"));
+      const metricCards = Array.from(document.querySelectorAll(".metric-card"));
+      const summaryMetricTitle = document.getElementById("summaryMetricTitle");
+      const summaryMetricStatus = document.getElementById("summaryMetricStatus");
+      const summaryMetricValue = document.getElementById("summaryMetricValue");
+      const summaryMetricUnit = document.getElementById("summaryMetricUnit");
+      const summaryMetricMessage = document.getElementById("summaryMetricMessage");
+      const employeeAuthStore = window.employeeAuthStore || null;
+      const expertAuthStore = window.expertAuthStore || null;
+      const hrAuthStore = window.hrAuthStore || null;
+      const readStoredCollection = (storageKey) => {
+        try {
+          const raw = window.localStorage.getItem(storageKey);
+          const parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+          return [];
+        }
+      };
+      const currentEmployeeProfile = employeeAuthStore?.getEmployeeProfile();
+      const currentExpertProfile = expertAuthStore?.getExpertProfile();
+      const currentHrProfile = hrAuthStore?.getCurrentHr?.() || null;
+      const hrEmployeeCount = readStoredCollection("stackbuilders.hr.employees").length;
+      const hrExpertCount = readStoredCollection("stackbuilders.hr.experts").length;
+
+      const employeeProfileContent = currentEmployeeProfile
+        ? {
+            headerSubtitle: "Manage your personal and wellness information",
+            name: currentEmployeeProfile.name,
+            roleBadge: "Employee",
+            editHref: "Employee_ManageProfile.html",
+            infoSectionTitle: "Personal Information",
+            infoItems: [
+              { label: "Full Name", value: currentEmployeeProfile.name },
+              { label: "Email Address", value: currentEmployeeProfile.email },
+              { label: "Phone Number", value: currentEmployeeProfile.phoneLabel },
+              { label: "Department", value: currentEmployeeProfile.department || "Not added" },
+              { label: "Age", value: currentEmployeeProfile.ageLabel },
+              { label: "Gender", value: currentEmployeeProfile.genderLabel },
+            ],
+            metricsSectionTitle: "Health Metrics",
+            metrics: [
+              {
+                label: "Height",
+                value: currentEmployeeProfile.heightLabel,
+                unit: "centimeters",
+              },
+              {
+                label: "Weight",
+                value: currentEmployeeProfile.weightLabel,
+                unit: "kilograms",
+              },
+            ],
+            summary: {
+              title: "BMI (Body Mass Index)",
+              status: currentEmployeeProfile.bmi.status,
+              value: currentEmployeeProfile.bmi.value,
+              unit: "kg/m2",
+              message: currentEmployeeProfile.bmi.message,
+            },
+          }
+        : {
+            headerSubtitle: "Manage your personal and wellness information",
+            name: "Not available",
+            roleBadge: "Employee",
+            editHref: "Employee_ManageProfile.html",
+            infoSectionTitle: "Personal Information",
+            infoItems: [
+              { label: "Full Name", value: "Not available" },
+              { label: "Email Address", value: "Not available" },
+              { label: "Phone Number", value: "Not added" },
+              { label: "Department", value: "Not added" },
+              { label: "Age", value: "Not added" },
+              { label: "Gender", value: "Not added" },
+            ],
+            metricsSectionTitle: "Health Metrics",
+            metrics: [
+              { label: "Height", value: "--", unit: "centimeters" },
+              { label: "Weight", value: "--", unit: "kilograms" },
+            ],
+            summary: {
+              title: "BMI (Body Mass Index)",
+              status: "Not Available",
+              value: "--",
+              unit: "kg/m2",
+              message: "Add your health details to see your BMI summary.",
+            },
+          };
+
+      const wellnessProfileContent = currentExpertProfile
+        ? {
+            headerSubtitle: "Manage your expert profile and consultation details",
+            name: currentExpertProfile.name,
+            roleBadge: "Wellness Expert",
+            editHref: "Wellness_ManageProfile.html",
+            infoSectionTitle: "Professional Information",
+            infoItems: [
+              { label: "Full Name", value: currentExpertProfile.name },
+              { label: "Email Address", value: currentExpertProfile.email },
+              { label: "Phone Number", value: currentExpertProfile.phoneLabel },
+              {
+                label: "Specialization",
+                value: currentExpertProfile.specialization || "Not added",
+              },
+              { label: "Experience", value: currentExpertProfile.experienceLabel },
+              { label: "Status", value: currentExpertProfile.status || "Active" },
+            ],
+            metricsSectionTitle: "Expert Snapshot",
+            metrics: [
+              {
+                label: "Experience",
+                value: currentExpertProfile.experienceLabel,
+                unit: "experience",
+              },
+              {
+                label: "Specialization",
+                value: currentExpertProfile.specialization || "Not added",
+                unit: "focus area",
+              },
+            ],
+            summary: {
+              title: "Account Status",
+              status: currentExpertProfile.status || "Active",
+              value: currentExpertProfile.initials || "--",
+              unit: "profile",
+              message: `${currentExpertProfile.name} is signed in with ${currentExpertProfile.email}.`,
+            },
+          }
+        : {
+            headerSubtitle: "Manage your expert profile and consultation details",
+            name: "Not available",
+            roleBadge: "Wellness Expert",
+            editHref: "Wellness_ManageProfile.html",
+            infoSectionTitle: "Professional Information",
+            infoItems: [
+              { label: "Full Name", value: "Not available" },
+              { label: "Email Address", value: "Not available" },
+              { label: "Phone Number", value: "Not added" },
+              { label: "Specialization", value: "Not added" },
+              { label: "Experience", value: "Not added" },
+              { label: "Status", value: "Not available" },
+            ],
+            metricsSectionTitle: "Expert Snapshot",
+            metrics: [
+              { label: "Experience", value: "--", unit: "years" },
+              { label: "Specialization", value: "--", unit: "focus area" },
+            ],
+            summary: {
+              title: "Account Status",
+              status: "Not Available",
+              value: "--",
+              unit: "profile",
+              message: "Profile details will appear here after sign-in data is loaded.",
+            },
+          };
+
+      const profileContentByRole = {
+        employee: employeeProfileContent,
+        wellness: wellnessProfileContent,
+        hr: {
+          headerSubtitle: "Manage your HR profile and wellness program oversight",
+          name: currentHrProfile?.name || "Not configured",
+          roleBadge: "HR Admin",
+          editHref: "hr_profile.html",
+          infoSectionTitle: "HR Information",
+          infoItems: [
+            { label: "Full Name", value: currentHrProfile?.name || "Not configured" },
+            { label: "Email Address", value: currentHrProfile?.email || "Not configured" },
+            { label: "Phone Number", value: currentHrProfile?.phoneNumber || "Not added" },
+            { label: "Department", value: currentHrProfile?.department || "Not added" },
+            { label: "Designation", value: currentHrProfile?.designation || "Not added" },
+            { label: "Location", value: currentHrProfile?.location || "Not added" },
+          ],
+          metricsSectionTitle: "Workspace Snapshot",
+          metrics: [
+            { label: "Employees", value: currentHrProfile ? String(hrEmployeeCount) : "--", unit: "managed" },
+            { label: "Experts", value: currentHrProfile ? String(hrExpertCount) : "--", unit: "active" },
+          ],
+          summary: {
+            title: "Account Status",
+            status: currentHrProfile?.status || "Not Configured",
+            value: currentHrProfile ? String(hrEmployeeCount + hrExpertCount) : "--",
+            unit: "users",
+            message: currentHrProfile
+              ? `${currentHrProfile.name} can manage ${hrEmployeeCount + hrExpertCount} linked workspace users.`
+              : "The HR account has not been created by the super user yet.",
+          },
+        },
+      };
+
+      const profileContent = profileContentByRole[profileRole];
+
+      if (profileHeaderSubtitle) {
+        profileHeaderSubtitle.textContent = profileContent.headerSubtitle;
+      }
+
+      if (profileName) {
+        profileName.textContent = profileContent.name;
+      }
+
+      if (roleBadge) {
+        roleBadge.textContent = profileContent.roleBadge;
+      }
+
+      if (editProfileLink) {
+        editProfileLink.href = profileContent.editHref;
+      }
+
+      if (logoutProfileLink && profileRole === "employee") {
+        logoutProfileLink.addEventListener("click", (event) => {
+          event.preventDefault();
+          employeeAuthStore?.clearCurrentEmployeeSession();
+          window.top.location.href = "homepage.html";
+        });
+      }
+
+      if (logoutProfileLink && profileRole === "wellness") {
+        logoutProfileLink.addEventListener("click", (event) => {
+          event.preventDefault();
+          expertAuthStore?.clearCurrentExpertSession();
+          window.top.location.href = "homepage.html";
+        });
+      }
+
+      if (logoutProfileLink && profileRole === "hr") {
+        logoutProfileLink.addEventListener("click", (event) => {
+          event.preventDefault();
+          window.hrAuthStore?.clearCurrentHrSession?.();
+          window.top.location.href = "homepage.html";
+        });
+      }
+
+      if (infoSectionTitle) {
+        infoSectionTitle.textContent = profileContent.infoSectionTitle;
+      }
+
+      infoItems.forEach((item, index) => {
+        const roleItem = profileContent.infoItems[index];
+        if (!roleItem) return;
+
+        const label = item.querySelector(".info-label");
+        const value = item.querySelector(".info-value");
+
+        if (label) {
+          label.textContent = roleItem.label;
+        }
+
+        if (value) {
+          value.textContent = roleItem.value;
+        }
+      });
+
+      if (metricsSectionTitle) {
+        metricsSectionTitle.textContent = profileContent.metricsSectionTitle;
+      }
+
+      metricCards.forEach((card, index) => {
+        const roleMetric = profileContent.metrics[index];
+        if (!roleMetric) return;
+
+        const label = card.querySelector(".metric-label");
+        const value = card.querySelector(".metric-value");
+        const unit = card.querySelector(".metric-unit");
+        const icon = label ? label.querySelector("i") : null;
+
+        if (label) {
+          label.textContent = roleMetric.label;
+          if (icon) {
+            label.prepend(icon);
+            icon.insertAdjacentText("afterend", " ");
+          }
+        }
+
+        if (value) {
+          value.textContent = roleMetric.value;
+        }
+
+        if (unit) {
+          unit.textContent = roleMetric.unit;
+        }
+      });
+
+      if (summaryMetricTitle) {
+        summaryMetricTitle.textContent = profileContent.summary.title;
+      }
+
+      if (summaryMetricStatus) {
+        summaryMetricStatus.textContent = profileContent.summary.status;
+      }
+
+      if (summaryMetricValue) {
+        summaryMetricValue.textContent = profileContent.summary.value;
+      }
+
+      if (summaryMetricUnit) {
+        summaryMetricUnit.textContent = profileContent.summary.unit;
+      }
+
+      if (summaryMetricMessage) {
+        summaryMetricMessage.textContent = profileContent.summary.message;
+      }
+    </script>
+  </body>
+</html>

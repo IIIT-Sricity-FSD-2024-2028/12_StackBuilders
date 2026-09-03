@@ -1,0 +1,232 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+
+:root {
+  --p-bg: #f6f1e8;
+  --p-surface: rgba(255,255,255,0.82);
+  --p-text: #162033;
+  --p-muted: #667085;
+  --p-primary: #1565d8;
+  --p-accent: #ff914d;
+  --p-success: #1d9b63;
+  --p-line: rgba(22,32,51,0.08);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body.pricing-body {
+  min-height:100vh;
+  font-family:"Manrope",sans-serif;
+  color:var(--p-text);
+  background:
+    radial-gradient(circle at top left, rgba(21,101,216,0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(201,90,64,0.12), transparent 24%),
+    linear-gradient(180deg, #f8f4ed 0%, #f5efe5 48%, #f1e9dc 100%);
+}
+
+/* ── NAVBAR ── */
+.pricing-nav {
+  position:sticky; top:16px; z-index:20;
+  width:min(1240px, calc(100% - 32px));
+  margin:18px auto 0;
+  display:flex; justify-content:space-between; align-items:center; gap:18px;
+  padding:16px 22px;
+  background:rgba(255,255,255,0.62);
+  border:1px solid rgba(255,255,255,0.45);
+  border-radius:24px;
+  backdrop-filter:blur(18px);
+  box-shadow:0 18px 45px rgba(43,56,91,0.08);
+}
+.pricing-nav .logo { font-weight:800; font-size:1.1rem; text-decoration:none; color:var(--p-text); }
+.pricing-nav .nav-links { display:flex; gap:8px; }
+.pricing-nav .nav-links a {
+  text-decoration:none; color:var(--p-muted);
+  padding:10px 14px; border-radius:999px;
+  font-size:0.95rem; font-weight:600; transition:0.25s;
+}
+.pricing-nav .nav-links a:hover,
+.pricing-nav .nav-links a.active {
+  color:var(--p-text); background:rgba(255,255,255,0.86);
+}
+
+/* ── PRICING HERO ── */
+.pricing-hero {
+  text-align:center;
+  padding:60px 20px 20px;
+}
+.pricing-hero h1 { font-size:2.4rem; font-weight:800; margin-bottom:12px; }
+.pricing-hero p { font-size:1.1rem; color:var(--p-muted); max-width:560px; margin:0 auto; }
+
+/* ── PLAN CARDS ── */
+.plans-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
+  gap:28px;
+  max-width:1060px;
+  margin:40px auto 60px;
+  padding:0 20px;
+}
+
+.plan-card {
+  background:var(--p-surface);
+  border:1px solid var(--p-line);
+  border-radius:18px;
+  padding:36px 28px;
+  display:flex; flex-direction:column;
+  transition:transform 0.25s, box-shadow 0.25s;
+  position:relative;
+  overflow:hidden;
+}
+.plan-card:hover {
+  transform:translateY(-4px);
+  box-shadow:0 20px 60px rgba(24,39,75,0.12);
+}
+.plan-card.featured {
+  border-color:var(--p-accent);
+  box-shadow:0 0 0 2px var(--p-accent), 0 20px 60px rgba(24,39,75,0.12);
+}
+.plan-card.featured::before {
+  content:"Most Popular";
+  position:absolute; top:16px; right:-30px;
+  background:var(--p-accent); color:white;
+  font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;
+  padding:4px 40px;
+  transform:rotate(45deg);
+}
+
+.plan-card .plan-name {
+  font-size:1rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:1px; color:var(--p-muted); margin-bottom:8px;
+}
+.plan-card .plan-price {
+  font-size:2.8rem; font-weight:800; line-height:1;
+  margin-bottom:4px;
+}
+.plan-card .plan-price span { font-size:1rem; font-weight:500; color:var(--p-muted); }
+.plan-card .plan-period { font-size:0.85rem; color:var(--p-muted); margin-bottom:24px; }
+
+.plan-card .plan-limits {
+  display:flex; gap:12px; margin-bottom:20px;
+}
+.plan-card .limit-badge {
+  background:rgba(21,101,216,0.08);
+  color:var(--p-primary);
+  font-size:0.8rem; font-weight:600;
+  padding:6px 12px; border-radius:99px;
+}
+
+.plan-card .plan-features {
+  list-style:none; flex:1; margin-bottom:28px;
+}
+.plan-card .plan-features li {
+  padding:8px 0;
+  font-size:0.92rem; color:var(--p-text);
+  border-bottom:1px solid var(--p-line);
+  display:flex; align-items:center; gap:8px;
+}
+.plan-card .plan-features li::before {
+  content:"✓"; color:var(--p-success); font-weight:700;
+}
+
+.plan-card .choose-btn {
+  display:block; width:100%; padding:14px;
+  border:none; border-radius:12px;
+  font-size:1rem; font-weight:700;
+  cursor:pointer; transition:0.25s;
+  text-align:center; text-decoration:none;
+}
+.plan-card .choose-btn.primary {
+  background:var(--p-accent); color:white;
+}
+.plan-card .choose-btn.primary:hover { background:#e67e3c; }
+.plan-card .choose-btn.outline {
+  background:transparent; color:var(--p-text);
+  border:2px solid var(--p-line);
+}
+.plan-card .choose-btn.outline:hover { border-color:var(--p-accent); color:var(--p-accent); }
+
+/* ── PAYMENT PAGE ── */
+.payment-container {
+  max-width:520px;
+  margin:40px auto 60px;
+  padding:0 20px;
+}
+.payment-card {
+  background:var(--p-surface);
+  border:1px solid var(--p-line);
+  border-radius:18px;
+  padding:36px 32px;
+}
+.payment-card h2 { font-size:1.4rem; margin-bottom:6px; }
+.payment-card .payment-subtitle { color:var(--p-muted); font-size:0.9rem; margin-bottom:24px; }
+
+.plan-summary {
+  background:rgba(21,101,216,0.05);
+  border:1px solid rgba(21,101,216,0.12);
+  border-radius:12px;
+  padding:18px; margin-bottom:24px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.plan-summary .plan-info h3 { font-size:1.1rem; font-weight:700; }
+.plan-summary .plan-info p { font-size:0.82rem; color:var(--p-muted); }
+.plan-summary .plan-total { font-size:1.6rem; font-weight:800; color:var(--p-primary); }
+
+.form-group {
+  margin-bottom:18px;
+}
+.form-group label {
+  display:block; font-size:0.85rem; font-weight:600;
+  margin-bottom:6px; color:var(--p-text);
+}
+.form-group input, .form-group select {
+  width:100%; padding:12px 14px;
+  border:1px solid #d1d5db; border-radius:10px;
+  font-size:0.95rem; font-family:inherit;
+  background:white; transition:border 0.2s;
+}
+.form-group input:focus, .form-group select:focus {
+  outline:none; border-color:var(--p-primary);
+  box-shadow:0 0 0 3px rgba(21,101,216,0.1);
+}
+.form-row { display:flex; gap:12px; }
+.form-row .form-group { flex:1; }
+
+.pay-btn {
+  display:block; width:100%; padding:16px;
+  border:none; border-radius:12px;
+  font-size:1.05rem; font-weight:700;
+  cursor:pointer; transition:0.25s;
+  background:var(--p-accent); color:white;
+  margin-top:8px;
+}
+.pay-btn:hover { background:#e67e3c; }
+.pay-btn:disabled { background:#ccc; cursor:not-allowed; }
+
+.payment-success {
+  text-align:center; padding:40px 20px;
+}
+.payment-success .check-circle {
+  width:72px; height:72px; border-radius:50%;
+  background:var(--p-success); color:white;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:2rem; margin-bottom:18px;
+}
+.payment-success h2 { font-size:1.5rem; margin-bottom:8px; }
+.payment-success p { color:var(--p-muted); margin-bottom:24px; }
+.payment-success .continue-btn {
+  display:inline-block; padding:12px 32px;
+  background:var(--p-primary); color:white;
+  border:none; border-radius:10px;
+  font-size:1rem; font-weight:600;
+  text-decoration:none; cursor:pointer;
+}
+
+/* ── COMPANY SELECT ── */
+.company-select-section {
+  margin-bottom: 24px;
+}
+.company-select-section select {
+  width:100%; padding:12px 14px;
+  border:1px solid #d1d5db; border-radius:10px;
+  font-size:0.95rem; font-family:inherit;
+  background:white;
+}

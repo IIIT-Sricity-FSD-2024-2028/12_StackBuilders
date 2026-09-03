@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upgrade Plan - HR Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Playfair+Display:ital,wght@1,700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="hr_dashboard.css" />
+    <style>
+      .pricing-hero { text-align:center; padding: 40px 20px 20px; }
+      .pricing-hero h1 { font-family:'Playfair Display', serif; font-size:2.5rem; color:#1b3b36; margin-bottom:10px; }
+      .pricing-hero p { font-size:1.1rem; color:#4a6a66; max-width:600px; margin:0 auto; }
+
+      .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+        max-width: 1060px;
+        margin: 40px auto;
+        padding: 0 20px 80px;
+      }
+      @media (max-width: 900px) { .plans-grid { grid-template-columns: 1fr; } }
+      .plan-card {
+        background: white; border: 1px solid rgba(0,0,0,0.08); border-radius: 16px;
+        padding: 32px 24px; display: flex; flex-direction: column;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: 0.3s;
+      }
+      .plan-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+      .plan-card.featured { border: 2px solid #0e9f92; box-shadow: 0 15px 35px rgba(14, 159, 146, 0.15); position: relative; }
+      .plan-card.featured::before {
+        content: "Most Popular"; position: absolute; top: 20px; right: -35px; background: #0e9f92; color: white;
+        font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 6px 40px; transform: rotate(45deg);
+      }
+      .plan-name { font-family: 'DM Sans', sans-serif; font-size: 1.3rem; font-weight: 700; color: #0e9f92; margin-bottom: 8px; text-transform: uppercase; letter-spacing:1px; }
+      .plan-price { font-size: 3rem; font-weight: 800; color: #1b3b36; margin-bottom: 24px; line-height:1; }
+      .plan-price span { font-size: 1rem; font-weight: 500; color: #666; }
+      
+      .limit-badge { background: rgba(14, 159, 146, 0.1); color: #0c8a7e; font-size: 0.85rem; font-weight: 600; padding: 8px 14px; border-radius: 99px; margin-bottom: 8px; display: inline-block; width:100%; text-align:center;}
+      .plan-features { list-style: none; flex: 1; margin: 24px 0; padding: 0; }
+      .plan-features li { padding: 10px 0; font-size: 0.95rem; color: #444; border-bottom: 1px solid #eee; }
+      .plan-features li i { color: #0e9f92; margin-right: 8px; }
+
+      .choose-btn { display: block; width: 100%; padding: 14px; border-radius: 12px; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: 0.3s; text-align: center; text-decoration: none; border:none; }
+      .choose-btn.primary { background: #0e9f92; color: white; }
+      .choose-btn.primary:hover { background: #0b8075; }
+      .choose-btn.outline { background: transparent; color: #0e9f92; border: 2px solid rgba(14, 159, 146, 0.3); }
+      .choose-btn.outline:hover { border-color: #0e9f92; background: rgba(14, 159, 146, 0.05); }
+      .choose-btn.current-plan { background: #e0f5f2; color: #0c8a7e; border: 2px solid #0e9f92; cursor: default; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <div class="page-shell">
+      <nav class="navbar">
+        <div class="logo">Stack Builders</div>
+        <div class="nav-links">
+          <a href="hr_dashboard.html"><i class="fa-solid fa-house"></i> Home</a>
+          <a href="hr_challenges.html"><i class="fa-regular fa-calendar"></i> Challenges</a>
+          <a href="hr_vediolibrary.html"><i class="fa-solid fa-video"></i> Video Library</a>
+        </div>
+        <div class="nav-right">
+          <a href="hr_pricing.html" style="text-decoration:none; padding:8px 16px; border-radius:20px; font-weight:700; background:#ff914d; color:white; font-size:0.85rem; margin-right:16px; box-shadow:0 4px 10px rgba(255,145,77,0.3);"><i class="fa fa-arrow-up-right-dots"></i> Upgrade Plan</a>
+          <i class="fa-regular fa-bell" aria-hidden="true"></i>
+          <span id="hrWelcomeMessage">Welcome</span>
+          <i class="fa-regular fa-user" id="profileNavIcon" aria-hidden="true"></i>
+        </div>
+      </nav>
+
+      <section class="pricing-hero">
+        <h1>Company Subscription</h1>
+        <p>Every plan includes all platform features. Choose based on the number of employees and wellness experts you can add.</p>
+      </section>
+
+      <section class="plans-grid">
+        <!-- Starter -->
+        <div class="plan-card">
+          <div class="plan-name">Starter</div>
+          <div class="plan-price">$100<span>/mo</span></div>
+          <div>
+            <div class="limit-badge"><i class="fa fa-users"></i>&nbsp; Up to 100 Employees</div>
+            <div class="limit-badge"><i class="fa fa-user-doctor"></i>&nbsp; Up to 10 Experts</div>
+          </div>
+          <ul class="plan-features">
+            <li><i class="fa fa-check"></i> All platform features included</li>
+            <li><i class="fa fa-check"></i> Analytics &amp; reports</li>
+            <li><i class="fa fa-check"></i> Wellness check-ins</li>
+            <li><i class="fa fa-check"></i> Live sessions &amp; video library</li>
+            <li><i class="fa fa-check"></i> Custom challenges</li>
+            <li><i class="fa fa-check"></i> API access &amp; integrations</li>
+          </ul>
+          <a href="hr_payment.html?plan=starter" class="choose-btn outline" data-plan="starter">Choose Starter</a>
+        </div>
+
+        <!-- Business -->
+        <div class="plan-card featured">
+          <div class="plan-name">Business</div>
+          <div class="plan-price">$200<span>/mo</span></div>
+          <div>
+            <div class="limit-badge"><i class="fa fa-users"></i>&nbsp; Up to 1,000 Employees</div>
+            <div class="limit-badge"><i class="fa fa-user-doctor"></i>&nbsp; Up to 50 Experts</div>
+          </div>
+          <ul class="plan-features">
+            <li><i class="fa fa-check"></i> All platform features included</li>
+            <li><i class="fa fa-check"></i> Analytics &amp; reports</li>
+            <li><i class="fa fa-check"></i> Wellness check-ins</li>
+            <li><i class="fa fa-check"></i> Live sessions &amp; video library</li>
+            <li><i class="fa fa-check"></i> Custom challenges</li>
+            <li><i class="fa fa-check"></i> API access &amp; integrations</li>
+          </ul>
+          <a href="hr_payment.html?plan=business" class="choose-btn primary" data-plan="business">Choose Business</a>
+        </div>
+
+        <!-- Enterprise -->
+        <div class="plan-card">
+          <div class="plan-name">Enterprise</div>
+          <div class="plan-price">$300<span>/mo</span></div>
+          <div>
+            <div class="limit-badge"><i class="fa fa-users"></i>&nbsp; Up to 10,000 Employees</div>
+            <div class="limit-badge"><i class="fa fa-user-doctor"></i>&nbsp; Up to 100 Experts</div>
+          </div>
+          <ul class="plan-features">
+            <li><i class="fa fa-check"></i> All platform features included</li>
+            <li><i class="fa fa-check"></i> Analytics &amp; reports</li>
+            <li><i class="fa fa-check"></i> Wellness check-ins</li>
+            <li><i class="fa fa-check"></i> Live sessions &amp; video library</li>
+            <li><i class="fa fa-check"></i> Custom challenges</li>
+            <li><i class="fa fa-check"></i> API access &amp; integrations</li>
+          </ul>
+          <a href="hr_payment.html?plan=enterprise" class="choose-btn outline" data-plan="enterprise">Choose Enterprise</a>
+        </div>
+      </section>
+    </div>
+
+    <script src="apiClient.js"></script>
+    <script src="planStore.js"></script>
+    <script src="hrProfileStore.js"></script>
+    <script src="hrAuth.js"></script>
+    <script src="querySystem.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        const profileIcon = document.getElementById("profileNavIcon");
+        if (profileIcon) {
+          profileIcon.addEventListener("click", () => {
+            window.location.href = "hr_profile.html";
+          });
+        }
+
+        let companyName = "";
+        if (window.hrAuthStore) {
+          const currentHr = window.hrAuthStore.getCurrentHr();
+          if (currentHr) {
+            document.getElementById("hrWelcomeMessage").textContent = `Welcome, ${currentHr.name}`;
+            companyName = currentHr.companyName || "";
+          } else {
+            window.location.href = "homepage.html";
+            return;
+          }
+        }
+
+        // Highlight current plan
+        if (companyName && window.planStore) {
+          await window.planStore.syncWithBackend();
+          const sub = window.planStore.getCompanySubscription(companyName);
+          if (sub && sub.planId) {
+            const btn = document.querySelector('.choose-btn[data-plan="' + sub.planId + '"]');
+            if (btn) {
+              btn.textContent = "✓ Current Plan";
+              btn.classList.remove("primary", "outline");
+              btn.classList.add("current-plan");
+              btn.removeAttribute("href");
+              btn.addEventListener("click", function(e) { e.preventDefault(); });
+            }
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
