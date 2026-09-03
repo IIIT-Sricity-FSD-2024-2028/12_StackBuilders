@@ -39,6 +39,12 @@ export class InMemoryDataService {
 
   readonly rewards: RewardEntity[] = [];
 
+  readonly queries: any[] = [];
+  
+  readonly subscriptions: any[] = [];
+  
+  readonly payments: any[] = [];
+
   readonly rolePermissions: Partial<
     Record<RolePermissionGroup, Record<string, boolean>>
   > = {};

@@ -92,6 +92,12 @@
       <select id="modalExpertName" name="expertId" required>
         <option value="">Select expert</option>
       </select>
+      
+      <div id="expertSlotsContainer" hidden>
+        <label>Available Slots (Select one to instantly book)</label>
+        <div id="expertSlotsGrid" class="slots-container"></div>
+        <input type="hidden" id="selectedSlotTime" name="slotTime" />
+      </div>
 
       <div class="request-modal-actions">
         <button class="request-secondary-btn" id="requestModalBackBtn" type="button">Back</button>
@@ -121,5 +127,6 @@
 <script src="consultationStorage.js"></script>
 <script src="rolePermissions.js"></script>
 <script src="Employee_Consultation2.js"></script>
+<script src="querySystem.js"></script>
 </body>
 </html>

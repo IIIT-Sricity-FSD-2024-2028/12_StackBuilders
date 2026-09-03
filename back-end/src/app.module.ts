@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -17,10 +17,18 @@ import { RewardsModule } from './rewards/rewards.module';
 import { RolePermissionsModule } from './role-permissions/role-permissions.module';
 import { VideosModule } from './videos/videos.module';
 import { WellnessCheckinsModule } from './wellness-checkins/wellness-checkins.module';
+import { LoggingMiddleware } from './common/middleware/logging.middleware';
+import { SecurityHeadersMiddleware, RateLimitMiddleware } from './common/middleware/security.middleware';
+import { FileLoggerService } from './common/middleware/file-logger.service';
+import { UploadsModule } from './uploads/uploads.module';
+import { QueriesModule } from './queries/queries.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 
 @Module({
   imports: [
     InMemoryDataModule,
+    QueriesModule,
+    SubscriptionsModule,
     ChallengesModule,
     CheckinResponsesModule,
     CompaniesModule,
@@ -34,14 +42,22 @@ import { WellnessCheckinsModule } from './wellness-checkins/wellness-checkins.mo
     RolePermissionsModule,
     VideosModule,
     WellnessCheckinsModule,
+    UploadsModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    FileLoggerService,
     {
       provide: APP_GUARD,
       useClass: RoleHeaderGuard,
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggingMiddleware, SecurityHeadersMiddleware, RateLimitMiddleware)
+      .forRoutes('*');
+  }
+}

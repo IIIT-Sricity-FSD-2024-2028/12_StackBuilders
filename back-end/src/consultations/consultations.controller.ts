@@ -22,6 +22,7 @@ import { Role } from '../common/constants/roles';
 import { ApiRoleHeader } from '../common/decorators/api-role-header.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { ConsultationsService } from './consultations.service';
+import { BookConsultationSlotDto } from './dto/book-consultation-slot.dto';
 import { CreateConsultationRequestDto } from './dto/create-consultation-request.dto';
 import { CreateFollowUpConsultationDto } from './dto/create-follow-up-consultation.dto';
 import { UpdateConsultationDto } from './dto/update-consultation.dto';
@@ -136,6 +137,19 @@ export class ConsultationsController {
     return this.consultationsService.createExpertFollowUp(
       createFollowUpConsultationDto,
     );
+  }
+
+  @Post('book-slot')
+  @Roles(Role.Employee)
+  @ApiRoleHeader()
+  @ApiOperation({ summary: 'Instantly book an available slot for a consultation' })
+  @ApiCreatedResponse({ type: ConsultationEntity })
+  @ApiBadRequestResponse({
+    description: 'Slot unavailable or validation failed.',
+  })
+  @ApiForbiddenResponse({ description: 'Missing or invalid role header.' })
+  bookSlot(@Body() bookConsultationSlotDto: BookConsultationSlotDto) {
+    return this.consultationsService.bookSlot(bookConsultationSlotDto);
   }
 
   @Patch(':id')

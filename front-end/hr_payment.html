@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment - HR Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Playfair+Display:ital,wght@1,700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="hr_dashboard.css" />
+    <style>
+      .payment-container { max-width: 520px; margin: 60px auto 80px; padding: 0 20px; }
+      .payment-card { background: white; border: 1px solid rgba(0,0,0,0.08); border-radius: 16px; padding: 36px 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+      .payment-card h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: #1b3b36; margin-bottom: 6px; }
+      .payment-subtitle { color: #4a6a66; font-size: 0.95rem; margin-bottom: 24px; }
+
+      .plan-summary { background: rgba(14, 159, 146, 0.05); border: 1px solid rgba(14, 159, 146, 0.2); border-radius: 12px; padding: 18px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+      .plan-summary h3 { font-size: 1.1rem; color: #0e9f92; margin-bottom: 4px; }
+      .plan-summary p { font-size: 0.85rem; color: #666; }
+      .plan-total { font-size: 1.8rem; font-weight: 800; color: #1b3b36; }
+
+      .form-group { margin-bottom: 18px; }
+      .form-group label { display: block; font-size: 0.85rem; font-weight: 700; color: #333; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+      .form-group input, .form-group select { width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 0.95rem; font-family: inherit; transition: 0.2s; }
+      .form-group input:focus { outline: none; border-color: #0e9f92; box-shadow: 0 0 0 3px rgba(14, 159, 146, 0.15); }
+      .form-row { display: flex; gap: 12px; }
+      .form-row .form-group { flex: 1; }
+
+      .pay-btn { display: block; width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: 0.3s; background: #ff914d; color: white; margin-top: 8px; font-family: inherit; }
+      .pay-btn:hover { background: #e67e3c; transform: translateY(-2px); }
+
+      .payment-success { text-align: center; padding: 40px 20px; }
+      .payment-success .check-circle { width: 72px; height: 72px; border-radius: 50%; background: #0e9f92; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 24px; }
+      .payment-success h2 { font-size: 1.8rem; margin-bottom: 12px; }
+      .payment-success p { color: #666; margin-bottom: 32px; font-size: 1.05rem; }
+      .payment-success .continue-btn { display: inline-block; padding: 14px 32px; background: #0e9f92; color: white; border: none; border-radius: 10px; font-size: 1.05rem; font-weight: 700; text-decoration: none; cursor: pointer; transition: 0.2s; }
+      .payment-success .continue-btn:hover { background: #0b8075; }
+    </style>
+  </head>
+  <body>
+    <div class="page-shell">
+      <nav class="navbar">
+        <div class="logo">Stack Builders</div>
+        <div class="nav-links">
+          <a href="hr_dashboard.html"><i class="fa-solid fa-house"></i> Home</a>
+          <a href="hr_challenges.html"><i class="fa-regular fa-calendar"></i> Challenges</a>
+          <a href="hr_vediolibrary.html"><i class="fa-solid fa-video"></i> Video Library</a>
+        </div>
+        <div class="nav-right">
+          <a href="hr_pricing.html" style="text-decoration:none; padding:8px 16px; border-radius:20px; font-weight:700; background:#ff914d; color:white; font-size:0.85rem; margin-right:16px; box-shadow:0 4px 10px rgba(255,145,77,0.3);"><i class="fa fa-arrow-up-right-dots"></i> Upgrade Plan</a>
+          <i class="fa-regular fa-bell" aria-hidden="true"></i>
+          <span id="hrWelcomeMessage">Welcome</span>
+          <i class="fa-regular fa-user" id="profileNavIcon" aria-hidden="true"></i>
+        </div>
+      </nav>
+
+      <div class="payment-container">
+        <!-- Payment Form -->
+        <div class="payment-card" id="paymentForm">
+          <h2>Complete Your Payment</h2>
+          <p class="payment-subtitle">You're subscribing to the <strong id="selectedPlanName">—</strong> plan</p>
+
+          <div class="plan-summary">
+            <div class="plan-info">
+              <h3 id="summaryPlanName">—</h3>
+              <p id="summaryPlanLimits">—</p>
+            </div>
+            <div class="plan-total" id="summaryPrice">$0</div>
+          </div>
+
+          <div class="form-group">
+            <label>Company</label>
+            <input type="text" id="companyNameInput" readonly style="background:#f9f9f9; color:#666; cursor:not-allowed;">
+          </div>
+
+          <div class="form-group">
+            <label>Cardholder Name</label>
+            <input type="text" id="cardName" placeholder="Jane Doe">
+          </div>
+          <div class="form-group">
+            <label>Card Number</label>
+            <input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242" maxlength="19">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Expiry Date</label>
+              <input type="text" id="cardExpiry" placeholder="MM/YY" value="12/28" maxlength="5">
+            </div>
+            <div class="form-group">
+              <label>CVV</label>
+              <input type="text" id="cardCvv" placeholder="123" value="123" maxlength="4">
+            </div>
+          </div>
+
+          <button class="pay-btn" id="payBtn">
+            <i class="fa fa-lock"></i>&nbsp; Pay $<span id="payAmount">0</span>/mo
+          </button>
+        </div>
+
+        <!-- Success State -->
+        <div class="payment-card payment-success" id="paymentSuccess" style="display:none;">
+          <div class="check-circle"><i class="fa fa-check"></i></div>
+          <h2>Payment Successful!</h2>
+          <p>Your <strong id="successPlanName">—</strong> plan is now active for <strong id="successCompanyName">—</strong>.</p>
+          <a href="hr_dashboard.html" class="continue-btn">Back to Dashboard</a>
+        </div>
+      </div>
+    </div>
+
+    <script src="apiClient.js"></script>
+    <script src="planStore.js"></script>
+    <script src="hrProfileStore.js"></script>
+    <script src="hrAuth.js"></script>
+    <script src="querySystem.js"></script>
+    <script>
+      (function() {
+        // Init header
+        const profileIcon = document.getElementById("profileNavIcon");
+        if (profileIcon) {
+          profileIcon.addEventListener("click", () => {
+            window.location.href = "hr_profile.html";
+          });
+        }
+        
+        let hrCompanyName = "";
+        if (window.hrAuthStore) {
+          const currentHr = window.hrAuthStore.getCurrentHr();
+          if (currentHr) {
+            document.getElementById("hrWelcomeMessage").textContent = `Welcome, ${currentHr.name}`;
+            hrCompanyName = currentHr.companyName;
+            document.getElementById("companyNameInput").value = hrCompanyName;
+            document.getElementById("cardName").value = currentHr.name;
+          } else {
+            window.location.href = "homepage.html";
+            return;
+          }
+        }
+
+        var params = new URLSearchParams(window.location.search);
+        var planId = params.get('plan') || 'starter';
+        var plan = window.planStore.PLANS[planId];
+
+        if (!plan) {
+          alert('Invalid plan selected.');
+          window.location.href = 'hr_pricing.html';
+          return;
+        }
+
+        // Fill plan details
+        document.getElementById('selectedPlanName').textContent = plan.name;
+        document.getElementById('summaryPlanName').textContent = plan.name + ' Plan';
+        document.getElementById('summaryPlanLimits').textContent =
+          plan.employeeLimit.toLocaleString() + ' employees · ' + plan.expertLimit + ' experts';
+        document.getElementById('summaryPrice').textContent = '$' + plan.price;
+        document.getElementById('payAmount').textContent = plan.price;
+
+        // Pay button
+        document.getElementById('payBtn').addEventListener('click', async function() {
+          if (!hrCompanyName) {
+            alert('Error: No company associated with your account.');
+            return;
+          }
+
+          this.disabled = true;
+          this.textContent = 'Processing...';
+
+          try {
+            var result = await window.planStore.subscribe(hrCompanyName, planId);
+            if (!result.ok) {
+              alert(result.error);
+              this.disabled = false;
+              this.innerHTML = '<i class="fa fa-lock"></i>&nbsp; Pay $' + plan.price + '/mo';
+              return;
+            }
+
+            // Show success
+            document.getElementById('paymentForm').style.display = 'none';
+            document.getElementById('paymentSuccess').style.display = 'block';
+            document.getElementById('successPlanName').textContent = plan.name;
+            document.getElementById('successCompanyName').textContent = hrCompanyName;
+          } catch (e) {
+            console.error(e);
+            alert('An error occurred during payment processing. Please try again.');
+            this.disabled = false;
+            this.innerHTML = '<i class="fa fa-lock"></i>&nbsp; Pay $' + plan.price + '/mo';
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

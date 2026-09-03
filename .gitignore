@@ -14,6 +14,8 @@ back-end/.npm-cache/
 back-end/server.out.log
 back-end/server.err.log
 back-end/coverage/
+back-end/logs/
+back-end/uploads/
 
 front-end/node_modules/
 front-end/.cache/

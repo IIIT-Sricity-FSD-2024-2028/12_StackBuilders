@@ -1,0 +1,134 @@
+/*  Supervisor Theme Override
+    Applies the teal / cyan colour-scheme used by the HR and Employee
+    dashboards so the Supervisor console is visually distinct from the
+    Admin (Super User) console.
+    Load AFTER dashstyles.css and layout.css.                            */
+
+/* ── colour tokens ─────────────────────────────────────────────────── */
+:root {
+  /* dashstyles.css overrides */
+  --bg: #dcebf8;
+  --bg-deep: #d0e4f4;
+  --primary: #0fa7a0;
+  --primary-soft: rgba(15, 167, 160, 0.12);
+  --success: #0fa7a0;
+  --danger: #ef8a93;
+
+  /* layout.css overrides */
+  --shell-bg: #dcebf8;
+  --shell-primary: #0fa7a0;
+  --shell-primary-soft: rgba(15, 167, 160, 0.12);
+}
+
+/* ── body background gradient ──────────────────────────────────────── */
+body {
+  background:
+    radial-gradient(circle at top left, rgba(15, 167, 160, 0.12), transparent 22%),
+    radial-gradient(circle at right top, rgba(15, 167, 160, 0.08), transparent 24%),
+    linear-gradient(180deg, #e5f0fb 0%, #dcebf8 100%) !important;
+}
+
+/* floating ambient blobs – teal instead of blue/orange */
+body.app-body::before {
+  background: rgba(15, 167, 160, 0.14);
+}
+
+body.app-body::after {
+  background: rgba(15, 167, 160, 0.10);
+}
+
+/* ── sidebar brand mark ────────────────────────────────────────────── */
+.brand-mark {
+  background: linear-gradient(135deg, #0fa7a0, #3dc4be) !important;
+  box-shadow: 0 16px 28px rgba(15, 167, 160, 0.22) !important;
+}
+
+@keyframes softPulse {
+  0%, 100% { box-shadow: 0 16px 28px rgba(15, 167, 160, 0.22); transform: scale(1); }
+  50%      { box-shadow: 0 22px 38px rgba(15, 167, 160, 0.30); transform: scale(1.03); }
+}
+
+/* ── sidebar links – teal accent ───────────────────────────────────── */
+.sidebar-link i {
+  color: #0fa7a0;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+  box-shadow: inset 0 0 0 1px rgba(15, 167, 160, 0.10);
+}
+
+/* ── sidebar bottom card ───────────────────────────────────────────── */
+.sidebar-card {
+  background: linear-gradient(160deg, rgba(15, 167, 160, 0.12), rgba(255, 255, 255, 0.92));
+}
+
+.sidebar-card .mini-button {
+  background: linear-gradient(135deg, #0fa7a0, #3dc4be);
+}
+
+/* ── eyebrow label ─────────────────────────────────────────────────── */
+.eyebrow {
+  color: #0fa7a0;
+}
+
+/* ── cards / panels top-edge accent ────────────────────────────────── */
+.card::before,
+.panel::before {
+  background: linear-gradient(90deg, #0fa7a0, #5ddad4, #a8e8e5) !important;
+}
+
+/* ── card-header icon badge ────────────────────────────────────────── */
+.card-header i {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* ── avatar gradient ───────────────────────────────────────────────── */
+.avatar {
+  background: linear-gradient(135deg, #0fa7a0, #3dc4be);
+  box-shadow: 0 10px 22px rgba(15, 167, 160, 0.25);
+}
+
+/* ── quick-action icon tiles ───────────────────────────────────────── */
+.action i {
+  background: linear-gradient(135deg, rgba(15, 167, 160, 0.16), rgba(61, 196, 190, 0.18));
+  color: #0fa7a0;
+}
+
+.action:hover {
+  border-color: rgba(15, 167, 160, 0.14);
+}
+
+/* ── nav-links hover / active ring ─────────────────────────────────── */
+.nav-links a:hover,
+.nav-links a.active {
+  box-shadow: inset 0 0 0 1px rgba(15, 167, 160, 0.12);
+}
+
+/* ── status badges ─────────────────────────────────────────────────── */
+.status.active {
+  background: rgba(15, 167, 160, 0.12);
+  color: #098983;
+}
+
+/* ── buttons ───────────────────────────────────────────────────────── */
+.approve-button,
+.action-button.approve-button {
+  background: #0fa7a0;
+}
+
+.approve-button:hover {
+  background: #098983;
+}
+
+/* ── table accent line (used in some supervisor pages) ─────────────── */
+.table-container::before,
+.filters::before {
+  background: linear-gradient(90deg, #0fa7a0, #5ddad4, #a8e8e5);
+}
+
+/* ── misc ──────────────────────────────────────────────────────────── */
+.dot.blue {
+  background: #0fa7a0;
+}

@@ -40,6 +40,145 @@
         ]
       }
     },
+    "/queries": {
+      "get": {
+        "operationId": "QueriesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Queries"
+        ]
+      },
+      "post": {
+        "operationId": "QueriesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Queries"
+        ]
+      }
+    },
+    "/queries/{id}": {
+      "patch": {
+        "operationId": "QueriesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Queries"
+        ]
+      }
+    },
+    "/queries/bulk": {
+      "put": {
+        "operationId": "QueriesController_bulkUpdate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Queries"
+        ]
+      }
+    },
+    "/subscriptions": {
+      "get": {
+        "operationId": "SubscriptionsController_findAllSubscriptions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    },
+    "/subscriptions/bulk": {
+      "put": {
+        "operationId": "SubscriptionsController_bulkUpdateSubscriptions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    },
+    "/subscriptions/payments": {
+      "get": {
+        "operationId": "SubscriptionsController_findAllPayments",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    },
+    "/subscriptions/payments/bulk": {
+      "put": {
+        "operationId": "SubscriptionsController_bulkUpdatePayments",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    },
     "/challenges": {
       "get": {
         "operationId": "ChallengesController_findAll",
@@ -2197,6 +2336,59 @@
         ]
       }
     },
+    "/consultations/book-slot": {
+      "post": {
+        "operationId": "ConsultationsController_bookSlot",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookConsultationSlotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Slot unavailable or validation failed."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Instantly book an available slot for a consultation",
+        "tags": [
+          "consultations"
+        ]
+      }
+    },
     "/hr-profiles": {
       "get": {
         "operationId": "HrProfilesController_findAll",
@@ -3820,6 +4012,37 @@
           "videos"
         ]
       }
+    },
+    "/uploads": {
+      "post": {
+        "operationId": "UploadsController_uploadFile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Upload a file",
+        "tags": [
+          "uploads"
+        ]
+      }
     }
   },
   "info": {
@@ -3840,6 +4063,10 @@
       }
     },
     "schemas": {
+      "QueryDto": {
+        "type": "object",
+        "properties": {}
+      },
       "ChallengeEntity": {
         "type": "object",
         "properties": {
@@ -4271,6 +4498,17 @@
           "updatedAt": {
             "type": "string",
             "example": "2026-05-02T12:45:00.000Z"
+          },
+          "availableSlots": {
+            "example": [
+              "2026-05-02T10:00:00.000Z",
+              "2026-05-02T10:15:00.000Z"
+            ],
+            "description": "ISO strings of available 15-minute consultation slots",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -4327,6 +4565,17 @@
           "status": {
             "type": "string",
             "example": "Active"
+          },
+          "availableSlots": {
+            "example": [
+              "2026-05-02T10:00:00.000Z",
+              "2026-05-02T10:15:00.000Z"
+            ],
+            "description": "ISO strings of available 15-minute consultation slots",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -4376,6 +4625,17 @@
           "status": {
             "type": "string",
             "example": "Active"
+          },
+          "availableSlots": {
+            "example": [
+              "2026-05-02T10:00:00.000Z",
+              "2026-05-02T10:15:00.000Z"
+            ],
+            "description": "ISO strings of available 15-minute consultation slots",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -5187,6 +5447,41 @@
         "required": [
           "consultation",
           "reused"
+        ]
+      },
+      "BookConsultationSlotDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          },
+          "employeeName": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "expertId": {
+            "type": "string",
+            "example": "expert-1777718400000-a1b2c3d4"
+          },
+          "expertName": {
+            "type": "string",
+            "example": "Neha Verma"
+          },
+          "purpose": {
+            "type": "string",
+            "example": "Need guidance for nutrition planning."
+          },
+          "slotTime": {
+            "type": "string",
+            "example": "2026-05-02T10:00:00.000Z"
+          }
+        },
+        "required": [
+          "employeeId",
+          "expertId",
+          "purpose",
+          "slotTime"
         ]
       },
       "UpdateConsultationDto": {

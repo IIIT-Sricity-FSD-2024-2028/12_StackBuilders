@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsArray,
   IsEmail,
   IsIn,
   IsNotEmpty,
@@ -59,5 +60,14 @@ export class CreateExpertDto {
   @IsString()
   @IsIn(['Active', 'Inactive'])
   status?: string;
+
+  @ApiPropertyOptional({
+    example: ['2026-05-02T10:00:00.000Z', '2026-05-02T10:15:00.000Z'],
+    description: 'ISO strings of available 15-minute consultation slots',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  availableSlots?: string[];
 }
 

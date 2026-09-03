@@ -1,4 +1,4 @@
-* {
+﻿* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -847,3 +847,32 @@ body.profile-open {
   color: white;
   padding: 12px 18px;
 }
+
+.slots-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.slot-btn {
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.slot-btn:hover {
+  border-color: #007bff;
+}
+.slot-btn.selected {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+

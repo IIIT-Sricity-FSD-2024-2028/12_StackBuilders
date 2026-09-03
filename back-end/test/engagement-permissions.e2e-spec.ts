@@ -45,7 +45,7 @@ describe('Challenges, rewards, and role permissions (e2e)', () => {
       .send({
         name: '10k Step Sprint',
         type: 'Fitness',
-        reward: 'Gift voucher',
+        reward: '500',
         deadline: '2099-12-31',
         goal: 'Complete 10,000 steps for 7 days.',
         companyId: approvalResponse.body.company.id,
@@ -55,6 +55,7 @@ describe('Challenges, rewards, and role permissions (e2e)', () => {
 
     expect(challengeResponse.body).toMatchObject({
       name: '10k Step Sprint',
+      reward: '500',
       type: 'Fitness',
       companyId: approvalResponse.body.company.id,
     });
@@ -106,7 +107,7 @@ describe('Challenges, rewards, and role permissions (e2e)', () => {
       .expect(200);
 
     expect(defaultHrPermissions.body.permissions['challenge-management-create']).toBe(
-      false,
+      true,
     );
 
     const updatedHrPermissions = await request(app.getHttpServer())
@@ -147,7 +148,7 @@ describe('Challenges, rewards, and role permissions (e2e)', () => {
       .expect(200);
 
     expect(resetHrPermissions.body.permissions['challenge-management-create']).toBe(
-      false,
+      true,
     );
   });
 });

@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --bg: #f7f9fb;
   --card: #ffffff;
   --border: #e8edf2;
@@ -884,3 +884,38 @@ th {
     overflow-x: auto;
   }
 }
+
+.availability-grid {
+  display: flex;
+  gap: 20px;
+}
+.availability-day {
+  flex: 1;
+}
+.availability-day h3 {
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.slots-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 10px;
+}
+.slot-btn {
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.slot-btn.selected {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+

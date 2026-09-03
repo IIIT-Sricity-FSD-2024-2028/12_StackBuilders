@@ -1,12 +1,22 @@
 (function () {
   const SESSION_KEY = "stackbuilders.adminSession.v1";
-  const ADMIN_CREDENTIALS = Object.freeze({
-    username: "ravi@gmail.com",
-    password: "1234",
-    name: "Super User",
-    email: "ravi@gmail.com",
-    role: "Admin",
-  });
+  
+  const VALID_ADMINS = [
+    {
+      username: "ravi@gmail.com",
+      password: "1234",
+      name: "Super User",
+      email: "ravi@gmail.com",
+      role: "Admin",
+    },
+    {
+      username: "raju@gmail.com",
+      password: "1234",
+      name: "Supervisor",
+      email: "raju@gmail.com",
+      role: "Admin", // keeping role same as admin so the UI works exactly the same
+    }
+  ];
 
   function normalizeText(value) {
     return String(value || "").trim();
@@ -32,12 +42,14 @@
     }
   }
 
-  function getAdminProfile() {
+  function getAdminProfile(username) {
+    const admin = VALID_ADMINS.find(a => normalizeEmail(a.username) === normalizeEmail(username));
+    if (!admin) return null;
     return {
-      name: ADMIN_CREDENTIALS.name,
-      email: ADMIN_CREDENTIALS.email,
-      username: ADMIN_CREDENTIALS.username,
-      role: ADMIN_CREDENTIALS.role,
+      name: admin.name,
+      email: admin.email,
+      username: admin.username,
+      role: admin.role,
     };
   }
 
@@ -90,10 +102,9 @@
     const normalizedUsername = normalizeEmail(username);
     const source = normalizeText(options.source);
 
-    if (
-      normalizedUsername !== normalizeEmail(ADMIN_CREDENTIALS.username)
-      || !source
-    ) {
+    const admin = VALID_ADMINS.find(a => normalizeEmail(a.username) === normalizedUsername);
+
+    if (!admin || !source) {
       clearCurrentAdminSession();
       return null;
     }
@@ -104,22 +115,24 @@
     );
     getLegacySessionStorage()?.removeItem(SESSION_KEY);
 
-    return getAdminProfile();
+    return getAdminProfile(normalizedUsername);
   }
 
   function getCurrentAdmin() {
     const session = readCurrentAdminSession();
 
-    if (
-      !session?.username
-      || session.username !== normalizeEmail(ADMIN_CREDENTIALS.username)
-      || session.source !== "homepage"
-    ) {
+    if (!session?.username || session.source !== "homepage") {
       clearCurrentAdminSession();
       return null;
     }
 
-    return getAdminProfile();
+    const admin = VALID_ADMINS.find(a => normalizeEmail(a.username) === session.username);
+    if (!admin) {
+      clearCurrentAdminSession();
+      return null;
+    }
+
+    return getAdminProfile(session.username);
   }
 
   function authenticateAdmin(username, password, options = {}) {
@@ -127,10 +140,9 @@
     const normalizedPassword = normalizeText(password);
     const source = normalizeText(options.source);
 
-    if (
-      normalizedUsername !== normalizeEmail(ADMIN_CREDENTIALS.username)
-      || normalizedPassword !== normalizeText(ADMIN_CREDENTIALS.password)
-    ) {
+    const admin = VALID_ADMINS.find(a => normalizeEmail(a.username) === normalizedUsername && normalizeText(a.password) === normalizedPassword);
+
+    if (!admin) {
       return {
         ok: false,
         error: "Invalid credentials. Please check your username and password.",
@@ -144,13 +156,16 @@
       };
     }
 
-    setCurrentAdminSession(ADMIN_CREDENTIALS.username, { source });
-    return { ok: true, profile: getAdminProfile() };
+    setCurrentAdminSession(admin.username, { source });
+    return { ok: true, profile: getAdminProfile(admin.username) };
   }
 
   window.adminAuthStore = {
     SESSION_KEY,
-    getAdminProfile,
+    getAdminProfile: () => {
+        const session = readCurrentAdminSession();
+        return session ? getAdminProfile(session.username) : null;
+    },
     readCurrentAdminSession,
     getCurrentAdmin,
     authenticateAdmin,
@@ -158,3 +173,4 @@
     clearCurrentAdminSession,
   };
 })();
+

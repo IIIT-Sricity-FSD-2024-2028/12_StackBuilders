@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ExpertEntity {
   @ApiProperty({ example: 'expert-1777718400000-a1b2c3d4' })
@@ -39,5 +39,11 @@ export class ExpertEntity {
 
   @ApiProperty({ example: '2026-05-02T12:45:00.000Z' })
   updatedAt: string;
+
+  @ApiPropertyOptional({
+    example: ['2026-05-02T10:00:00.000Z', '2026-05-02T10:15:00.000Z'],
+    description: 'ISO strings of available 15-minute consultation slots',
+  })
+  availableSlots?: string[];
 }
 

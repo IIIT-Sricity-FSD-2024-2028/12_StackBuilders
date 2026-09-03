@@ -11,6 +11,7 @@ import {
 } from '../common/utils/record.utils';
 import { EmployeesService } from '../employees/employees.service';
 import { ExpertsService } from '../experts/experts.service';
+import { BookConsultationSlotDto } from './dto/book-consultation-slot.dto';
 import { CreateConsultationRequestDto } from './dto/create-consultation-request.dto';
 import { CreateFollowUpConsultationDto } from './dto/create-follow-up-consultation.dto';
 import { UpdateConsultationDto } from './dto/update-consultation.dto';
@@ -151,6 +152,75 @@ export class ConsultationsService {
       requestedOn: this.buildRequestedOn(now),
       status: 'requested',
       rejectionReason: '',
+      companyId: companyContext.companyId,
+      companyName: companyContext.companyName,
+      createdAt: now.toISOString(),
+    });
+
+    this.data.consultations.unshift(consultation);
+    return consultation;
+  }
+
+  bookSlot(bookConsultationSlotDto: BookConsultationSlotDto): ConsultationEntity {
+    const employee = this.resolveEmployeeRecord({
+      employeeId: bookConsultationSlotDto.employeeId,
+    });
+    const expert = this.resolveExpertRecord({
+      expertId: bookConsultationSlotDto.expertId,
+      expertName: bookConsultationSlotDto.expertName,
+    });
+    const purpose = cleanText(bookConsultationSlotDto.purpose);
+    const slotTime = cleanText(bookConsultationSlotDto.slotTime);
+    const companyContext = this.resolveConsultationCompanyContext(
+      {},
+      employee,
+      expert,
+    );
+
+    if (!expert) {
+      throw new BadRequestException('Selected wellness expert is no longer available.');
+    }
+
+    if (!employee) {
+      throw new BadRequestException('Employee details are missing for this request.');
+    }
+
+    if (!purpose) {
+      throw new BadRequestException('Please enter the purpose of your consultation request.');
+    }
+
+    // Verify and remove the slot
+    const slotIndex = (expert.availableSlots || []).findIndex(s => s === slotTime);
+    if (slotIndex === -1) {
+      throw new BadRequestException('This slot is no longer available. Please select another time.');
+    }
+    
+    // Remove the slot
+    expert.availableSlots!.splice(slotIndex, 1);
+
+    const now = new Date();
+    const slotDate = new Date(slotTime);
+    
+    const sessionDate = `${slotDate.getFullYear()}-${String(slotDate.getMonth() + 1).padStart(2, '0')}-${String(slotDate.getDate()).padStart(2, '0')}`;
+    const sessionTime = `${String(slotDate.getHours()).padStart(2, '0')}:${String(slotDate.getMinutes()).padStart(2, '0')}`;
+
+    const consultation = this.normalizeConsultationRecord({
+      id: createPrefixedRecordId('consult'),
+      employeeId: employee.id,
+      employeeName: employee.name,
+      expertId: expert.id,
+      expertName: this.normalizeExpertName(expert.name),
+      purpose,
+      category: this.getExpertCategory({ expertId: expert.id, expertName: expert.name }),
+      requestedOn: this.buildRequestedOn(now),
+      status: 'accepted',
+      rejectionReason: '',
+      sessionTitle: `Consultation with ${employee.name}`,
+      sessionDate,
+      sessionTime,
+      sessionDuration: '15 min',
+      sessionMeetingLink: `https://meet.stackbuilders.com/${createPrefixedRecordId('meet')}`,
+      sessionCreatedAt: now.toISOString(),
       companyId: companyContext.companyId,
       companyName: companyContext.companyName,
       createdAt: now.toISOString(),

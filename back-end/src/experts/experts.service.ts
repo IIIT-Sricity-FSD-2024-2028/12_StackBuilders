@@ -108,6 +108,7 @@ export class ExpertsService {
       companyId: preparedExpert.companyId,
       companyName: preparedExpert.companyName,
       status: preparedExpert.status,
+      availableSlots: [],
       createdAt: preparedExpert.createdAt,
       updatedAt: preparedExpert.updatedAt,
     };
@@ -164,6 +165,9 @@ export class ExpertsService {
     const nextStatus = Object.prototype.hasOwnProperty.call(updateExpertDto, 'status')
       ? cleanText(updateExpertDto.status)
       : currentExpert.status;
+    const nextAvailableSlots = Object.prototype.hasOwnProperty.call(updateExpertDto, 'availableSlots')
+      ? updateExpertDto.availableSlots
+      : currentExpert.availableSlots;
 
     if (!nextName) {
       throw new BadRequestException('Wellness expert name cannot be blank.');
@@ -209,6 +213,7 @@ export class ExpertsService {
     currentExpert.companyId = nextCompany.id;
     currentExpert.companyName = nextCompany.name;
     currentExpert.status = nextStatus || 'Active';
+    currentExpert.availableSlots = nextAvailableSlots;
     currentExpert.updatedAt = new Date().toISOString();
 
     return currentExpert;

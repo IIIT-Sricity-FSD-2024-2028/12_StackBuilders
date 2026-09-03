@@ -6,7 +6,7 @@
   const LEGACY_HR_PROFILE_STORAGE_KEY = "stackbuilders.hr.profile.v1";
   const EMPLOYEE_STORAGE_KEY = "stackbuilders.hr.employees";
   const EXPERT_STORAGE_KEY = "stackbuilders.hr.experts";
-  const ADMIN_EMAIL = "ravi@gmail.com";
+  const ADMIN_EMAILS = ["ravi@gmail.com", "raju@gmail.com"];
 
   function normalizeText(value) {
     return String(value || "").trim();
@@ -309,7 +309,7 @@
       || existingEmployeeAccount
       || existingExpertAccount
       || existingLegacyUser
-      || normalizeLookupValue(hrEmail) === normalizeLookupValue(ADMIN_EMAIL)
+      || ADMIN_EMAILS.some(email => normalizeLookupValue(hrEmail) === normalizeLookupValue(email))
     ) {
       return {
         ok: false,

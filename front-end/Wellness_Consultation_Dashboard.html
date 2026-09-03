@@ -42,6 +42,26 @@
 
       <section class="panel">
         <div class="section-title">
+          <div class="icon-box">Availability</div>
+          <div>
+            <h2>Manage Availability</h2>
+            <p>Select your free 15-minute slots for today and tomorrow</p>
+          </div>
+        </div>
+        
+        <div class="availability-controls">
+          <div id="availabilityGrid" class="availability-grid">
+            <!-- Rendered by JS -->
+          </div>
+          <div style="margin-top: 20px; text-align: right;">
+            <button class="btn btn-primary" id="saveAvailabilityBtn" type="button">Save Availability</button>
+            <span id="availabilityStatus" style="margin-left: 10px; color: green;" hidden>Saved!</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">
           <div class="icon-box">Upcoming</div>
           <div>
             <h2>Upcoming Consultations</h2>
@@ -130,7 +150,7 @@
       <footer class="footer">
         <div class="footer-links">
           <a href="#">About us</a>
-          <a href="mailto:">Contact us</a>
+          <a href="#" class="contact-us-trigger">Contact us</a>
         </div>
         <p>&copy; 2026 Stack Builders. Built with wellness in mind.</p>
       </footer>
@@ -159,5 +179,6 @@
     <script src="consultationStorage.js"></script>
     <script src="rolePermissions.js"></script>
     <script src="Wellness_Consultation_Dashboard.js"></script>
-  </body>
+  <script src="querySystem.js"></script>
+</body>
 </html>

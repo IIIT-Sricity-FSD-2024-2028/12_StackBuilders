@@ -4,9 +4,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { AppModule } from './app.module';
+import { WinstonModule } from 'nest-winston';
+import { winstonConfig } from './common/logger/winston.config';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: WinstonModule.createLogger(winstonConfig),
+  });
   app.enableCors();
   app.useGlobalPipes(
     new ValidationPipe({
@@ -15,6 +20,11 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  // Ensure file-backed middleware/logging destinations exist in clean environments.
+  mkdirSync(join(process.cwd(), 'logs'), { recursive: true });
+  mkdirSync(join(process.cwd(), 'uploads'), { recursive: true });
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Wellness Platform API')

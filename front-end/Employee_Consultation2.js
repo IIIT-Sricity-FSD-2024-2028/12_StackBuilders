@@ -374,6 +374,82 @@ function attachNavigation() {
     }
   }
 
+  async function fetchAndRenderExpertSlots(expertId) {
+    const slotsContainer = document.getElementById("expertSlotsContainer");
+    const slotsGrid = document.getElementById("expertSlotsGrid");
+    const selectedSlotInput = document.getElementById("selectedSlotTime");
+
+    if (!slotsContainer || !slotsGrid || !selectedSlotInput) return;
+
+    if (!expertId) {
+      slotsContainer.hidden = true;
+      slotsGrid.innerHTML = "";
+      selectedSlotInput.value = "";
+      if (submitRequestButton) submitRequestButton.textContent = "Submit Request";
+      return;
+    }
+
+    slotsGrid.innerHTML = "<p>Loading slots...</p>";
+    slotsContainer.hidden = false;
+    selectedSlotInput.value = "";
+    if (submitRequestButton) submitRequestButton.textContent = "Submit Request";
+
+    try {
+      const expert = await window.appApiClient.request(`/experts/${expertId}`);
+      const slots = (expert && expert.availableSlots) || [];
+
+      if (slots.length === 0) {
+        slotsGrid.innerHTML = "<p style='color:#888;'>No slots available. You can still submit a regular request.</p>";
+        return;
+      }
+
+      // Sort slots chronologically
+      const sortedSlots = [...slots].sort((a, b) => new Date(a) - new Date(b));
+
+      let html = "";
+      sortedSlots.forEach(slot => {
+        const d = new Date(slot);
+        if (d < new Date()) return; // skip past slots
+        const dateLabel = d.toLocaleDateString();
+        const timeLabel = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        html += `<button type="button" class="slot-btn" data-slot="${slot}" title="${dateLabel}">${dateLabel} ${timeLabel}</button>`;
+      });
+
+      if (!html) {
+        slotsGrid.innerHTML = "<p style='color:#888;'>No future slots available. You can still submit a regular request.</p>";
+        return;
+      }
+
+      slotsGrid.innerHTML = html;
+    } catch (err) {
+      slotsGrid.innerHTML = "<p style='color:#888;'>Could not load slots. You can still submit a regular request.</p>";
+    }
+  }
+
+  if (modalExpertName) {
+    modalExpertName.addEventListener("change", () => {
+      fetchAndRenderExpertSlots(modalExpertName.value);
+    });
+  }
+
+  // Delegate click on slot buttons inside the modal
+  const slotsGrid = document.getElementById("expertSlotsGrid");
+  if (slotsGrid) {
+    slotsGrid.addEventListener("click", (e) => {
+      const btn = e.target.closest(".slot-btn");
+      if (!btn) return;
+      const selectedSlotInput = document.getElementById("selectedSlotTime");
+
+      // Deselect all
+      slotsGrid.querySelectorAll(".slot-btn").forEach(b => b.classList.remove("selected"));
+
+      // Select this one
+      btn.classList.add("selected");
+      if (selectedSlotInput) selectedSlotInput.value = btn.getAttribute("data-slot");
+      if (submitRequestButton) submitRequestButton.textContent = "Book Slot";
+    });
+  }
+
   function openProfileOverlay() {
     if (!profileOverlay) return;
     profileOverlay.hidden = false;
@@ -407,6 +483,15 @@ function attachNavigation() {
     if (consultationModalForm) {
       consultationModalForm.reset();
     }
+
+    // Reset slots UI
+    const slotsContainer = document.getElementById("expertSlotsContainer");
+    const slotsGridEl = document.getElementById("expertSlotsGrid");
+    const selectedSlotInput = document.getElementById("selectedSlotTime");
+    if (slotsContainer) slotsContainer.hidden = true;
+    if (slotsGridEl) slotsGridEl.innerHTML = "";
+    if (selectedSlotInput) selectedSlotInput.value = "";
+    if (submitRequestButton) submitRequestButton.textContent = "Submit Request";
 
     renderExpertOptions();
   }
@@ -457,12 +542,41 @@ function attachNavigation() {
       const formData = new FormData(consultationModalForm);
       const purpose = String(formData.get("purpose") || "").trim();
       const expertId = String(formData.get("expertId") || "").trim();
+      const selectedSlot = String(formData.get("slotTime") || "").trim();
 
       if (!purpose || !expertId) {
         alert("Please fill in all fields before submitting.");
         return;
       }
 
+      // If a slot is selected, use the book-slot endpoint
+      if (selectedSlot) {
+        try {
+          const response = await window.appApiClient.request("/consultations/book-slot", {
+            method: "POST",
+            json: {
+              employeeId: currentEmployee?.id,
+              employeeName: currentEmployee?.name,
+              expertId,
+              purpose,
+              slotTime: selectedSlot,
+            },
+          });
+
+          if (response && response.id) {
+            await consultationStore?.syncConsultationsFromBackend?.(currentEmployeeCompanyContext);
+            renderAllConsultations();
+            closeRequestModal();
+            return;
+          }
+        } catch (err) {
+          alert(err?.message || "This slot is no longer available. Please select another.");
+          fetchAndRenderExpertSlots(expertId);
+          return;
+        }
+      }
+
+      // Otherwise fall back to regular consultation request
       const result = await consultationStore.createConsultationRequest({
         employeeId: currentEmployee?.id,
         employeeName: currentEmployee?.name,

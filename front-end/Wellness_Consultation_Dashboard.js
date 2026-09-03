@@ -445,6 +445,100 @@ attachUpcomingConsultationsPagination();
 async function initializeWellnessConsultationDashboard() {
   await consultationStore?.syncConsultationsFromBackend?.(currentExpertCompanyContext);
   renderWellnessDashboard();
+  renderAvailabilityGrid();
 }
 
 void initializeWellnessConsultationDashboard();
+
+let currentAvailableSlots = [];
+async function renderAvailabilityGrid() {
+  const container = document.getElementById("availabilityGrid");
+  if (!container) return;
+
+  try {
+    const response = await window.appApiClient.request(`/experts/${currentExpert.id}`);
+    if (response) {
+      currentAvailableSlots = response.availableSlots || [];
+    }
+  } catch (err) {
+    console.error("Failed to load expert details", err);
+  }
+
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  const days = [
+    { label: "Today", date: today },
+    { label: "Tomorrow", date: tomorrow }
+  ];
+
+  let html = "";
+  days.forEach(day => {
+    html += `<div class="availability-day"><h3>${day.label} (${day.date.toLocaleDateString()})</h3><div class="slots-container">`;
+    
+    const year = day.date.getFullYear();
+    const month = String(day.date.getMonth() + 1).padStart(2, "0");
+    const dateNum = String(day.date.getDate()).padStart(2, "0");
+    const datePrefix = `${year}-${month}-${dateNum}`;
+    
+    // 9 AM to 5 PM
+    for (let hour = 9; hour < 17; hour++) {
+      for (let min of [0, 15, 30, 45]) {
+        const hStr = String(hour).padStart(2, "0");
+        const mStr = String(min).padStart(2, "0");
+        const slotTime = `${datePrefix}T${hStr}:${mStr}:00.000Z`;
+        
+        // Dont show past slots for today
+        const slotDate = new Date(slotTime);
+        if (slotDate < new Date()) continue;
+        
+        const isSelected = currentAvailableSlots.includes(slotTime);
+        const displayTime = `${hStr}:${mStr}`;
+        
+        html += `<button type="button" class="slot-btn ${isSelected ? "selected" : ""}" data-slot="${slotTime}">${displayTime}</button>`;
+      }
+    }
+    
+    html += `</div></div>`;
+  });
+  
+  container.innerHTML = html;
+}
+
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("slot-btn")) {
+    const slot = e.target.getAttribute("data-slot");
+    if (currentAvailableSlots.includes(slot)) {
+      currentAvailableSlots = currentAvailableSlots.filter(s => s !== slot);
+      e.target.classList.remove("selected");
+    } else {
+      currentAvailableSlots.push(slot);
+      e.target.classList.add("selected");
+    }
+  }
+});
+
+const saveBtn = document.getElementById("saveAvailabilityBtn");
+if (saveBtn) {
+  saveBtn.addEventListener("click", async () => {
+    saveBtn.disabled = true;
+    try {
+      await window.appApiClient.request(`/experts/${currentExpert.id}`, {
+        method: "PATCH",
+        json: { availableSlots: currentAvailableSlots }
+      });
+      const status = document.getElementById("availabilityStatus");
+      if (status) {
+        status.hidden = false;
+        setTimeout(() => { status.hidden = true; }, 3000);
+      }
+    } catch (err) {
+      alert("Failed to save availability.");
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+}
+
+

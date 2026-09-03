@@ -158,7 +158,11 @@
         window.employeeAuthStore?.clearCurrentEmployeeSession?.();
         window.expertAuthStore?.clearCurrentExpertSession?.();
         window.hrAuthStore?.clearCurrentHrSession?.();
-        window.location.assign("dash.html");
+        if (adminResult.profile?.email === "raju@gmail.com") {
+          window.location.assign("supervisor_dash.html");
+        } else {
+          window.location.assign("dash.html");
+        }
         return;
       }
 

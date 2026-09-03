@@ -101,7 +101,10 @@ const applyEmbeddedFormLayout = () => {
 
 const activateSidebarLink = () => {
   const currentPath = window.location.pathname.split("/").pop() || "dash.html";
-  const activePath = ["rolesadmin.html", "rolesuser.html", "roleswellness.html"].includes(currentPath) ? "roles.html" : currentPath;
+  let activePath = ["rolesadmin.html", "rolesuser.html", "roleswellness.html"].includes(currentPath) ? "roles.html" : currentPath;
+  if (["supervisor_rolesadmin.html", "supervisor_rolesuser.html", "supervisor_roleswellness.html"].includes(currentPath)) {
+    activePath = "supervisor_roles.html";
+  }
   document.querySelectorAll(".sidebar-link").forEach((link) => {
     const targetPath = link.getAttribute("href");
     link.classList.toggle("active", targetPath === activePath);
@@ -963,7 +966,7 @@ const refreshAdminDirectoryDataFromBackend = async () => {
   }
 
   try {
-    const [companies, employees, experts, hrProfiles, consultations, liveSessions, challenges, rewards] = await Promise.all([
+    const [companies, employees, experts, hrProfiles, consultations, liveSessions, challenges, rewards, videos] = await Promise.all([
       window.appApiClient.request("/companies"),
       window.appApiClient.request("/employees"),
       window.appApiClient.request("/experts"),
@@ -972,6 +975,7 @@ const refreshAdminDirectoryDataFromBackend = async () => {
       window.appApiClient.request("/live-sessions"),
       window.appApiClient.request("/challenges"),
       window.appApiClient.request("/rewards"),
+      window.appApiClient.request("/videos"),
     ]);
 
     const isCompaniesSaved = persistCompanyCollectionLocally(companies);
@@ -994,6 +998,10 @@ const refreshAdminDirectoryDataFromBackend = async () => {
       APP_STORAGE_KEYS.rewards,
       Array.isArray(rewards) ? rewards : []
     );
+    const isVideosSaved = writeStoredCollection(
+      APP_STORAGE_KEYS.videos,
+      Array.isArray(videos) ? videos : []
+    );
 
     if (
       !isCompaniesSaved
@@ -1004,6 +1012,7 @@ const refreshAdminDirectoryDataFromBackend = async () => {
       || !isLiveSessionsSaved
       || !isChallengesSaved
       || !isRewardsSaved
+      || !isVideosSaved
     ) {
       return {
         ok: false,
@@ -1149,6 +1158,8 @@ const renderCompanyOnboardingRequests = async () => {
         window.alert(result?.error || "This company request could not be approved.");
         return;
       }
+
+      window.alert(`Company ${request.companyName} approved successfully.`);
 
       await renderCompanyOnboardingRequests();
       renderCompanyManagementTable();
@@ -1606,6 +1617,24 @@ const initializeAddUserForm = () => {
       emailField?.focus();
       return;
     }
+
+    // --- PLAN LIMIT ENFORCEMENT ---
+    if (activeRole === "employee" && window.planStore) {
+      const check = window.planStore.canAddEmployee(matchedCompany.name);
+      if (!check.allowed) {
+        setFormMessage(formMessage, check.reason);
+        return;
+      }
+    }
+
+    if (activeRole === "expert" && window.planStore) {
+      const check = window.planStore.canAddExpert(matchedCompany.name);
+      if (!check.allowed) {
+        setFormMessage(formMessage, check.reason);
+        return;
+      }
+    }
+    // -----------------------------
 
     let isSaved = false;
     let successMessage = "User added successfully.";

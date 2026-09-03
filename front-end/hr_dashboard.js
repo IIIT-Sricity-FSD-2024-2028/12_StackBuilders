@@ -689,6 +689,19 @@ async function importEmployeesFromFile(file) {
     return;
   }
 
+  // --- PLAN SUBSCRIPTION ENFORCEMENT ---
+  if (window.planStore) {
+    const check = window.planStore.canAddEmployee(companyContext.companyName);
+    if (!check.allowed) {
+      setEmployeeImportFeedback(check.reason, "error");
+      const goToPricing = confirm(check.reason + "\n\nWould you like to choose a pricing plan now?");
+      if (goToPricing) {
+        window.location.href = "hr_pricing.html";
+      }
+      return;
+    }
+  }
+
   setEmployeeImportFeedback("Importing employee spreadsheet...", "success");
 
   try {
@@ -718,6 +731,15 @@ async function importEmployeesFromFile(file) {
           `Row ${rowNumber}: missing ${missingFields.join(", ")}.`
         );
         continue;
+      }
+
+      // Check each row so a single import cannot exceed the employee quota.
+      if (window.planStore) {
+        const check = window.planStore.canAddEmployee(companyContext.companyName);
+        if (!check.allowed) {
+          failures.push(`Row ${rowNumber}: ${check.reason}`);
+          continue;
+        }
       }
 
       const result = await createEmployeeRecord({
@@ -786,6 +808,19 @@ async function importExpertsFromFile(file) {
     return;
   }
 
+  // --- PLAN SUBSCRIPTION ENFORCEMENT ---
+  if (window.planStore) {
+    const check = window.planStore.canAddExpert(companyContext.companyName);
+    if (!check.allowed) {
+      setExpertImportFeedback(check.reason, "error");
+      const goToPricing = confirm(check.reason + "\n\nWould you like to choose a pricing plan now?");
+      if (goToPricing) {
+        window.location.href = "hr_pricing.html";
+      }
+      return;
+    }
+  }
+
   setExpertImportFeedback("Importing wellness expert spreadsheet...", "success");
 
   try {
@@ -814,6 +849,15 @@ async function importExpertsFromFile(file) {
       if (missingFields.length) {
         failures.push(`Row ${rowNumber}: missing ${missingFields.join(", ")}.`);
         continue;
+      }
+
+      // Check each row so a single import cannot exceed the wellness expert quota.
+      if (window.planStore) {
+        const check = window.planStore.canAddExpert(companyContext.companyName);
+        if (!check.allowed) {
+          failures.push(`Row ${rowNumber}: ${check.reason}`);
+          continue;
+        }
       }
 
       const result = await createExpertRecord({
@@ -1158,6 +1202,18 @@ async function handleEmployeeSubmit(event) {
   const companyContext = requireCurrentHrCompanyContext();
   if (!companyContext) return;
 
+  // --- PLAN SUBSCRIPTION ENFORCEMENT ---
+  if (window.planStore) {
+    const check = window.planStore.canAddEmployee(companyContext.companyName);
+    if (!check.allowed) {
+      const goToPricing = confirm(check.reason + "\n\nWould you like to choose a pricing plan now?");
+      if (goToPricing) {
+        window.location.href = "hr_pricing.html";
+      }
+      return;
+    }
+  }
+
   const nameInput = employeeForm.querySelector("#employeeName");
   const departmentSelect = employeeForm.querySelector("#department");
   const emailInput = employeeForm.querySelector("#employeeEmail");
@@ -1201,6 +1257,18 @@ async function handleExpertSubmit(event) {
 
   const companyContext = requireCurrentHrCompanyContext();
   if (!companyContext) return;
+
+  // --- PLAN SUBSCRIPTION ENFORCEMENT ---
+  if (window.planStore) {
+    const check = window.planStore.canAddExpert(companyContext.companyName);
+    if (!check.allowed) {
+      const goToPricing = confirm(check.reason + "\n\nWould you like to choose a pricing plan now?");
+      if (goToPricing) {
+        window.location.href = "hr_pricing.html";
+      }
+      return;
+    }
+  }
 
   const nameInput = expertForm.querySelector("#expertName");
   const experienceInput = expertForm.querySelector("#expertExperience");
