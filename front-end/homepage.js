@@ -109,6 +109,12 @@
     button.addEventListener("click", closeSignupModal);
   });
 
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !signupModal.hidden) {
+      closeSignupModal();
+    }
+  });
+
   if (signinForm) {
     signinForm.addEventListener("submit", (event) => {
       event.preventDefault();
