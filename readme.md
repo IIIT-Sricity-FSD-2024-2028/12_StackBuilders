@@ -9,6 +9,7 @@ The objective of the platform is to streamline the management of employee wellne
 - Wellness Expert (Physical Wellness Instructor, Nutritionist, Psychologist)
 - HR (Human Resource)
 - Administrator
+- Supervisor
 
 ## Planned Features
 
