@@ -9,8 +9,8 @@ import { Request, Response, NextFunction } from 'express';
 import { extname } from 'path';
 import multer = require('multer');
 
-const ALLOWED_MIME_TYPES = /^(image\/png|image\/jpeg|application\/pdf)$/;
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_MIME_TYPES = /^(image\/png|image\/jpeg|image\/webp|application\/pdf)$/;
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
 const uploadSingleFile = multer({
   storage: multer.diskStorage({
@@ -25,7 +25,7 @@ const uploadSingleFile = multer({
     if (!ALLOWED_MIME_TYPES.test(file.mimetype)) {
       cb(
         new BadRequestException(
-          'Only PNG, JPEG, or PDF files are allowed.',
+          'Only PNG, JPEG, WebP, or PDF files are allowed.',
         ) as unknown as Error,
       );
       return;
@@ -63,7 +63,7 @@ export class FileValidationMiddleware implements NestMiddleware {
     }
     if (error instanceof multer.MulterError) {
       if (error.code === 'LIMIT_FILE_SIZE') {
-        return new PayloadTooLargeException('File exceeds the 5MB size limit.');
+        return new PayloadTooLargeException('File exceeds the 10MB size limit.');
       }
       return new BadRequestException(error.message);
     }
