@@ -1,6 +1,7 @@
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { FileLoggerService } from './file-logger.service';
+import { randomUUID } from 'crypto';
 
 const SLOW_REQUEST_MS = 1000;
 
@@ -15,6 +16,7 @@ export class LoggingMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction): void {
     const startedAt = Date.now();
+    const requestId = randomUUID().slice(0, 8);
 
     res.on('finish', () => {
       const durationMs = Date.now() - startedAt;
@@ -28,6 +30,7 @@ export class LoggingMiddleware implements NestMiddleware {
 
       const line = [
         new Date().toISOString(),
+        `req=${requestId}`,
         req.method,
         req.originalUrl,
         res.statusCode,
