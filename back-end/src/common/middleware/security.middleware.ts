@@ -13,6 +13,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     res.setHeader('X-Download-Options', 'noopen');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
     res.setHeader(
       'Content-Security-Policy',
