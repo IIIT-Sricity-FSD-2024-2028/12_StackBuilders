@@ -1,7 +1,7 @@
 (function () {
   const revealElements = Array.from(document.querySelectorAll(".reveal"));
   const prefersReducedMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
+    "(prefers-reduced-motion: reduce)",
   );
 
   if (revealElements.length) {
@@ -15,13 +15,16 @@
 
             const element = entry.target;
             const siblings = Array.from(
-              element.parentElement?.querySelectorAll(":scope > .reveal") || []
+              element.parentElement?.querySelectorAll(":scope > .reveal") || [],
             );
             const index = Math.max(siblings.indexOf(element), 0);
 
-            window.setTimeout(() => {
-              element.classList.add("is-visible");
-            }, Math.min(index * 90, 360));
+            window.setTimeout(
+              () => {
+                element.classList.add("is-visible");
+              },
+              Math.min(index * 90, 360),
+            );
 
             currentObserver.unobserve(element);
           });
@@ -29,7 +32,7 @@
         {
           threshold: 0.18,
           rootMargin: "0px 0px -8% 0px",
-        }
+        },
       );
 
       revealElements.forEach((element) => observer.observe(element));
@@ -38,13 +41,13 @@
 
   const signupModal = document.getElementById("signupModal");
   const openSignupButtons = Array.from(
-    document.querySelectorAll("[data-open-signup]")
+    document.querySelectorAll("[data-open-signup]"),
   );
 
   if (!signupModal || !openSignupButtons.length) return;
 
   const closeSignupButtons = Array.from(
-    signupModal.querySelectorAll("[data-close-signup]")
+    signupModal.querySelectorAll("[data-close-signup]"),
   );
   const signinForm = document.getElementById("homepageSigninForm");
   const signinError = document.getElementById("homepageSigninError");
@@ -65,7 +68,7 @@
   const getPendingRequestMessage = (username, password) => {
     const pendingRequest =
       window.companyOnboardingRequestStore?.findPendingRequestByHrEmail?.(
-        username
+        username,
       ) || null;
 
     if (
@@ -109,12 +112,6 @@
     button.addEventListener("click", closeSignupModal);
   });
 
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !signupModal.hidden) {
-      closeSignupModal();
-    }
-  });
-
   if (signinForm) {
     signinForm.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -125,7 +122,7 @@
       const password = String(formData.get("password") || "");
       const employeeResult = window.employeeAuthStore?.authenticateEmployee(
         username,
-        password
+        password,
       );
 
       if (employeeResult?.ok) {
@@ -138,7 +135,7 @@
 
       const expertResult = window.expertAuthStore?.authenticateExpert(
         username,
-        password
+        password,
       );
 
       if (expertResult?.ok) {
@@ -146,8 +143,9 @@
         window.hrAuthStore?.clearCurrentHrSession?.();
         window.adminAuthStore?.clearCurrentAdminSession?.();
         window.location.assign(
-          window.expertAuthStore?.getExpertDashboardRoute?.(expertResult.expert) ||
-            "Wellness_Dashboard.html"
+          window.expertAuthStore?.getExpertDashboardRoute?.(
+            expertResult.expert,
+          ) || "Wellness_Dashboard.html",
         );
         return;
       }
@@ -157,7 +155,7 @@
         password,
         {
           source: "homepage",
-        }
+        },
       );
 
       if (adminResult?.ok) {
@@ -184,7 +182,10 @@
         return;
       }
 
-      const pendingRequestMessage = getPendingRequestMessage(username, password);
+      const pendingRequestMessage = getPendingRequestMessage(
+        username,
+        password,
+      );
       if (pendingRequestMessage) {
         showSigninError(pendingRequestMessage);
         return;
@@ -194,7 +195,7 @@
         adminResult?.error ||
           hrResult?.error ||
           expertResult?.error ||
-          "Invalid credentials. Please check your username and password."
+          "Invalid credentials. Please check your username and password.",
       );
     });
   }
