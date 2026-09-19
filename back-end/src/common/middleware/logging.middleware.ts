@@ -22,6 +22,7 @@ export class LoggingMiddleware implements NestMiddleware {
       const role = (req as unknown as { role?: string }).role || 'unknown';
       const clientIp = req.ip || 'unknown';
       const userAgent = req.get('user-agent') || 'unknown';
+      const responseBytes = res.getHeader('content-length') || 'unknown';
 
       const line = [
         new Date().toISOString(),
@@ -32,6 +33,7 @@ export class LoggingMiddleware implements NestMiddleware {
         `role=${role}`,
         `ip=${clientIp}`,
         `user-agent=${userAgent}`,
+        `bytes=${responseBytes}`,
       ].join(' | ');
 
       if (res.statusCode >= 500) this.logger.error(line);
