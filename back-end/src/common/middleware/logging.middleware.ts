@@ -2,6 +2,8 @@ import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { FileLoggerService } from './file-logger.service';
 
+const SLOW_REQUEST_MS = 1000;
+
 // Router-level logging middleware, applied globally (see AppModule#configure).
 // Logs every request/response pair — including ones rejected by later guards —
 // to the console and to a log file.
@@ -34,10 +36,13 @@ export class LoggingMiddleware implements NestMiddleware {
         `ip=${clientIp}`,
         `user-agent=${userAgent}`,
         `bytes=${responseBytes}`,
+        durationMs >= SLOW_REQUEST_MS ? 'performance=slow' : 'performance=normal',
       ].join(' | ');
 
       if (res.statusCode >= 500) this.logger.error(line);
-      else if (res.statusCode >= 400) this.logger.warn(line);
+      else if (res.statusCode >= 400 || durationMs >= SLOW_REQUEST_MS) {
+        this.logger.warn(line);
+      }
       else this.logger.log(line);
 
       this.fileLogger.logAccess(line);
