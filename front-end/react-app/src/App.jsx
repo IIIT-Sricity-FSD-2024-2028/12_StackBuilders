@@ -3,6 +3,7 @@ import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import AdminDashboard from "./features/admin/AdminDashboard.jsx";
 import AdminConsoleLayout from "./features/admin/AdminConsoleLayout.jsx";
 import HRDashboard from "./features/hr/HRDashboard.jsx";
+import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
 import SupervisorWorkspace from "./features/supervisor/SupervisorWorkspace.jsx";
 
 const roles = [
@@ -31,12 +32,13 @@ function App() {
   return (
     <Routes>
       <Route path="/supervisor" element={<SupervisorWorkspace />} />
+      <Route path="/expert" element={<ExpertWorkspace />} />
       <Route element={<AdminConsoleLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
       </Route>
       <Route element={<DashboardLayout roles={roles} />}>
         <Route index element={<Navigate to="/employee" replace />} />
-        {roles.map(([role, path]) => (
+        {roles.filter(([role]) => role !== "Expert").map(([role, path]) => (
           <Route
             key={path}
             path={path.slice(1)}
