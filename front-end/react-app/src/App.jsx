@@ -1,5 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
+import AdminDashboard from "./features/admin/AdminDashboard.jsx";
+import AdminConsoleLayout from "./features/admin/AdminConsoleLayout.jsx";
 
 const roles = [
   ["Employee", "/employee"],
@@ -26,13 +28,16 @@ function PlaceholderPage({ role }) {
 function App() {
   return (
     <Routes>
+      <Route element={<AdminConsoleLayout />}>
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Route>
       <Route element={<DashboardLayout roles={roles} />}>
         <Route index element={<Navigate to="/employee" replace />} />
         {roles.map(([role, path]) => (
           <Route
             key={path}
             path={path.slice(1)}
-            element={<PlaceholderPage role={role} />}
+            element={role === "Admin" ? <AdminDashboard /> : <PlaceholderPage role={role} />}
           />
         ))}
       </Route>

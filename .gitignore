@@ -19,3 +19,5 @@ back-end/uploads/
 
 front-end/node_modules/
 front-end/.cache/
+front-end/react-app/node_modules/
+front-end/react-app/dist/
