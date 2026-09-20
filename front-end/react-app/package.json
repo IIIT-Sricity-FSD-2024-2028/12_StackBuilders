@@ -14,5 +14,8 @@
     "react-dom": "latest",
     "react-router-dom": "latest",
     "vite": "latest"
+  },
+  "devDependencies": {
+    "@rolldown/binding-win32-x64-msvc": "^1.2.9"
   }
 }
