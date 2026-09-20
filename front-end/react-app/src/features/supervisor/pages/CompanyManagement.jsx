@@ -1,0 +1,20 @@
+import { useState } from "react";
+import SupervisorIcon from "../components/SupervisorIcon.jsx";
+import SupervisorModal from "../components/SupervisorModal.jsx";
+import SupervisorTable from "../components/SupervisorTable.jsx";
+
+function CompanyManagement({ companies, requests, onAddCompany, onApproveRequest }) {
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", address: "" });
+  const submit = (event) => { event.preventDefault(); if (!form.name || !form.email) return; onAddCompany({ ...form, id: `CMP-${Date.now()}`, plan: "Starter", employees: 0, status: "Active" }); setForm({ name: "", email: "", phone: "", address: "" }); setShowModal(false); };
+  const companyColumns = [{ key: "name", label: "Company", render: (row) => <div className="table-user"><span className="company-avatar"><SupervisorIcon name="building" size={16} /></span><div><strong>{row.name}</strong><small>{row.email}</small></div></div> }, { key: "plan", label: "Plan", render: (row) => <span className="role-pill">{row.plan}</span> }, { key: "employees", label: "Members" }, { key: "status", label: "Status", render: (row) => <span className="status-pill status-active">{row.status}</span> }];
+  const requestColumns = [{ key: "companyName", label: "Company" }, { key: "hrName", label: "Requested by" }, { key: "createdAt", label: "Received" }, { key: "status", label: "Status", render: (row) => <span className="status-pill status-pending">{row.status}</span> }, { key: "id", label: "Action", render: (row) => <button className="table-action" type="button" onClick={() => onApproveRequest(row.id)}><SupervisorIcon name="check" size={15} /> Approve</button> }];
+  return <>
+    <div className="supervisor-page-heading"><div><p className="supervisor-eyebrow">Company Center</p><h1>Company Management</h1><p className="supervisor-subtitle">Review onboarding requests, plans, and company records.</p></div><button className="supervisor-primary-button" type="button" onClick={() => setShowModal(true)}><SupervisorIcon name="plus" size={17} /> Add Company</button></div>
+    <section className="supervisor-panel supervisor-table-panel"><div className="supervisor-panel-heading"><div><p className="supervisor-eyebrow">Needs attention</p><h2>Company Onboarding Requests</h2></div><span className="supervisor-muted-label">{requests.length} pending</span></div><SupervisorTable columns={requestColumns} rows={requests} emptyMessage="No pending company requests." /></section>
+    <section className="supervisor-panel supervisor-table-panel"><div className="supervisor-panel-heading"><div><p className="supervisor-eyebrow">Directory</p><h2>Registered Companies</h2></div><span className="supervisor-muted-label">{companies.length} companies</span></div><SupervisorTable columns={companyColumns} rows={companies} emptyMessage="No companies registered yet." /></section>
+    {showModal && <SupervisorModal title="Add Company" description="Create a company record with the core contact details used across the wellness workspace." onClose={() => setShowModal(false)}><form className="supervisor-form" onSubmit={submit}><div className="form-grid"><label>Company name<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Enter company name" /></label><label>Company email<input required type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="Enter company email" /></label><label>Phone number<input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="+91 98765 43210" /></label><label>Address<input value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} placeholder="Enter address" /></label></div><div className="form-actions"><button className="supervisor-outline-button" type="button" onClick={() => setShowModal(false)}>Cancel</button><button className="supervisor-primary-button" type="submit">Add Company</button></div></form></SupervisorModal>}
+  </>;
+}
+
+export default CompanyManagement;
