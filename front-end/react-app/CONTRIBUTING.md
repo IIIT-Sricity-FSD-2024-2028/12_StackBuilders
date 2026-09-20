@@ -11,7 +11,7 @@ npm run dev
 
 ## Feature ownership
 
-Each person works in one feature folder:
+Each person works in one feature folder. The project has five actors; Superadmin is handled as an elevated Admin role:
 
 | Role | Folder | Branch |
 | --- | --- | --- |
@@ -19,8 +19,9 @@ Each person works in one feature folder:
 | HR | `src/features/hr` | `react/hr` |
 | Expert | `src/features/expert` | `react/expert` |
 | Admin | `src/features/admin` | `react/admin` |
-| Superadmin | `src/features/superadmin` | `react/superadmin` |
 | Supervisor | `src/features/supervisor` | `react/supervisor` |
+
+Superadmin-specific screens and permissions belong in `src/features/admin` unless the team later approves a separate feature module.
 
 ## Shared files
 
