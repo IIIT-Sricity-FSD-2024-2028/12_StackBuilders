@@ -3,6 +3,7 @@ import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import AdminDashboard from "./features/admin/AdminDashboard.jsx";
 import AdminConsoleLayout from "./features/admin/AdminConsoleLayout.jsx";
 import HRDashboard from "./features/hr/HRDashboard.jsx";
+import EmployeeDashboard from "./features/employee/EmployeeDashboard.jsx";
 import SupervisorWorkspace from "./features/supervisor/SupervisorWorkspace.jsx";
 
 const roles = [
@@ -45,6 +46,8 @@ function App() {
                 <AdminDashboard />
               ) : role === "HR" ? (
                 <HRDashboard />
+              ) : role === "Employee" ? (
+                <EmployeeDashboard />
               ) : (
                 <PlaceholderPage role={role} />
               )
