@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SupervisorIcon from "./components/SupervisorIcon.jsx";
 import SupervisorSidebar from "./components/SupervisorSidebar.jsx";
 import SupervisorDashboard from "./pages/SupervisorDashboard.jsx";
@@ -9,78 +9,87 @@ import Reports from "./pages/Reports.jsx";
 import Revenue from "./pages/Revenue.jsx";
 import Queries from "./pages/Queries.jsx";
 import Settings from "./pages/Settings.jsx";
+import supervisorApi from "./supervisorApi.js";
 import "./supervisor.css";
 
 const pageNames = { dashboard: "Dashboard", users: "User Management", roles: "Roles & Access", companies: "Company Management", reports: "Reports", revenue: "Revenue", queries: "Queries", settings: "Settings" };
+const emptyData = { users: [], companies: [], requests: [], queries: [], payments: [], subscriptions: [], consultations: [], liveSessions: [], videos: [], challenges: [], rewards: [] };
 
-const initialUsers = [
-  { id: "USR-001", name: "Ananya Rao", email: "ananya.rao@gmail.com", role: "Employee", company: "Northstar Labs", status: "Active", lastActive: "Today, 10:42 AM" },
-  { id: "USR-002", name: "Ravi Kumar", email: "ravi.kumar@gmail.com", role: "HR", company: "Northstar Labs", status: "Active", lastActive: "Today, 09:18 AM" },
-  { id: "USR-003", name: "Dr. Meera Shah", email: "meera.shah@gmail.com", role: "Wellness Expert", company: "WellSpring Co.", status: "Active", lastActive: "Yesterday" },
-  { id: "USR-004", name: "Vikram Singh", email: "vikram.singh@gmail.com", role: "Employee", company: "WellSpring Co.", status: "Inactive", lastActive: "18 Sep 2026" },
-];
+function formatDate(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.valueOf()) ? "—" : new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
+}
 
-const initialCompanies = [
-  { id: "CMP-001", name: "Northstar Labs", email: "people@northstarlabs.com", plan: "Business", employees: 86, status: "Active" },
-  { id: "CMP-002", name: "WellSpring Co.", email: "hr@wellspring.co", plan: "Starter", employees: 34, status: "Active" },
-  { id: "CMP-003", name: "BrightPath Health", email: "hello@brightpath.health", plan: "Enterprise", employees: 214, status: "Active" },
-];
+function formatRelativeDate(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.valueOf()) ? "—" : new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
+}
 
-const initialRequests = [
-  { id: "REQ-001", companyName: "Urban Bloom", hrName: "Priya Menon", createdAt: "Today, 11:05 AM", status: "Pending" },
-  { id: "REQ-002", companyName: "Cedar & Co.", hrName: "Arjun Nair", createdAt: "Yesterday", status: "Pending" },
-];
+function normalizeUsers({ employees, experts, hrProfiles }) {
+  const mapUser = (record, role) => ({ id: record.id, name: record.name || record.email || "Unnamed user", email: record.email || "—", role, company: record.companyName || "—", companyId: record.companyId || "", status: record.status || "Unknown", lastActive: formatRelativeDate(record.updatedAt || record.createdAt), createdAt: record.createdAt || record.updatedAt });
+  return [...employees.map((record) => mapUser(record, "Employee")), ...experts.map((record) => mapUser(record, "Wellness Expert")), ...hrProfiles.map((record) => mapUser(record, "HR"))];
+}
 
-const initialQueries = [
-  { id: "Q-001", user: "Riya Patel", email: "riya.patel@gmail.com", description: "How can I update my company wellness preferences?", createdAt: "Today, 09:12 AM", status: "Open", reply: "" },
-  { id: "Q-002", user: "Karan Shah", email: "karan.shah@gmail.com", description: "The video library is not showing my assigned sessions.", createdAt: "Yesterday", status: "Open", reply: "" },
-  { id: "Q-003", user: "Neha Joshi", email: "neha.joshi@gmail.com", description: "Please help me understand the challenge points system.", createdAt: "18 Sep 2026", status: "Replied", reply: "The HR team can help assign the next challenge.", },
-];
+function normalizeCompanies(companies, users, subscriptions) {
+  return companies.map((company) => {
+    const subscription = subscriptions.find((entry) => entry.companyId === company.id || entry.companyName?.toLowerCase() === company.name?.toLowerCase());
+    return { ...company, plan: subscription?.planName || subscription?.planId || "No plan", employees: users.filter((user) => user.companyId === company.id || user.company?.toLowerCase() === company.name?.toLowerCase()).length, status: subscription?.status || "Unsubscribed" };
+  });
+}
 
-const initialPayments = [
-  { id: "PAY-001", company: "Northstar Labs", plan: "Business", amount: 200, date: "20 Sep 2026", status: "Completed" },
-  { id: "PAY-002", company: "WellSpring Co.", plan: "Starter", amount: 100, date: "18 Sep 2026", status: "Completed" },
-  { id: "PAY-003", company: "BrightPath Health", plan: "Enterprise", amount: 300, date: "12 Sep 2026", status: "Completed" },
-];
+function normalizeRequests(requests) { return requests.map((request) => ({ ...request, status: request.status ? request.status[0].toUpperCase() + request.status.slice(1) : "Pending", createdAt: formatDate(request.createdAt) })); }
+function normalizeQueries(queries) { return queries.map((query) => ({ ...query, user: query.userName || query.userEmail || "Unknown user", email: query.userEmail || "—", description: query.description || "No description", createdAt: formatDate(query.createdAt), status: query.status || "Open" })); }
+function normalizePayments(payments) { return payments.map((payment) => ({ ...payment, company: payment.companyName || payment.company || "—", plan: payment.planName || payment.planId || "—", amount: Number(payment.amount) || 0, date: formatDate(payment.paidAt || payment.createdAt), status: payment.status || "Unknown" })); }
+
+function monthBuckets(records, dateKey) {
+  const now = new Date();
+  const buckets = Array.from({ length: 6 }, (_, index) => new Date(now.getFullYear(), now.getMonth() - (5 - index), 1));
+  return { labels: buckets.map((date) => new Intl.DateTimeFormat(undefined, { month: "short" }).format(date)), values: buckets.map((bucket) => records.filter((record) => { const date = new Date(record[dateKey]); return date.getFullYear() === bucket.getFullYear() && date.getMonth() === bucket.getMonth(); }).length) };
+}
+
+function amountBuckets(records) {
+  const now = new Date();
+  const buckets = Array.from({ length: 6 }, (_, index) => new Date(now.getFullYear(), now.getMonth() - (5 - index), 1));
+  return { labels: buckets.map((date) => new Intl.DateTimeFormat(undefined, { month: "short" }).format(date)), values: buckets.map((bucket) => records.filter((record) => { const date = new Date(record.paidAt || record.createdAt); return date.getFullYear() === bucket.getFullYear() && date.getMonth() === bucket.getMonth(); }).reduce((sum, record) => sum + (Number(record.amount) || 0), 0)) };
+}
 
 function SupervisorWorkspace() {
   const [activeView, setActiveView] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [users, setUsers] = useState(initialUsers);
-  const [companies, setCompanies] = useState(initialCompanies);
-  const [requests, setRequests] = useState(initialRequests);
-  const [queries, setQueries] = useState(initialQueries);
+  const [data, setData] = useState(emptyData);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const stats = useMemo(() => [
-    { label: "Total Users", value: String(users.length), detail: "Synced from employee, expert, and HR accounts" },
-    { label: "Active Users", value: String(users.filter((user) => user.status === "Active").length), detail: "Live enabled accounts across the workspace" },
-    { label: "System Activity", value: String(users.length + companies.length + queries.length), detail: "Consultations, sessions, videos, challenges, and rewards" },
-  ], [users, companies, queries]);
+  const refresh = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const raw = await supervisorApi.loadWorkspace();
+      const users = normalizeUsers(raw);
+      setData({ ...raw, users, companies: normalizeCompanies(raw.companies, users, raw.subscriptions), requests: normalizeRequests(raw.requests), queries: normalizeQueries(raw.queries), payments: normalizePayments(raw.payments) });
+    } catch (requestError) {
+      setData(emptyData);
+      setError(requestError.message || "The supervisor data could not be loaded.");
+    } finally { setLoading(false); }
+  };
 
-  const activities = [
-    { id: "activity-1", title: `${requests.length} company onboarding requests need review`, detail: "Company Management", time: "Now" },
-    { id: "activity-2", title: `${queries.filter((query) => query.status === "Open").length} user queries are open`, detail: "Queries", time: "Today" },
-    { id: "activity-3", title: `${companies.length} company workspaces are active`, detail: "Workspace health", time: "Today" },
-  ];
+  useEffect(() => { refresh(); }, []);
+
+  const stats = useMemo(() => [{ label: "Total Users", value: String(data.users.length), detail: "Synced from employee, expert, and HR accounts" }, { label: "Active Users", value: String(data.users.filter((user) => user.status.toLowerCase() === "active").length), detail: "Live enabled accounts across the workspace" }, { label: "System Activity", value: String(data.consultations.length + data.liveSessions.length + data.videos.length + data.challenges.length + data.rewards.length), detail: "Consultations, sessions, videos, challenges, and rewards" }], [data]);
+  const activities = useMemo(() => [{ id: "requests", title: `${data.requests.length} company onboarding requests`, detail: "Company Management", time: "Live" }, { id: "queries", title: `${data.queries.filter((query) => query.status.toLowerCase() === "open").length} open user queries`, detail: "Queries", time: "Live" }, { id: "companies", title: `${data.companies.length} company workspaces`, detail: "Workspace health", time: "Live" }], [data]);
+  const reportData = useMemo(() => ({ monthlyUsers: monthBuckets(data.users, "createdAt"), roleDistribution: ["Employee", "HR", "Wellness Expert"].map((role) => data.users.filter((user) => user.role === role).length), weeklyActivity: [data.consultations, data.liveSessions, data.videos, data.challenges, data.rewards].map((records) => records.length), monthlyRevenue: amountBuckets(data.payments), planRevenue: [...new Set(data.payments.map((payment) => payment.planName || payment.planId).filter(Boolean))].map((plan) => ({ label: plan, value: data.payments.filter((payment) => (payment.planName || payment.planId) === plan).reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0) })) }), [data]);
 
   const navigate = (view) => { setActiveView(view); setSidebarOpen(false); };
-  const addUser = (user) => setUsers((current) => [...current, user]);
-  const addCompany = (company) => setCompanies((current) => [...current, company]);
-  const approveRequest = (id) => setRequests((current) => current.filter((request) => request.id !== id));
-  const replyToQuery = (id, reply) => setQueries((current) => current.map((query) => query.id === id ? { ...query, reply, status: "Replied" } : query));
+  const addUser = async (user) => { const company = data.companies.find((entry) => entry.id === user.companyId); const common = { name: user.name, email: user.email, password: user.password, companyId: user.companyId, companyName: company?.name, phoneNumber: user.phone, status: "Active" }; const created = user.role === "Employee" ? await supervisorApi.createEmployee({ ...common, department: user.department }) : user.role === "HR" ? await supervisorApi.createHrProfile(common) : await supervisorApi.createExpert({ ...common, specialization: user.specialization, experience: user.experience }); const record = created.hrProfile || created; setData((current) => ({ ...current, users: [...current.users, normalizeUsers({ employees: user.role === "Employee" ? [record] : [], experts: user.role === "Wellness Expert" ? [record] : [], hrProfiles: user.role === "HR" ? [record] : [] })[0]] })); };
+  const addCompany = async (company) => { const created = await supervisorApi.createCompany(company); setData((current) => ({ ...current, companies: [normalizeCompanies([created], current.users, current.subscriptions)[0], ...current.companies] })); };
+  const approveRequest = async (id) => { await supervisorApi.approveRequest(id); await refresh(); };
+  const replyToQuery = async (id, reply) => { const updated = await supervisorApi.updateQuery(id, { reply, status: "Replied" }); setData((current) => ({ ...current, queries: current.queries.map((query) => query.id === id ? { ...query, ...updated, status: "Replied", reply } : query) })); };
 
-  const page = {
-    dashboard: <SupervisorDashboard navigate={navigate} stats={stats} activities={activities} />,
-    users: <UserManagement users={users} onAddUser={addUser} />,
-    companies: <CompanyManagement companies={companies} requests={requests} onAddCompany={addCompany} onApproveRequest={approveRequest} />,
-    roles: <RolesAccess />,
-    reports: <Reports stats={[{ label: "Total Companies", value: String(companies.length), detail: "Managed from the supervisor workspace" }, { label: "Consultations", value: "24", detail: "Requested and accepted sessions" }, { label: "Scheduled Live Sessions", value: "8", detail: "Upcoming expert-led sessions" }, { label: "Video Library Items", value: "56", detail: "Expert content in the library" }]} />,
-    revenue: <Revenue payments={initialPayments} />,
-    queries: <Queries queries={queries} onReply={replyToQuery} />,
-    settings: <Settings />,
-  }[activeView];
+  const page = { dashboard: <SupervisorDashboard navigate={navigate} stats={stats} activities={activities} />, users: <UserManagement users={data.users} companies={data.companies} onAddUser={addUser} />, companies: <CompanyManagement companies={data.companies} requests={data.requests} onAddCompany={addCompany} onApproveRequest={approveRequest} />, roles: <RolesAccess />, reports: <Reports stats={[{ label: "Total Companies", value: String(data.companies.length), detail: "Managed from the supervisor workspace" }, { label: "Consultations", value: String(data.consultations.length), detail: "Requested and accepted sessions" }, { label: "Scheduled Live Sessions", value: String(data.liveSessions.length), detail: "Upcoming expert-led sessions" }, { label: "Video Library Items", value: String(data.videos.length), detail: "Expert content in the library" }]} chartData={reportData} />, revenue: <Revenue payments={data.payments} subscriptions={data.subscriptions} chartData={reportData} />, queries: <Queries queries={data.queries} onReply={replyToQuery} />, settings: <Settings /> }[activeView];
 
-  return <div className="supervisor-workspace"><SupervisorSidebar activeView={activeView} isOpen={sidebarOpen} onSelect={navigate} /><main className="supervisor-main"><header className="supervisor-topbar"><button className="supervisor-mobile-menu" type="button" onClick={() => setSidebarOpen((open) => !open)} aria-label="Toggle supervisor navigation"><span /><span /><span /></button><div className="supervisor-breadcrumb"><span>Supervisor Console</span><SupervisorIcon name="chevron" size={14} /><strong>{pageNames[activeView]}</strong></div><div className="supervisor-topbar-actions"><span className="supervisor-status-dot" /><span>Wellness workspace</span><span className="supervisor-avatar">SB</span></div></header><div className="supervisor-content">{page}</div></main></div>;
+  return <div className="supervisor-workspace"><SupervisorSidebar activeView={activeView} isOpen={sidebarOpen} onSelect={navigate} /><main className="supervisor-main"><header className="supervisor-topbar"><button className="supervisor-mobile-menu" type="button" onClick={() => setSidebarOpen((open) => !open)} aria-label="Toggle supervisor navigation"><span /><span /><span /></button><div className="supervisor-breadcrumb"><span>Supervisor Console</span><SupervisorIcon name="chevron" size={14} /><strong>{pageNames[activeView]}</strong></div><div className="supervisor-topbar-actions"><span className="supervisor-status-dot" /><span>{loading ? "Loading workspace" : "Wellness workspace"}</span><span className="supervisor-avatar">SB</span></div></header><div className="supervisor-content">{error && <div className="supervisor-error" role="alert"><span>{error}</span><button type="button" onClick={refresh}>Retry</button></div>}{loading ? <div className="supervisor-loading"><span className="supervisor-spinner" />Loading supervisor data…</div> : page}</div></main></div>;
 }
 
 export default SupervisorWorkspace;

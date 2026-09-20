@@ -13,7 +13,17 @@ function SupervisorBarChart({ values, labels, color = "teal" }) {
   );
 }
 
-function SupervisorLineChart() {
+function SupervisorLineChart({ values = [], labels = [] }) {
+  const width = 640;
+  const height = 220;
+  const max = Math.max(...values, 1);
+  const points = values.map((value, index) => {
+    const x = values.length > 1 ? (index / (values.length - 1)) * width : width / 2;
+    const y = 200 - (value / max) * 160;
+    return [x, y];
+  });
+  const linePath = points.map(([x, y], index) => `${index ? "L" : "M"}${x} ${y}`).join(" ");
+  const areaPath = `${linePath} L ${width} ${height} L 0 ${height} Z`;
   return (
     <div className="supervisor-line-chart" role="img" aria-label="Monthly user growth chart">
       <svg viewBox="0 0 640 220" preserveAspectRatio="none">
@@ -24,11 +34,11 @@ function SupervisorLineChart() {
           </linearGradient>
         </defs>
         <path className="chart-grid-line" d="M0 40H640M0 95H640M0 150H640M0 205H640" />
-        <path className="chart-area" d="M0 180 80 164 160 172 240 132 320 146 400 90 480 104 560 54 640 70V220H0Z" />
-        <path className="chart-line" d="M0 180 80 164 160 172 240 132 320 146 400 90 480 104 560 54 640 70" />
-        {[0, 80, 160, 240, 320, 400, 480, 560, 640].map((x, index) => <circle key={x} cx={x} cy={[180, 164, 172, 132, 146, 90, 104, 54, 70][index]} r="4" />)}
+        <path className="chart-area" d={areaPath} />
+        <path className="chart-line" d={linePath} />
+        {points.map(([x, y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="4" />)}
       </svg>
-      <div className="chart-axis-labels"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span></div>
+      <div className="chart-axis-labels">{labels.map((label) => <span key={label}>{label}</span>)}</div>
     </div>
   );
 }
