@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentEmployee, getCompanyContext } from '../services/employeeAuth';
+import { getCurrentEmployee, getCompanyContext } from './services/employeeAuth';
 import {
   readChallenges, readRewards, readLiveSessions, readVideos, getDailyTip,
-} from '../services/storageServices';
+} from './services/storageServices';
 
-/* Original CSS files — copied verbatim */
-import '../styles/Employee_Dashboard.css';
-import '../styles/dashboardNavbar.css';
+import './employee.css';
 
 const REWARDS_PER_PAGE = 3;
 
