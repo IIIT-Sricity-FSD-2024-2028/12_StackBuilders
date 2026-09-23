@@ -4,6 +4,8 @@ import AdminDashboard from "./features/admin/AdminDashboard.jsx";
 import AdminConsoleLayout from "./features/admin/AdminConsoleLayout.jsx";
 import HRDashboard from "./features/hr/HRDashboard.jsx";
 import EmployeeDashboard from "./features/employee/EmployeeDashboard.jsx";
+import EmployeeConsultation from "./features/employee/components/EmployeeConsultation.jsx";
+import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
 import SupervisorWorkspace from "./features/supervisor/SupervisorWorkspace.jsx";
 
 const roles = [
@@ -37,23 +39,29 @@ function App() {
       </Route>
       <Route element={<DashboardLayout roles={roles} />}>
         <Route index element={<Navigate to="/employee" replace />} />
-        {roles.map(([role, path]) => (
-          <Route
-            key={path}
-            path={path.slice(1)}
-            element={
-              role === "Admin" ? (
-                <AdminDashboard />
-              ) : role === "HR" ? (
-                <HRDashboard />
-              ) : role === "Employee" ? (
-                <EmployeeDashboard />
-              ) : (
-                <PlaceholderPage role={role} />
-              )
-            }
-          />
-        ))}
+        {/* Employee routes */}
+        <Route path="employee" element={<EmployeeDashboard />} />
+        <Route path="consultation" element={<EmployeeConsultation />} />
+        {/* Expert route */}
+        <Route path="expert" element={<ExpertWorkspace />} />
+        {/* Remaining role placeholders */}
+        {roles
+          .filter(([role]) => !["Employee", "Expert"].includes(role))
+          .map(([role, path]) => (
+            <Route
+              key={path}
+              path={path.slice(1)}
+              element={
+                role === "Admin" ? (
+                  <AdminDashboard />
+                ) : role === "HR" ? (
+                  <HRDashboard />
+                ) : (
+                  <PlaceholderPage role={role} />
+                )
+              }
+            />
+          ))}
       </Route>
     </Routes>
   );
