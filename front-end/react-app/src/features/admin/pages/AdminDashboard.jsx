@@ -1,4 +1,4 @@
-import "./admin-dashboard.css";
+import "../admin-dashboard.css";
 
 function AdminIcon({ name }) {
   const paths = {
@@ -80,7 +80,6 @@ function AdminDashboard() {
           </ul>
         </article>
       </section>
-
     </main>
   );
 }

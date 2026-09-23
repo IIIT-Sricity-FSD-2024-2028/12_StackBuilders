@@ -1,11 +1,12 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
-import AdminDashboard from "./features/admin/AdminDashboard.jsx";
+import AdminDashboard from "./features/admin/pages/AdminDashboard.jsx";
 import AdminConsoleLayout from "./features/admin/AdminConsoleLayout.jsx";
+import UserManagement from "./features/admin/pages/UserManagement.jsx";
 import HRDashboard from "./features/hr/HRDashboard.jsx";
-import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
 import EmployeeDashboard from "./features/employee/EmployeeDashboard.jsx";
 import EmployeeConsultation from "./features/employee/components/EmployeeConsultation.jsx";
+import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
 import SupervisorWorkspace from "./features/supervisor/SupervisorWorkspace.jsx";
 
 const roles = [
@@ -37,6 +38,7 @@ function App() {
       <Route path="/expert" element={<ExpertWorkspace />} />
       <Route element={<AdminConsoleLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/users" element={<UserManagement />} />
       </Route>
       <Route element={<DashboardLayout roles={roles} />}>
         <Route index element={<Navigate to="/employee" replace />} />
