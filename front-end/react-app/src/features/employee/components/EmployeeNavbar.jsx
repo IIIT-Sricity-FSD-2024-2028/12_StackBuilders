@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { getCurrentEmployee, getEmployeeFirstName, logoutEmployee } from '../services/employeeAuth';
-import '../styles/dashboardNavbar.css';
+import '../employee.css';
 
 /**
  * Produces the exact same HTML as the original:
