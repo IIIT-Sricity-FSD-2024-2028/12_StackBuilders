@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
-import AdminDashboard from "./features/admin/AdminDashboard.jsx";
+import AdminDashboard from "./features/admin/pages/AdminDashboard.jsx";
 import AdminConsoleLayout from "./features/admin/AdminConsoleLayout.jsx";
 import UserManagement from "./features/admin/pages/UserManagement.jsx";
 import HRDashboard from "./features/hr/HRDashboard.jsx";
