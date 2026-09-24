@@ -3,6 +3,7 @@ import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import AdminDashboard from "./features/admin/AdminDashboard.jsx";
 import AdminConsoleLayout from "./features/admin/AdminConsoleLayout.jsx";
 import HRDashboard from "./features/hr/HRDashboard.jsx";
+import HRChallenges from "./features/hr/HRChallenges.jsx";
 import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
 import EmployeeDashboard from "./features/employee/EmployeeDashboard.jsx";
 import SupervisorWorkspace from "./features/supervisor/SupervisorWorkspace.jsx";
@@ -34,6 +35,7 @@ function App() {
     <Routes>
       <Route path="/supervisor" element={<SupervisorWorkspace />} />
       <Route path="/expert" element={<ExpertWorkspace />} />
+      <Route path="/hr/challenges" element={<HRChallenges />} />
       <Route element={<AdminConsoleLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
       </Route>

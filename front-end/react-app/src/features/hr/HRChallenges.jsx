@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import HRChallengeCard from "./components/HRChallengeCard.jsx";
 import HRChallengeModal from "./components/HRChallengeModal.jsx";
+import HRNavbar from "./components/HRNavbar.jsx";
 import HRRewardCard from "./components/HRRewardCard.jsx";
 import "./hr-challenges.css";
 
@@ -34,7 +35,7 @@ function HRChallenges() {
     setChallengePage(0); setRewardPage(0); setModal(null);
   }
 
-  return <div className="hr-challenges-page">
+  return <div className="hr-challenges-page"><HRNavbar activeSection="challenges" />
     <section className="hr-challenges-hero"><span className="hr-trophy-mark">★</span><div><h1>Challenges &amp; Rewards</h1><p>Track your progress and earn points</p></div></section>
     <ChallengeBoard title="Active Challenges" subtitle="Complete challenges to earn rewards" actionLabel="Create New Challenge" onCreate={() => setModal("challenge")}>
       <div className="hr-challenges-grid">{visibleChallenges.map((challenge) => <HRChallengeCard challenge={challenge} key={challenge.id} onDelete={(id) => setChallenges(challenges.filter((item) => item.id !== id))} />)}</div>
