@@ -4,9 +4,10 @@ import AdminDashboard from "./features/admin/pages/AdminDashboard.jsx";
 import AdminConsoleLayout from "./features/admin/AdminConsoleLayout.jsx";
 import UserManagement from "./features/admin/pages/UserManagement.jsx";
 import HRDashboard from "./features/hr/HRDashboard.jsx";
+import HRChallenges from "./features/hr/HRChallenges.jsx";
+import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
 import EmployeeDashboard from "./features/employee/EmployeeDashboard.jsx";
 import EmployeeConsultation from "./features/employee/components/EmployeeConsultation.jsx";
-import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
 import SupervisorWorkspace from "./features/supervisor/SupervisorWorkspace.jsx";
 
 const roles = [
@@ -36,33 +37,30 @@ function App() {
     <Routes>
       <Route path="/supervisor" element={<SupervisorWorkspace />} />
       <Route path="/expert" element={<ExpertWorkspace />} />
+      <Route path="/hr/challenges" element={<HRChallenges />} />
       <Route element={<AdminConsoleLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
       </Route>
       <Route element={<DashboardLayout roles={roles} />}>
         <Route index element={<Navigate to="/employee" replace />} />
-        {/* Employee routes */}
         <Route path="employee" element={<EmployeeDashboard />} />
         <Route path="consultation" element={<EmployeeConsultation />} />
-        {/* Remaining role placeholders (Expert handled separately above) */}
-        {roles
-          .filter(([role]) => !["Employee", "Expert"].includes(role))
-          .map(([role, path]) => (
-            <Route
-              key={path}
-              path={path.slice(1)}
-              element={
-                role === "Admin" ? (
-                  <AdminDashboard />
-                ) : role === "HR" ? (
-                  <HRDashboard />
-                ) : (
-                  <PlaceholderPage role={role} />
-                )
-              }
-            />
-          ))}
+        {roles.filter(([role]) => !["Employee", "Expert"].includes(role)).map(([role, path]) => (
+          <Route
+            key={path}
+            path={path.slice(1)}
+            element={
+              role === "Admin" ? (
+                <AdminDashboard />
+              ) : role === "HR" ? (
+                <HRDashboard />
+              ) : (
+                <PlaceholderPage role={role} />
+              )
+            }
+          />
+        ))}
       </Route>
     </Routes>
   );
