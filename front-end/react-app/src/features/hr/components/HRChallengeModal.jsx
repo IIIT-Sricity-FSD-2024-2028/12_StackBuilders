@@ -10,7 +10,7 @@ function HRChallengeModal({ kind, onClose, onSubmit }) {
         <form onSubmit={(event) => { event.preventDefault(); onSubmit(Object.fromEntries(new FormData(event.currentTarget))); }}>
           {!challenge && <Field name="imageUrl" label="Image URL" type="url" placeholder="https://example.com/reward.jpg" />}
           <Field name="name" label={challenge ? "Challenge Name" : "Reward Name"} placeholder="Enter a name" />
-          {challenge ? <><Field name="type" label="Challenge Type" placeholder="Fitness" /><Field name="reward" label="Reward points" type="number" min="1" /><Field name="deadline" label="Deadline" type="date" /><Field name="goal" label="Goal" placeholder="Enter goal" /></> : <><Field name="description" label="Reward Description" placeholder="Describe the reward" /><Field name="points" label="Points Needed" type="number" min="1" /><Field name="claimableCount" label="Number of People Who Can Claim" type="number" min="1" /></>}
+          {challenge ? <><Field name="type" label="Challenge Type" placeholder="Enter Challenge Title" /><Field name="reward" label="Reward" type="number" min="1" placeholder="Enter reward points" /><Field name="deadline" label="Deadline" type="date" required={false} /><Field name="goal" label="Goal" placeholder="Enter Goal (e.g., 10000 steps)" /></> : <><Field name="description" label="Reward Description" placeholder="Describe the reward employees will receive" /><Field name="points" label="Points Needed" type="number" min="1" placeholder="e.g., 800" /><Field name="claimableCount" label="Number of People Who Can Claim" type="number" min="1" placeholder="e.g., 50" /></>}
           <div className="hr-modal-actions"><button className="hr-submit-button" type="submit">{challenge ? "Launch Challenge" : "Save Reward"}</button><button className="hr-back-btn" onClick={onClose} type="button">Back</button></div>
         </form>
       </section>
@@ -18,6 +18,6 @@ function HRChallengeModal({ kind, onClose, onSubmit }) {
   );
 }
 
-function Field({ name, label, ...props }) { return <label className="hr-challenge-field"><span>{label}</span><input name={name} required {...props} /></label>; }
+function Field({ name, label, required = true, ...props }) { return <label className="hr-challenge-field"><span><i aria-hidden="true">{label === "Deadline" ? "◷" : label === "Goal" ? "◉" : "▧"}</i>{label}</span><input name={name} required={required} {...props} /></label>; }
 
 export default HRChallengeModal;

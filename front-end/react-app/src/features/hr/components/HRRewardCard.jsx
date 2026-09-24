@@ -1,7 +1,7 @@
 function HRRewardCard({ reward, onDelete }) {
   return (
     <article className="hr-reward-card">
-      <div className="hr-reward-badge">Wellness reward</div>
+      <div className="hr-reward-badge">♟&nbsp; Popular</div>
       <div className="hr-reward-image" style={{ backgroundImage: `url(${reward.imageUrl})` }} aria-label={reward.name} role="img" />
       <h3>{reward.name}</h3>
       <p>{reward.description}</p>
