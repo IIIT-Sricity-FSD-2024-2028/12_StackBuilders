@@ -6,15 +6,21 @@ import UserManagement from "./features/admin/pages/UserManagement.jsx";
 import HRDashboard from "./features/hr/HRDashboard.jsx";
 import HRChallenges from "./features/hr/HRChallenges.jsx";
 import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
-import EmployeeDashboard from "./features/employee/EmployeeDashboard.jsx";
-import EmployeeConsultation from "./features/employee/components/EmployeeConsultation.jsx";
 import SupervisorWorkspace from "./features/supervisor/SupervisorWorkspace.jsx";
 
+// Employee feature pages
+import EmployeeDashboard    from "./features/employee/EmployeeDashboard.jsx";
+import EmployeeConsultation from "./features/employee/components/EmployeeConsultation.jsx";
+import WellnessCheckins     from "./features/employee/components/WellnessCheckins.jsx";
+import LiveSessions         from "./features/employee/components/LiveSessions.jsx";
+import VideoLibrary         from "./features/employee/components/VideoLibrary.jsx";
+import WellnessFormPage     from "./features/employee/components/WellnessFormPage.jsx";
+
 const roles = [
-  ["Employee", "/employee"],
-  ["HR", "/hr"],
-  ["Expert", "/expert"],
-  ["Admin", "/admin"],
+  ["Employee",   "/employee"],
+  ["HR",         "/hr"],
+  ["Expert",     "/expert"],
+  ["Admin",      "/admin"],
   ["Superadmin", "/superadmin"],
   ["Supervisor", "/supervisor"],
 ];
@@ -35,32 +41,40 @@ function PlaceholderPage({ role }) {
 function App() {
   return (
     <Routes>
-      <Route path="/supervisor" element={<SupervisorWorkspace />} />
-      <Route path="/expert" element={<ExpertWorkspace />} />
+      <Route path="/supervisor"    element={<SupervisorWorkspace />} />
+      <Route path="/expert"        element={<ExpertWorkspace />} />
       <Route path="/hr/challenges" element={<HRChallenges />} />
       <Route element={<AdminConsoleLayout />}>
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin"       element={<AdminDashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
       </Route>
       <Route element={<DashboardLayout roles={roles} />}>
         <Route index element={<Navigate to="/employee" replace />} />
-        <Route path="employee" element={<EmployeeDashboard />} />
-        <Route path="consultation" element={<EmployeeConsultation />} />
-        {roles.filter(([role]) => !["Employee", "Expert"].includes(role)).map(([role, path]) => (
-          <Route
-            key={path}
-            path={path.slice(1)}
-            element={
-              role === "Admin" ? (
-                <AdminDashboard />
-              ) : role === "HR" ? (
-                <HRDashboard />
-              ) : (
-                <PlaceholderPage role={role} />
-              )
-            }
-          />
-        ))}
+
+        {/* ── Employee routes ── */}
+        <Route path="employee"          element={<EmployeeDashboard />} />
+        <Route path="consultation"      element={<EmployeeConsultation />} />
+        <Route path="wellness-checkins" element={<WellnessCheckins />} />
+        <Route path="live-sessions"     element={<LiveSessions />} />
+        <Route path="video-library"     element={<VideoLibrary />} />
+        <Route path="mental-wellness"   element={<WellnessFormPage trackKey="mental" />} />
+        <Route path="physical-wellness" element={<WellnessFormPage trackKey="physical" />} />
+        <Route path="diet-plan"         element={<WellnessFormPage trackKey="nutrition" />} />
+
+        {/* ── Other role placeholders ── */}
+        {roles
+          .filter(([role]) => !["Employee", "Expert"].includes(role))
+          .map(([role, path]) => (
+            <Route
+              key={path}
+              path={path.slice(1)}
+              element={
+                role === "Admin" ? <AdminDashboard /> :
+                role === "HR"    ? <HRDashboard />    :
+                                   <PlaceholderPage role={role} />
+              }
+            />
+          ))}
       </Route>
     </Routes>
   );
