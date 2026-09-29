@@ -4,6 +4,7 @@ import ExpertNavigation from "./components/ExpertNavigation.jsx";
 import { loadExpertWorkspaceData, saveExpertWorkspaceData } from "./expertData.js";
 import ExpertDashboard from "./pages/ExpertDashboard.jsx";
 import ExpertConsultations from "./pages/ExpertConsultations.jsx";
+import ExpertCheckins from "./pages/ExpertCheckins.jsx";
 import "./expert.css";
 
 function ExpertWorkspace() {
@@ -24,7 +25,7 @@ function ExpertWorkspace() {
         <button type="button" aria-label="Profile"><ExpertIcon name="user" size={18} /></button>
       </div>
     </nav>
-    <main className="expert-content">{activeView === "consultations" ? <ExpertConsultations data={data} onUpdate={(changes) => setData((current) => ({ ...current, ...changes }))} /> : <ExpertDashboard data={data} onNavigate={setActiveView} onOpenCheckin={() => {}} />}</main>
+    <main className="expert-content">{activeView === "consultations" ? <ExpertConsultations data={data} onUpdate={(changes) => setData((current) => ({ ...current, ...changes }))} /> : activeView === "checkins" ? <ExpertCheckins data={data} onUpdate={(changes) => setData((current) => ({ ...current, ...changes }))} /> : <ExpertDashboard data={data} onNavigate={setActiveView} onOpenCheckin={() => setActiveView("checkins")} />}</main>
     <footer className="expert-footer">
       <div className="expert-footer-links"><a href="#">About us</a><a href="#">Contact us</a></div>
       <p>© 2026 Stack Builders. Built with wellness in mind.</p>
