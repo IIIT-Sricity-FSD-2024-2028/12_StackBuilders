@@ -319,6 +319,57 @@
 .expert-consultation-list-card { margin-bottom: 10px; align-items: center; }
 .expert-consultation-list-card strong, .expert-consultation-list-card span { display: block; }
 .expert-consultation-empty { display: grid; place-items: center; min-height: 100px; padding: 20px; border: 1px dashed #cfdee3; border-radius: 12px; color: var(--expert-muted); font-size: .78rem; text-align: center; }
+.expert-checkins-page { display: grid; gap: 18px; }
+.expert-checkins-hero { margin-bottom: 0; }
+.expert-checkins-schedule { display: flex; align-items: flex-start; gap: 9px; padding: 12px 14px; border: 1px dashed #b8e7dc; border-radius: 12px; color: #436173; background: linear-gradient(180deg, #f7fffc, #effbf7); font-size: .78rem; line-height: 1.55; }
+.expert-stats-grid-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.expert-checkin-card { display: flex; flex-direction: column; gap: 10px; min-height: 250px; padding: 15px; border: 1px solid #e1e9ef; border-top: 3px solid #e9b54a; border-radius: 14px; color: var(--expert-ink); background: #fff; text-align: left; cursor: pointer; }
+.expert-checkin-card.high { border-color: #f6c5c0; border-top-color: #ef6c62; }
+.expert-checkin-card.medium { border-top-color: #e9b54a; }
+.expert-checkin-card:hover { transform: translateY(-2px); box-shadow: 0 12px 22px rgba(30, 53, 72, .08); }
+.expert-checkin-card:focus-visible { outline: 3px solid rgba(17, 185, 129, .3); outline-offset: 2px; }
+.expert-checkin-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.expert-checkin-card-head em, .expert-checkin-detail-hero em { margin-left: auto; padding: 4px 7px; border-radius: 999px; color: #097866; background: #e4f8ef; font-size: .63rem; font-style: normal; font-weight: 800; text-transform: capitalize; white-space: nowrap; }
+.expert-checkin-card-head em.high, .expert-checkin-detail-hero em.high { color: #bf3e36; background: #fff0ef; }
+.expert-checkin-card-head em.medium, .expert-checkin-detail-hero em.medium { color: #a27010; background: #fff6dd; }
+.expert-checkin-subtitle { margin: 2px 0 0; color: #607185; font-size: .76rem; line-height: 1.5; }
+.expert-checkin-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.expert-checkin-metric { display: grid; gap: 4px; min-width: 0; padding: 9px 10px; border: 1px solid #e4edf5; border-radius: 9px; background: #f8fbfd; }
+.expert-checkin-metric span { color: #7b8798; font-size: .64rem; letter-spacing: .04em; text-transform: uppercase; }
+.expert-checkin-metric strong { overflow-wrap: anywhere; color: #243042; font-size: .78rem; }
+.expert-checkin-summary { display: -webkit-box; overflow: hidden; margin: 0; color: #64748b; font-size: .75rem; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.expert-checkin-summary strong { color: #243042; }
+.expert-checkin-card > .expert-primary-button { margin-top: auto; align-self: flex-start; min-height: 34px; padding: 7px 10px; }
+.expert-checkin-card > .expert-primary-button svg { width: 14px !important; height: 14px !important; }
+.expert-checkin-page .expert-empty { grid-column: 1 / -1; }
+.expert-checkins-page .expert-pagination { margin-top: 0; }
+.expert-checkins-page .expert-pagination button { min-height: 32px; padding: 0 12px; border: 1px solid #d5e3e7; border-radius: 8px; color: #427b75; background: #fff; font-size: .7rem; font-weight: 800; }
+.expert-checkins-page .expert-pagination button:disabled { opacity: .45; }
+.expert-checkin-modal { position: relative; width: min(1120px, 100%); max-height: calc(100vh - 44px); overflow: auto; padding: 25px; border: 1px solid rgba(255, 255, 255, .65); border-radius: 20px; background: #fff; box-shadow: 0 24px 65px rgba(13, 31, 41, .28); }
+.expert-checkin-detail-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 0 42px 20px 0; border-bottom: 1px solid #e6eef1; }
+.expert-checkin-detail-hero .expert-person-row > span:not(.expert-avatar) { display: block; }
+.expert-checkin-detail-hero small { color: #0d9683; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.expert-checkin-detail-hero h2 { margin: 3px 0; color: #213145; font-size: 1.35rem; }
+.expert-checkin-detail-hero p { margin: 0; color: #7a8998; font-size: .73rem; }
+.expert-checkin-detail-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(250px, .75fr); gap: 23px; padding-top: 21px; }
+.expert-checkin-detail-layout main, .expert-checkin-detail-layout aside { display: grid; align-content: start; gap: 16px; }
+.expert-checkin-detail-layout section { padding: 16px; border: 1px solid #e5edef; border-radius: 13px; background: #fcfefe; }
+.expert-checkin-detail-layout h3 { margin: 0 0 4px; color: #304154; font-size: .87rem; }
+.expert-checkin-detail-layout section > p { margin: 0; color: #7c8998; font-size: .72rem; line-height: 1.45; }
+.expert-detail-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 14px; }
+.expert-detail-metrics div { padding: 10px; border-radius: 9px; background: #eef8f7; }
+.expert-detail-metrics span, .expert-detail-metrics strong { display: block; }
+.expert-detail-metrics span { margin-bottom: 3px; color: #5d887f; font-size: .66rem; font-weight: 700; }
+.expert-detail-metrics strong { color: #25796d; font-size: .76rem; }
+.expert-detail-notes { margin: 13px 0 0 !important; min-height: 70px; padding: 12px; border-radius: 9px; background: #fff; white-space: pre-wrap; }
+.expert-detail-muted { color: #7c8998; font-size: .72rem; line-height: 1.5; }
+.expert-checkin-detail-layout dl { display: grid; gap: 10px; margin: 13px 0 0; }
+.expert-checkin-detail-layout dt { color: #8090a0; font-size: .65rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.expert-checkin-detail-layout dd { margin: 3px 0 0; color: #526676; font-size: .74rem; line-height: 1.45; }
+.expert-checkin-detail-layout label { display: grid; gap: 6px; margin-top: 13px; color: #536576; font-size: .72rem; font-weight: 800; }
+.expert-checkin-detail-layout textarea { width: 100%; min-height: 90px; padding: 9px; border: 1px solid #d8e4e8; border-radius: 9px; resize: vertical; }
+.expert-checkin-detail-layout textarea:focus { outline: none; border-color: #18ab96; box-shadow: 0 0 0 3px rgba(24, 171, 150, .12); }
+.expert-checkin-detail-layout form .expert-primary-button { margin-top: 10px; }
 @media (max-width: 1050px) { .expert-upcoming-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 720px) { .expert-availability-days, .expert-consultation-split, .expert-upcoming-grid { grid-template-columns: 1fr; } }
 
