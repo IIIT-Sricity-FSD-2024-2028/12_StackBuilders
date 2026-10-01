@@ -21,7 +21,7 @@ export default function Navbar({ onProfileClick, onLogout }) {
       <div className="logo">Stack Builders</div>
 
       <div className="nav-links">
-        <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : undefined}>
+        <NavLink to="/employee" className={({ isActive }) => isActive ? 'active' : undefined}>
           <i className="fa-solid fa-house" /> Home
         </NavLink>
         <NavLink to="/consultation" className={({ isActive }) => isActive ? 'active' : undefined}>
