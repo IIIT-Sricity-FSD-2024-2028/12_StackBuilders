@@ -42,29 +42,32 @@ function PlaceholderPage({ role }) {
 function App() {
   return (
     <Routes>
-      <Route path="/supervisor"    element={<SupervisorWorkspace />} />
-      <Route path="/expert"        element={<ExpertWorkspace />} />
-      <Route path="/hr/challenges" element={<HRChallenges />} />
+      {/* ── Standalone workspaces (no role-switcher sidebar) ── */}
+      <Route path="/supervisor" element={<SupervisorWorkspace />} />
+      <Route path="/expert"     element={<ExpertWorkspace />} />
+
+      {/* ── Employee workspace (all pages share EmployeeNavbar) ── */}
+      <Route element={<EmployeeLayout />}>
+        <Route path="/employee"          element={<EmployeeDashboard />} />
+        <Route path="/consultation"      element={<EmployeeConsultation />} />
+        <Route path="/wellness-checkins" element={<WellnessCheckins />} />
+        <Route path="/live-sessions"     element={<LiveSessions />} />
+        <Route path="/video-library"     element={<VideoLibrary />} />
+        <Route path="/mental-wellness"   element={<WellnessFormPage trackKey="mental" />} />
+        <Route path="/physical-wellness" element={<WellnessFormPage trackKey="physical" />} />
+        <Route path="/diet-plan"         element={<WellnessFormPage trackKey="nutrition" />} />
+      </Route>
+
+      {/* ── Admin console ── */}
       <Route element={<AdminConsoleLayout />}>
         <Route path="/admin"       element={<AdminDashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
       </Route>
+
+      {/* ── Shared role-switcher layout (HR, Superadmin, Supervisor placeholders) ── */}
       <Route element={<DashboardLayout roles={roles} />}>
         <Route index element={<Navigate to="/employee" replace />} />
-
-        {/* ── Employee routes (all share EmployeeNavbar via EmployeeLayout) ── */}
-        <Route element={<EmployeeLayout />}>
-          <Route path="employee"          element={<EmployeeDashboard />} />
-          <Route path="consultation"      element={<EmployeeConsultation />} />
-          <Route path="wellness-checkins" element={<WellnessCheckins />} />
-          <Route path="live-sessions"     element={<LiveSessions />} />
-          <Route path="video-library"     element={<VideoLibrary />} />
-          <Route path="mental-wellness"   element={<WellnessFormPage trackKey="mental" />} />
-          <Route path="physical-wellness" element={<WellnessFormPage trackKey="physical" />} />
-          <Route path="diet-plan"         element={<WellnessFormPage trackKey="nutrition" />} />
-        </Route>
-
-        {/* ── Other role placeholders ── */}
+        <Route path="/hr/challenges" element={<HRChallenges />} />
         {roles
           .filter(([role]) => !["Employee", "Expert"].includes(role))
           .map(([role, path]) => (
