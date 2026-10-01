@@ -9,12 +9,13 @@ import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
 import SupervisorWorkspace from "./features/supervisor/SupervisorWorkspace.jsx";
 
 // Employee feature pages
-import EmployeeDashboard    from "./features/employee/EmployeeDashboard.jsx";
+import EmployeeLayout      from "./features/employee/components/EmployeeLayout.jsx";
+import EmployeeDashboard   from "./features/employee/EmployeeDashboard.jsx";
 import EmployeeConsultation from "./features/employee/components/EmployeeConsultation.jsx";
-import WellnessCheckins     from "./features/employee/components/WellnessCheckins.jsx";
-import LiveSessions         from "./features/employee/components/LiveSessions.jsx";
-import VideoLibrary         from "./features/employee/components/VideoLibrary.jsx";
-import WellnessFormPage     from "./features/employee/components/WellnessFormPage.jsx";
+import WellnessCheckins    from "./features/employee/components/WellnessCheckins.jsx";
+import LiveSessions        from "./features/employee/components/LiveSessions.jsx";
+import VideoLibrary        from "./features/employee/components/VideoLibrary.jsx";
+import WellnessFormPage    from "./features/employee/components/WellnessFormPage.jsx";
 
 const roles = [
   ["Employee",   "/employee"],
@@ -51,15 +52,17 @@ function App() {
       <Route element={<DashboardLayout roles={roles} />}>
         <Route index element={<Navigate to="/employee" replace />} />
 
-        {/* ── Employee routes ── */}
-        <Route path="employee"          element={<EmployeeDashboard />} />
-        <Route path="consultation"      element={<EmployeeConsultation />} />
-        <Route path="wellness-checkins" element={<WellnessCheckins />} />
-        <Route path="live-sessions"     element={<LiveSessions />} />
-        <Route path="video-library"     element={<VideoLibrary />} />
-        <Route path="mental-wellness"   element={<WellnessFormPage trackKey="mental" />} />
-        <Route path="physical-wellness" element={<WellnessFormPage trackKey="physical" />} />
-        <Route path="diet-plan"         element={<WellnessFormPage trackKey="nutrition" />} />
+        {/* ── Employee routes (all share EmployeeNavbar via EmployeeLayout) ── */}
+        <Route element={<EmployeeLayout />}>
+          <Route path="employee"          element={<EmployeeDashboard />} />
+          <Route path="consultation"      element={<EmployeeConsultation />} />
+          <Route path="wellness-checkins" element={<WellnessCheckins />} />
+          <Route path="live-sessions"     element={<LiveSessions />} />
+          <Route path="video-library"     element={<VideoLibrary />} />
+          <Route path="mental-wellness"   element={<WellnessFormPage trackKey="mental" />} />
+          <Route path="physical-wellness" element={<WellnessFormPage trackKey="physical" />} />
+          <Route path="diet-plan"         element={<WellnessFormPage trackKey="nutrition" />} />
+        </Route>
 
         {/* ── Other role placeholders ── */}
         {roles
