@@ -275,6 +275,16 @@
 .expert-video-copy > span { display: inline-flex; align-items: center; gap: 4px; color: #237c91; font-size: .63rem; font-weight: 800; }
 .expert-search-empty { gap: 9px; padding: 22px; }
 .expert-search-empty p { margin: 0; }
+.expert-video-page { display: grid; gap: 18px; }
+.expert-video-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 20px 24px; border: 1px solid var(--expert-line); border-radius: 18px; background: #fff; box-shadow: 0 8px 22px rgba(30, 53, 72, .045); }
+.expert-video-hero h1 { margin: 0 0 6px; color: #213145; font-size: clamp(1.7rem, 3vw, 2.2rem); }
+.expert-video-hero p:last-child { margin: 0; color: var(--expert-muted); font-size: .8rem; }
+.expert-video-hero .expert-primary-button { flex: 0 0 auto; }
+.expert-video-page .expert-title-with-icon > span.coral { background: linear-gradient(135deg, #f88678, #ee5c72); }
+.expert-video-page .expert-title-with-icon > span.violet { background: linear-gradient(135deg, #8b78f0, #6658ce); }
+.expert-video-page .expert-title-with-icon > span.mint { background: linear-gradient(135deg, #14baa0, #0b8e80); }
+.expert-video-page .expert-video-category[hidden] { display: none; }
+.expert-video-page .expert-video-art.mint { background: radial-gradient(circle at 22% 20%, rgba(255, 255, 255, .42), transparent 23%), linear-gradient(135deg, #17b799, #087f73); }
 
 .expert-consultation-page { display: grid; gap: 18px; }
 .expert-consultation-panel { padding: clamp(18px, 3vw, 24px); border: 1px solid var(--expert-line); border-radius: 18px; background: #fff; box-shadow: 0 8px 22px rgba(30, 53, 72, .045); }
@@ -392,6 +402,8 @@
   .expert-page-heading .expert-primary-button, .expert-page-heading .expert-secondary-button { justify-self: start; }
   .expert-hero { padding: 20px; border-radius: 18px; }
   .expert-hero h1 { font-size: 1.9rem; }
+  .expert-video-hero { display: grid; }
+  .expert-video-hero .expert-primary-button { justify-self: start; }
   .expert-stats-grid, .expert-stats-grid.three, .expert-priority-list, .expert-latest-grid, .expert-checkin-grid, .expert-two-columns, .expert-consultation-cards, .expert-video-grid { grid-template-columns: 1fr; }
   .expert-workspace .stat-card { min-height: 106px; }
   .expert-availability-grid { grid-template-columns: 1fr; }
