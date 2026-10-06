@@ -7,6 +7,7 @@ import CompanyManagement from "./features/admin/pages/CompanyManagement.jsx";
 import RolesAccess from "./features/admin/pages/RolesAccess.jsx";
 import Reports from "./features/admin/pages/Reports.jsx";
 import Revenue from "./features/admin/pages/Revenue.jsx";
+import Settings from "./features/admin/pages/Settings.jsx";
 import HRDashboard from "./features/hr/HRDashboard.jsx";
 import HRChallenges from "./features/hr/HRChallenges.jsx";
 import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
@@ -70,6 +71,7 @@ function App() {
         <Route path="/admin/roles-access" element={<RolesAccess />} />
         <Route path="/admin/reports" element={<Reports />} />
         <Route path="/admin/revenue" element={<Revenue />} />
+        <Route path="/admin/settings" element={<Settings />} />
       </Route>
 
       {/* ── Shared role-switcher layout (HR, Superadmin, Supervisor placeholders) ── */}
