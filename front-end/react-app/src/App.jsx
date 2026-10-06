@@ -3,6 +3,7 @@ import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import AdminDashboard from "./features/admin/pages/AdminDashboard.jsx";
 import AdminConsoleLayout from "./features/admin/AdminConsoleLayout.jsx";
 import UserManagement from "./features/admin/pages/UserManagement.jsx";
+import CompanyManagement from "./features/admin/pages/CompanyManagement.jsx";
 import HRDashboard from "./features/hr/HRDashboard.jsx";
 import HRChallenges from "./features/hr/HRChallenges.jsx";
 import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
@@ -62,6 +63,7 @@ function App() {
       <Route element={<AdminConsoleLayout />}>
         <Route path="/admin"       element={<AdminDashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
+        <Route path="/admin/companies" element={<CompanyManagement />} />
       </Route>
 
       {/* ── Shared role-switcher layout (HR, Superadmin, Supervisor placeholders) ── */}

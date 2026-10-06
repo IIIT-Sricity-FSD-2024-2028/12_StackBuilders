@@ -1,0 +1,19 @@
+.admin-company-page { width: min(1180px, 100%); margin: 0 auto; }
+.admin-company-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.admin-company-heading h1 { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: clamp(2rem, 3.5vw, 3.2rem); line-height: 1.05; letter-spacing: -.04em; }
+.admin-company-heading p:last-child { max-width: 560px; margin: 12px 0 0; color: #667085; line-height: 1.55; }
+.admin-company-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 18px; }
+.admin-company-summary div { display: flex; flex-direction: column; gap: 5px; padding: 20px 22px; border: 1px solid rgba(255, 255, 255, .55); border-radius: 22px; background: rgba(255, 255, 255, .72); box-shadow: 0 18px 45px rgba(24, 39, 75, .1); }
+.admin-company-summary strong { color: #162033; font-family: "Space Grotesk", sans-serif; font-size: 1.85rem; }
+.admin-company-summary span, .admin-company-count { color: #667085; font-size: .82rem; font-weight: 700; }
+.admin-company-panel { padding: 24px; border: 1px solid rgba(255, 255, 255, .55); border-radius: 26px; background: rgba(255, 255, 255, .72); box-shadow: 0 24px 65px rgba(24, 39, 75, .12); backdrop-filter: blur(16px); }
+.admin-company-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.admin-company-toolbar select { min-height: 42px; padding: 9px 12px; border: 1px solid rgba(22, 32, 51, .08); border-radius: 12px; color: #162033; background: rgba(255, 255, 255, .65); font: inherit; outline: 0; }
+.admin-company-count { white-space: nowrap; }
+.admin-company-table-wrap { overflow-x: auto; }
+.admin-company-table { width: 100%; min-width: 650px; border-collapse: collapse; }
+.admin-company-table th { padding: 0 12px 13px; color: #667085; font-size: .72rem; font-weight: 800; letter-spacing: .07em; text-align: left; text-transform: uppercase; }
+.admin-company-table td { padding: 17px 12px; border-top: 1px solid rgba(22, 32, 51, .08); color: #4d5b6e; font-size: .84rem; }
+.admin-company-table td strong { color: #162033; }
+.admin-status-inactive { color: #667085; background: rgba(102, 112, 133, .14); }
+@media (max-width: 760px) { .admin-company-heading { align-items: flex-start; flex-direction: column; } .admin-company-heading .admin-primary-button { align-self: stretch; } .admin-company-summary { grid-template-columns: 1fr; } .admin-company-toolbar { align-items: stretch; flex-direction: column; } .admin-company-panel { padding: 18px; } }
