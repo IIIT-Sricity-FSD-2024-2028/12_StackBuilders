@@ -47,7 +47,7 @@ function AdminConsoleLayout() {
           {navigationItems.map(([icon, label], index) => (
             <a
               className={`admin-sidebar-link${index === 0 ? " active" : ""}`}
-              href={index === 0 ? "/admin" : index === 1 ? "/admin/users" : index === 3 ? "/admin/companies" : `#${label.toLowerCase().replaceAll(" ", "-")}`}
+              href={index === 0 ? "/admin" : index === 1 ? "/admin/users" : index === 2 ? "/admin/roles-access" : index === 3 ? "/admin/companies" : `#${label.toLowerCase().replaceAll(" ", "-")}`}
               key={label}
             >
               <AdminIcon name={icon} />
