@@ -1,13 +1,13 @@
-function HRNavbar() {
+function HRNavbar({ activeSection = "home" }) {
   return (
     <nav className="hr-navbar">
       <div className="hr-logo">Stack Builders</div>
 
       <div className="hr-nav-links">
-        <a className="active" href="#home">
+        <a className={activeSection === "home" ? "active" : ""} href="/hr">
           <span>⌂</span> Home
         </a>
-        <a href="#challenges">
+        <a className={activeSection === "challenges" ? "active" : ""} href="/hr/challenges">
           <span>□</span> Challenges
         </a>
         <a href="#videos">
