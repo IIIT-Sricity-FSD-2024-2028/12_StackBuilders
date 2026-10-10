@@ -38,6 +38,9 @@ function AdminDashboard() {
         <div>
           <p className="admin-eyebrow">Overview</p>
           <h1>Dashboard overview</h1>
+          <p style={{ margin: "8px 0 0", color: "#667085", fontSize: "0.95rem", lineHeight: 1.5 }}>
+            Monitor key metrics, user activity, and administrative operations.
+          </p>
         </div>
       </div>
 
