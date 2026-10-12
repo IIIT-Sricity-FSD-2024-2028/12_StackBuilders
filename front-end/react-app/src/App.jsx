@@ -12,6 +12,8 @@ import HRDashboard from "./features/hr/HRDashboard.jsx";
 import HRChallenges from "./features/hr/HRChallenges.jsx";
 import HRPricing from "./features/hr/HRPricing.jsx";
 import HRProfile from "./features/hr/HRProfile.jsx";
+import HRVideoLibrary from "./features/hr/HRVideoLibrary.jsx";
+import HRPayment from "./features/hr/HRPayment.jsx";
 import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
 import SupervisorWorkspace from "./features/supervisor/SupervisorWorkspace.jsx";
 
@@ -81,7 +83,9 @@ function App() {
         <Route index element={<Navigate to="/employee" replace />} />
         <Route path="/hr/challenges" element={<HRChallenges />} />
         <Route path="/hr/pricing" element={<HRPricing />} />
+        <Route path="/hr/payment" element={<HRPayment />} />
         <Route path="/hr/profile" element={<HRProfile />} />
+        <Route path="/hr/videos" element={<HRVideoLibrary />} />
         {roles
           .filter(([role]) => !["Employee", "Expert"].includes(role))
           .map(([role, path]) => (

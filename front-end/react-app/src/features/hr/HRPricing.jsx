@@ -87,10 +87,7 @@ function HRPricing() {
 
               <a
                 className={`hr-plan-button${isCurrent ? " current" : ""}`}
-                href={isCurrent ? undefined : `/hr/payment?plan=${plan.id}`}
-                onClick={(event) => {
-                  if (isCurrent) event.preventDefault();
-                }}
+                href={`/hr/payment?plan=${plan.id}`}
               >
                 {isCurrent ? "✓ Current Plan" : `Choose ${plan.name}`}
               </a>

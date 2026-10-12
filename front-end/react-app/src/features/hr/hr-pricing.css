@@ -225,7 +225,7 @@
 .hr-plan-button.current {
   color: #0b877f;
   background: #def6f3;
-  cursor: default;
+  cursor: pointer;
 }
 
 @media (max-width: 1020px) {

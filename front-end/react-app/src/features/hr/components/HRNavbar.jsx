@@ -17,7 +17,7 @@ function HRNavbar({ activeSection = "home" }) {
           <a className={activeSection === "challenges" ? "active" : ""} href="/hr/challenges">
             <span>□</span> Challenges
           </a>
-          <a href="#videos">
+          <a className={activeSection === "videos" ? "active" : ""} href="/hr/videos">
             <span>▶</span> Video Library
           </a>
         </div>
