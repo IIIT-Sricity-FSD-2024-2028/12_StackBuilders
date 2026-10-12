@@ -10,6 +10,7 @@ import Revenue from "./features/admin/pages/Revenue.jsx";
 import Settings from "./features/admin/pages/Settings.jsx";
 import HRDashboard from "./features/hr/HRDashboard.jsx";
 import HRChallenges from "./features/hr/HRChallenges.jsx";
+import HRPricing from "./features/hr/HRPricing.jsx";
 import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
 import SupervisorWorkspace from "./features/supervisor/SupervisorWorkspace.jsx";
 
@@ -78,6 +79,7 @@ function App() {
       <Route element={<DashboardLayout roles={roles} />}>
         <Route index element={<Navigate to="/employee" replace />} />
         <Route path="/hr/challenges" element={<HRChallenges />} />
+        <Route path="/hr/pricing" element={<HRPricing />} />
         {roles
           .filter(([role]) => !["Employee", "Expert"].includes(role))
           .map(([role, path]) => (

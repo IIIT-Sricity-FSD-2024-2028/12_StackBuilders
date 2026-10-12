@@ -16,7 +16,8 @@ function HRNavbar({ activeSection = "home" }) {
       </div>
 
       <div className="hr-nav-right">
-        <a className="hr-upgrade" href="#pricing">
+        <a className="hr-upgrade" href="/hr/pricing">
+          <span aria-hidden="true">↗</span>
           Upgrade Plan
         </a>
         <span className="hr-round-icon">!</span>
