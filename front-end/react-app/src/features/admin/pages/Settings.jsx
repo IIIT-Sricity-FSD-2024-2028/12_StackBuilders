@@ -9,6 +9,12 @@ function Settings() {
   const [emailUpdates, setEmailUpdates] = useState(true);
   const [weeklySummary, setWeeklySummary] = useState(true);
   const [twoFactor, setTwoFactor] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleSave = () => {
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2000);
+  };
 
   return (
     <main className="admin-settings-page">
@@ -18,7 +24,9 @@ function Settings() {
           <h1>Settings</h1>
           <p>Configure the administrator workspace and choose how platform updates are delivered.</p>
         </div>
-        <button className="admin-primary-button" type="button">Save changes</button>
+        <button className="admin-primary-button" type="button" onClick={handleSave}>
+          {isSaved ? "Changes saved" : "Save changes"}
+        </button>
       </header>
 
       <section className="admin-settings-layout">
