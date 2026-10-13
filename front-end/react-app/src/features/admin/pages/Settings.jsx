@@ -8,6 +8,7 @@ function Settings() {
   const [workspaceName, setWorkspaceName] = useState("Stack Builders Wellness");
   const [emailUpdates, setEmailUpdates] = useState(true);
   const [weeklySummary, setWeeklySummary] = useState(true);
+  const [securityAlerts, setSecurityAlerts] = useState(true);
   const [twoFactor, setTwoFactor] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
@@ -54,6 +55,7 @@ function Settings() {
               <div className="admin-setting-toggles">
                 <label><span><strong>Email updates</strong><small>Receive alerts when a company or user needs attention.</small></span><input type="checkbox" checked={emailUpdates} onChange={(event) => setEmailUpdates(event.target.checked)} /><i /></label>
                 <label><span><strong>Weekly summary</strong><small>Send a weekly overview of participation and revenue.</small></span><input type="checkbox" checked={weeklySummary} onChange={(event) => setWeeklySummary(event.target.checked)} /><i /></label>
+                <label><span><strong>Security alerts</strong><small>Immediate notifications for suspicious logins and privilege changes.</small></span><input type="checkbox" checked={securityAlerts} onChange={(event) => setSecurityAlerts(event.target.checked)} /><i /></label>
               </div>
             </>
           )}
