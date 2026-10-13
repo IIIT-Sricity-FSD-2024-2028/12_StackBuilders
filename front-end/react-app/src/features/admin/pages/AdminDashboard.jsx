@@ -34,13 +34,17 @@ const quickActions = [
 function AdminDashboard() {
   return (
     <main className="admin-dashboard-page">
-      <div className="admin-page-heading">
+      <div className="admin-page-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
         <div>
           <p className="admin-eyebrow">Overview</p>
           <h1>Dashboard overview</h1>
           <p style={{ margin: "8px 0 0", color: "#667085", fontSize: "0.95rem", lineHeight: 1.5 }}>
             Monitor key metrics, user activity, and administrative operations.
           </p>
+        </div>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "999px", background: "rgba(22, 163, 74, 0.1)", color: "#15803d", fontSize: "0.85rem", fontWeight: 700 }}>
+          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#16a34a" }} />
+          All systems operational
         </div>
       </div>
 
