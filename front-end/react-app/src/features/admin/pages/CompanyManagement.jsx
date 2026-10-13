@@ -42,7 +42,13 @@ function CompanyManagement() {
         <div className="admin-company-toolbar">
           <label className="admin-search-field">
             <span aria-hidden="true">⌕</span>
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search companies" aria-label="Search companies" />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search companies"
+              aria-label="Search companies"
+            />
           </label>
           <select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter by status">
             <option>All statuses</option>
@@ -50,7 +56,24 @@ function CompanyManagement() {
             <option>Pending</option>
             <option>Inactive</option>
           </select>
-          <span className="admin-company-count">{filteredCompanies.length} shown</span>
+          <span className="admin-company-count">{filteredCompanies.length} of {sampleCompanies.length} shown</span>
+          {(query || status !== "All statuses") && (
+            <button
+              type="button"
+              onClick={() => { setQuery(""); setStatus("All statuses"); }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#1565d8",
+                fontSize: "0.82rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                padding: "4px 8px"
+              }}
+            >
+              Clear filters
+            </button>
+          )}
         </div>
 
         <div className="admin-company-table-wrap">
