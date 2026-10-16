@@ -1,28 +1,31 @@
 function HRModal({ children, onClose, title }) {
   return (
-    <div className="hr-modal-overlay" onMouseDown={onClose}>
+    <div className="modal-overlay" onMouseDown={onClose}>
       <div
         aria-labelledby="hrModalTitle"
         aria-modal="true"
-        className="hr-modal-card"
+        className={`modal-card ${title.includes("Expert") ? "modal-card-expert" : "modal-card-employee"}`}
         onMouseDown={(event) => event.stopPropagation()}
         role="dialog"
       >
         <button
           aria-label="Close form"
-          className="hr-modal-close"
+          className="modal-close"
           onClick={onClose}
           type="button"
         >
-          x
+          <i className="fa-solid fa-xmark" />
         </button>
-        <section className="hr-modal-shell">
-          <div className="hr-modal-brand">StackBuilders</div>
-          <header className="hr-page-copy">
+        <section className="modal-shell">
+          <div className="brand">StackBuilders</div>
+          <header className="page-copy">
             <h1 id="hrModalTitle">{title}</h1>
-            <p>A centralized platform to plan, manage, and track employee wellness.</p>
+            <p>
+              A centralized platform to plan, manage, and track employee
+              wellness.
+            </p>
           </header>
-          <section className="hr-form-card">{children}</section>
+          <section className="form-card">{children}</section>
         </section>
       </div>
     </div>
