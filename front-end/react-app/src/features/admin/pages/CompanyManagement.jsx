@@ -1,101 +1,206 @@
-import { useMemo, useState } from "react";
-import "../admin-company-management.css";
-
-const sampleCompanies = [
-  { id: "CMP-001", name: "Greenfield Labs", industry: "Technology", members: 248, status: "Active" },
-  { id: "CMP-002", name: "Northstar Health", industry: "Healthcare", members: 124, status: "Active" },
-  { id: "CMP-003", name: "Brightpath Finance", industry: "Finance", members: 86, status: "Pending" },
-  { id: "CMP-004", name: "Orbit Learning", industry: "Education", members: 52, status: "Inactive" },
-];
+import { useCallback, useEffect, useState } from "react";
+import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
+import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
+import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
+import adminApi from "../adminApi.js";
 
 function CompanyManagement() {
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("All statuses");
+  const stylesReady = usePageStylesheets("/admin-companies-legacy.css");
+  const [companies, setCompanies] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [companyToRemove, setCompanyToRemove] = useState(null);
+  const [form, setForm] = useState({ name: "", phone: "", address: "", email: "", hrName: "", hrPhoneNumber: "", hrEmail: "", hrPassword: "" });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [error, setError] = useState("");
+  const [formError, setFormError] = useState("");
 
-  const filteredCompanies = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return sampleCompanies.filter((company) => {
-      const matchesStatus = status === "All statuses" || company.status === status;
-      const matchesQuery = !normalizedQuery || `${company.name} ${company.industry} ${company.id}`.toLowerCase().includes(normalizedQuery);
-      return matchesStatus && matchesQuery;
-    });
-  }, [query, status]);
+  const loadCompanies = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const [records, employees, experts, hrProfiles] = await Promise.all([adminApi.getCompanies(), adminApi.getUsers(), adminApi.getExperts(), adminApi.getHrProfiles()]);
+      setCompanies(records || []);
+      setUsers([
+        ...(employees || []).map((user) => ({ ...user, role: "Employee" })),
+        ...(experts || []).map((user) => ({ ...user, role: "Wellness Expert" })),
+        ...(hrProfiles || []).map((user) => ({ ...user, role: "HR" })),
+      ]);
+      setError("");
+    } catch (loadError) {
+      if (!silent) setError(loadError.message || "Could not load companies.");
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadCompanies(); }, [loadCompanies]);
+  useAutoRefresh(() => loadCompanies(true), "admin-companies");
+
+  async function createCompany(event) {
+    event.preventDefault();
+    setSaving(true);
+    setFormError("");
+    try {
+      const result = await adminApi.createCompanyWithHr({
+        companyName: form.name,
+        companyPhone: form.phone,
+        companyAddress: form.address,
+        companyEmail: form.email,
+        hrName: form.hrName,
+        hrPhoneNumber: form.hrPhoneNumber,
+        hrEmail: form.hrEmail,
+        hrPassword: form.hrPassword,
+      });
+      setCompanies((current) => [result.company, ...current]);
+      setUsers((current) => [{ ...result.hrProfile, role: "HR" }, ...current]);
+      setForm({ name: "", phone: "", address: "", email: "", hrName: "", hrPhoneNumber: "", hrEmail: "", hrPassword: "" });
+      setIsModalOpen(false);
+    } catch (saveError) {
+      setFormError(saveError.message || "Could not create the company and HR account.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function requestCompanyRemoval(company) {
+    const linkedUsers = users.filter((user) => belongsToCompany(user, company));
+    setCompanyToRemove({ ...company, linkedUserCount: linkedUsers.length });
+  }
+
+  async function confirmCompanyRemoval() {
+    if (!companyToRemove?.id || removing) return;
+    const company = companyToRemove;
+    setRemoving(true);
+    setError("");
+    try {
+      await adminApi.deleteCompany(company.id);
+      setCompanies((current) => current.filter((entry) => entry.id !== company.id));
+      setUsers((current) => current.filter((user) => !belongsToCompany(user, company)));
+      setCompanyToRemove(null);
+    } catch (removeError) {
+      try {
+        const latestCompanies = await adminApi.getCompanies();
+        if (!latestCompanies.some((entry) => entry.id === company.id)) {
+          setCompanies(latestCompanies);
+          setUsers((current) => current.filter((user) => !belongsToCompany(user, company)));
+          setCompanyToRemove(null);
+          return;
+        }
+      } catch {
+        // Preserve the original error when the directory cannot be reloaded.
+      }
+      setError(removeError.message && removeError.message !== "[object Object]"
+        ? removeError.message
+        : "Could not confirm company removal. Refresh the directory before retrying.");
+    } finally {
+      setRemoving(false);
+    }
+  }
+
+  function countUsers(company, role) {
+    return users.filter((user) => user.role === role && belongsToCompany(user, company)).length;
+  }
+
+  if (!stylesReady) return <RouteLoadingScreen />;
 
   return (
-    <main className="admin-company-page">
-      <header className="admin-company-heading">
-        <div>
-          <p className="admin-eyebrow">Organization Directory</p>
-          <h1>Company Management</h1>
-          <p>Review company workspaces, membership, and account status from one place.</p>
-        </div>
-        <button className="admin-primary-button" type="button">+ Add Company</button>
-      </header>
-
-      <section className="admin-company-summary" aria-label="Company summary">
-        <div><strong>{sampleCompanies.length}</strong><span>Total companies</span></div>
-        <div><strong>{sampleCompanies.filter((company) => company.status === "Active").length}</strong><span>Active workspaces</span></div>
-        <div><strong>{sampleCompanies.reduce((total, company) => total + company.members, 0)}</strong><span>Total members</span></div>
-      </section>
-
-      <section className="admin-company-panel">
-        <div className="admin-company-toolbar">
-          <label className="admin-search-field">
-            <span aria-hidden="true">⌕</span>
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search companies"
-              aria-label="Search companies"
-            />
-          </label>
-          <select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter by status">
-            <option>All statuses</option>
-            <option>Active</option>
-            <option>Pending</option>
-            <option>Inactive</option>
-          </select>
-          <span className="admin-company-count">{filteredCompanies.length} of {sampleCompanies.length} shown</span>
-          {(query || status !== "All statuses") && (
-            <button
-              type="button"
-              onClick={() => { setQuery(""); setStatus("All statuses"); }}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#1565d8",
-                fontSize: "0.82rem",
-                fontWeight: 700,
-                cursor: "pointer",
-                padding: "4px 8px"
-              }}
-            >
-              Clear filters
-            </button>
-          )}
+    <>
+      <main className="container">
+        <div className="page-heading">
+          <div>
+            <p className="eyebrow">Companies</p>
+            <h1>Company Management</h1>
+            <p className="subtitle">Manage company profiles and records</p>
+          </div>
         </div>
 
-        <div className="admin-company-table-wrap">
-          <table className="admin-company-table">
-            <thead><tr><th>Company</th><th>Industry</th><th>Members</th><th>Status</th><th>Company ID</th></tr></thead>
+        <div className="actions actions-only">
+          <div>
+            <button className="btn-primary" type="button" onClick={() => { setFormError(""); setIsModalOpen(true); }}>+ Add Company</button>
+          </div>
+        </div>
+
+        <div className="table-card">
+          <table className="company-table">
+            <thead>
+              <tr>
+                <th>Company ID</th>
+                <th>Company Name</th>
+                <th>Number of Employees</th>
+                <th>Number of Wellness Experts</th>
+                <th>Number of HR</th>
+                <th>Created Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
             <tbody>
-              {filteredCompanies.length === 0 ? (
-                <tr><td colSpan="5" className="admin-table-empty">No companies match your filters.</td></tr>
-              ) : filteredCompanies.map((company) => (
-                <tr key={company.id}>
-                  <td><strong>{company.name}</strong></td>
-                  <td>{company.industry}</td>
-                  <td>{company.members}</td>
-                  <td><span className={`admin-status-pill admin-status-${company.status.toLowerCase()}`}>{company.status}</span></td>
-                  <td>{company.id}</td>
+              {companies.length ? companies.map((company, index) => (
+                <tr key={`${company.id || company.name || "company"}-${index}`}>
+                  <td>{company.id || "—"}</td>
+                  <td><span className="cell-title">{company.name || "Unnamed company"}</span></td>
+                  <td>{countUsers(company, "Employee")}</td>
+                  <td>{countUsers(company, "Wellness Expert")}</td>
+                  <td>{countUsers(company, "HR")}</td>
+                  <td>{company.createdAt ? new Date(company.createdAt).toLocaleDateString() : "—"}</td>
+                  <td><button className="delete action-button" type="button" onClick={() => requestCompanyRemoval(company)}>Remove</button></td>
                 </tr>
-              ))}
+              )) : (
+                <tr className="empty-row"><td colSpan="7">{loading ? "Loading companies…" : "No company records are hardcoded. Render this table from your project data."}</td></tr>
+              )}
             </tbody>
           </table>
+          <p className="footer-text" id="companyTableFooter">{error || `Showing ${companies.length} entries`}</p>
         </div>
-      </section>
-    </main>
+      </main>
+
+      <div className={`page-modal${isModalOpen ? " is-open" : ""}`} id="companyFormModal" aria-hidden={!isModalOpen}>
+        <div className="page-modal-backdrop" onClick={() => !saving && setIsModalOpen(false)} />
+        <div className="page-modal-panel admin-company-modal-panel" role="dialog" aria-modal="true" aria-label="Add Company and HR">
+          <button className="page-modal-close" type="button" onClick={() => !saving && setIsModalOpen(false)} aria-label="Close add company form"><i className="fa fa-xmark" /></button>
+          <form className="admin-company-form" onSubmit={createCompany}>
+            <h2>Add Company and HR</h2>
+            <p>Create a company workspace together with its first HR login.</p>
+            <label>Company Name<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
+            <label>Phone Number<input required value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></label>
+            <label>Address<input required value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} /></label>
+            <label>Company Email<input required type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
+            <h3>Initial HR Account</h3>
+            <label>HR Name<input required value={form.hrName} onChange={(event) => setForm({ ...form, hrName: event.target.value })} /></label>
+            <label>HR Phone (optional)<input type="tel" value={form.hrPhoneNumber} onChange={(event) => setForm({ ...form, hrPhoneNumber: event.target.value })} /></label>
+            <label>HR Gmail<input required type="email" placeholder="hr@gmail.com" value={form.hrEmail} onChange={(event) => setForm({ ...form, hrEmail: event.target.value })} /></label>
+            <label>HR Password<input required type="password" minLength="6" autoComplete="new-password" value={form.hrPassword} onChange={(event) => setForm({ ...form, hrPassword: event.target.value })} /></label>
+            {formError && <p className="form-message" role="alert">{formError}</p>}
+            <div className="form-actions"><button className="btn-primary" type="submit" disabled={saving}>{saving ? "Creating…" : "Create Company and HR"}</button><button className="btn-outline" type="button" disabled={saving} onClick={() => setIsModalOpen(false)}>Back</button></div>
+          </form>
+        </div>
+      </div>
+      {companyToRemove && <div className="page-modal is-open" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !removing) setCompanyToRemove(null); }}>
+        <section className="page-modal-panel" role="alertdialog" aria-modal="true" aria-labelledby="removeCompanyTitle" aria-describedby="removeCompanyDescription">
+          <div className="admin-company-form">
+            <h2 id="removeCompanyTitle">Remove company?</h2>
+            <p id="removeCompanyDescription">{companyToRemove.linkedUserCount
+              ? `Removing ${companyToRemove.name} will delete ${companyToRemove.linkedUserCount} linked account${companyToRemove.linkedUserCount === 1 ? "" : "s"} and cancel its subscription. Historical wellness records will be retained.`
+              : `Remove ${companyToRemove.name} and cancel its subscription? Historical wellness records will be retained.`}</p>
+            <div className="form-actions">
+              <button className="btn-outline" type="button" disabled={removing} onClick={() => setCompanyToRemove(null)}>Cancel</button>
+              <button className="delete action-button" type="button" disabled={removing} onClick={confirmCompanyRemoval}>{removing ? "Removing…" : "Remove Company"}</button>
+            </div>
+          </div>
+        </section>
+      </div>}
+    </>
+  );
+}
+
+function belongsToCompany(user, company) {
+  const userCompanyId = String(user.companyId || "").trim();
+  if (company.id && userCompanyId) return userCompanyId === String(company.id).trim();
+  return Boolean(
+    company.name &&
+      String(user.companyName || "").trim().toLowerCase() ===
+        String(company.name).trim().toLowerCase(),
   );
 }
 

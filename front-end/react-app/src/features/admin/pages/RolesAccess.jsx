@@ -1,92 +1,181 @@
-import { useMemo, useState } from "react";
-import "../admin-role-access.css";
+import { useEffect, useState } from "react";
+import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
+import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
+import usePersistedTab from "../../../hooks/usePersistedTab.js";
+import { cacheRolePermissions } from "../../shared/roleAccessContext.jsx";
+import {
+  makeDefaultRolePermissions,
+  ROLE_ACCESS_ACTIONS,
+  ROLE_ACCESS_RESOURCES,
+  ROLE_ACCESS_ROLES,
+} from "../../shared/roleAccessConfig.js";
+import adminApi from "../adminApi.js";
 
-const permissionGroups = [
-  { title: "User Management", items: ["View users", "Invite users", "Edit user profiles", "Remove users"] },
-  { title: "Wellness Programs", items: ["View programs", "Create programs", "Review check-ins", "Manage consultations"] },
-  { title: "Reports & Billing", items: ["View reports", "Export reports", "View revenue", "Manage subscriptions"] },
-];
-
-const initialPermissions = {
-  Admin: ["View users", "Invite users", "Edit user profiles", "Remove users", "View programs", "Create programs", "Review check-ins", "Manage consultations", "View reports", "Export reports", "View revenue"],
-  HR: ["View users", "View programs", "Review check-ins", "View reports"],
-  Expert: ["View programs", "Review check-ins", "Manage consultations"],
-  Employee: ["View programs"],
-};
+const roleLabels = ROLE_ACCESS_ROLES.map(({ label }) => label);
 
 function RolesAccess() {
-  const [selectedRole, setSelectedRole] = useState("Admin");
-  const [permissions, setPermissions] = useState(initialPermissions);
-  const selectedPermissions = permissions[selectedRole];
-  const permissionCount = selectedPermissions.length;
-  const totalPermissions = permissionGroups.reduce((total, group) => total + group.items.length, 0);
+  const stylesReady = usePageStylesheets("/admin-roles-legacy.css");
+  const [selectedRole, setSelectedRole] = usePersistedTab("stackbuilders.admin.rolesAccessTab", "HR", roleLabels);
+  const [permissions, setPermissions] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("Changes save automatically");
+  const [reloadCount, setReloadCount] = useState(0);
 
-  const roleDescription = useMemo(() => ({
-    Admin: "Full platform access for administrators.",
-    HR: "Manage workplace wellness activity and employee programs.",
-    Expert: "Support consultations and wellness check-ins.",
-    Employee: "Access personal wellness programs and resources.",
-  }[selectedRole]), [selectedRole]);
+  const selectedRoleConfig = ROLE_ACCESS_ROLES.find(({ label }) => label === selectedRole) || ROLE_ACCESS_ROLES[0];
+  const resources = ROLE_ACCESS_RESOURCES[selectedRoleConfig.group];
 
-  function togglePermission(permission) {
-    setPermissions((current) => {
-      const currentRolePermissions = current[selectedRole];
-      const nextRolePermissions = currentRolePermissions.includes(permission)
-        ? currentRolePermissions.filter((item) => item !== permission)
-        : [...currentRolePermissions, permission];
-      return { ...current, [selectedRole]: nextRolePermissions };
-    });
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError("");
+    setNotice("Loading permissions…");
+
+    adminApi.getPermissions(selectedRoleConfig.group)
+      .then((result) => {
+        if (!active) return;
+        setPermissions(cacheRolePermissions(selectedRoleConfig.group, result?.permissions || makeDefaultRolePermissions()));
+        setNotice("Changes save automatically");
+      })
+      .catch((loadError) => {
+        if (!active) return;
+        setError(loadError.message || "Could not load permissions.");
+        setNotice("Permissions could not be loaded");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedRoleConfig.group, reloadCount]);
+
+  async function savePermissions(nextPermissions) {
+    if (saving || loading || error) return;
+
+    const previousPermissions = permissions;
+    setSaving(true);
+    setError("");
+    setNotice("Saving changes…");
+    setPermissions(nextPermissions);
+
+    try {
+      const result = await adminApi.updatePermissions(selectedRoleConfig.group, nextPermissions);
+      setPermissions(cacheRolePermissions(selectedRoleConfig.group, result?.permissions || nextPermissions));
+      setNotice("Changes saved to the backend");
+    } catch (saveError) {
+      setPermissions(previousPermissions);
+      setNotice("Changes were not saved");
+      setError(saveError.message || "Permission changes could not be saved.");
+    } finally {
+      setSaving(false);
+    }
   }
 
+  function togglePermission(prefix, action) {
+    const key = `${prefix}-${action.toLowerCase()}`;
+    void savePermissions({ ...permissions, [key]: !permissions[key] });
+  }
+
+  async function resetPermissions() {
+    if (saving || loading || error) return;
+
+    setSaving(true);
+    setError("");
+    setNotice("Restoring defaults…");
+    try {
+      const result = await adminApi.resetPermissions(selectedRoleConfig.group);
+      setPermissions(cacheRolePermissions(selectedRoleConfig.group, result?.permissions || makeDefaultRolePermissions()));
+      setNotice("Defaults restored from the backend");
+    } catch (resetError) {
+      setNotice("Defaults could not be restored");
+      setError(resetError.message || "Permissions could not be reset.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!stylesReady) return <RouteLoadingScreen />;
+
   return (
-    <main className="admin-role-page">
-      <header className="admin-role-heading">
+    <main className="container">
+      <div className="page-heading">
         <div>
-          <p className="admin-eyebrow">Security Center</p>
-          <h1>Roles &amp; Access</h1>
-          <p>Review permissions by role and keep access aligned with each workspace responsibility.</p>
+          <p className="eyebrow">Permissions</p>
+          <h1>Roles &amp; Access Control</h1>
+          <p className="subtitle">Manage role-based permissions and access levels</p>
         </div>
-        <button className="admin-primary-button" type="button">+ Create Role</button>
-      </header>
+      </div>
 
-      <section className="admin-role-layout">
-        <aside className="admin-role-list" aria-label="Available roles">
-          <div className="admin-role-list-heading"><span>Roles</span><strong>4</strong></div>
-          {Object.keys(initialPermissions).map((role) => (
-            <button className={`admin-role-option${selectedRole === role ? " selected" : ""}`} key={role} type="button" onClick={() => setSelectedRole(role)}>
-              <span className="admin-role-avatar">{role.slice(0, 1)}</span>
-              <span><strong>{role}</strong><small>{permissions[role].length} permissions</small></span>
-              <span aria-hidden="true">›</span>
-            </button>
+      <div className="layout">
+        <div className="roles">
+          <h3>Roles</h3>
+          {ROLE_ACCESS_ROLES.map(({ label, icon }) => (
+            <div
+              aria-disabled={saving}
+              aria-pressed={selectedRole === label}
+              className={`role${selectedRole === label ? " active" : ""}`}
+              key={label}
+              onClick={() => !saving && setSelectedRole(label)}
+              onKeyDown={(event) => {
+                if (!saving && (event.key === "Enter" || event.key === " ")) setSelectedRole(label);
+              }}
+              role="button"
+              tabIndex={saving ? -1 : 0}
+            >
+              <i className={`fa ${icon}`} />
+              <div><strong>{label}</strong><span>Modules configurable</span></div>
+            </div>
           ))}
-        </aside>
+        </div>
 
-        <section className="admin-permission-panel">
-          <div className="admin-permission-heading">
-            <div><p className="admin-eyebrow">Selected role</p><h2>{selectedRole} permissions</h2><p>{roleDescription}</p></div>
-            <span className="admin-permission-count">{permissionCount}/{totalPermissions} enabled</span>
+        <div className="permissions" data-permission-group={selectedRoleConfig.group}>
+          <h3>Permissions for {selectedRole}</h3>
+          <p className="subtitle small">Toggle individual permissions for each workflow</p>
+          {error && (
+            <div role="alert">
+              <p className="permission-status">{error}</p>
+              <button className="reset" type="button" onClick={() => setReloadCount((count) => count + 1)}>Retry</button>
+            </div>
+          )}
+          {loading ? <p className="permission-status" role="status">Loading permissions…</p> : !error && (
+            <table className="permission-matrix">
+              <thead><tr><th>Module</th>{ROLE_ACCESS_ACTIONS.map((action) => <th key={action}>{action}</th>)}</tr></thead>
+              <tbody>
+                {resources.map(([label, prefix]) => (
+                  <tr key={prefix}>
+                    <td>{label}</td>
+                    {ROLE_ACCESS_ACTIONS.map((action) => {
+                      const key = `${prefix}-${action.toLowerCase()}`;
+                      const enabled = Boolean(permissions[key]);
+                      return (
+                        <td className="permission-cell" key={key}>
+                          <button
+                            aria-label={`${label} ${action} permission ${enabled ? "enabled" : "disabled"}`}
+                            aria-pressed={enabled}
+                            className={`toggle${enabled ? " active" : ""}`}
+                            disabled={saving}
+                            onClick={() => togglePermission(prefix, action)}
+                            type="button"
+                          >
+                            <span className="toggle-symbol">{enabled ? "✓" : "✕"}</span>
+                          </button>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <div className="actions">
+            <span className="permission-status small" role="status">{loading ? "Loading permissions…" : saving ? "Saving changes…" : notice}</span>
+            <button className="reset" disabled={loading || saving || Boolean(error)} type="button" onClick={resetPermissions}>Reset to Default</button>
           </div>
-
-          <div className="admin-permission-groups">
-            {permissionGroups.map((group) => (
-              <div className="admin-permission-group" key={group.title}>
-                <h3>{group.title}</h3>
-                {group.items.map((permission) => {
-                  const enabled = selectedPermissions.includes(permission);
-                  return (
-                    <label className="admin-permission-row" key={permission}>
-                      <input type="checkbox" checked={enabled} onChange={() => togglePermission(permission)} />
-                      <span className="admin-checkmark" aria-hidden="true">{enabled ? "✓" : ""}</span>
-                      <span>{permission}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-          <p className="admin-role-note">Changes are currently previewed locally. They will be saved through the permissions API during backend integration.</p>
-        </section>
-      </section>
+        </div>
+      </div>
     </main>
   );
 }
