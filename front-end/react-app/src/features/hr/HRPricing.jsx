@@ -1,28 +1,37 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
+import usePageStylesheets from "../../hooks/usePageStylesheets.js";
 import HRNavbar from "./components/HRNavbar.jsx";
-import "./hr-pricing.css";
+import hrApi from "./hrApi.js";
+import { getCurrentHrCompanyContext } from "./hrUtils.js";
+import useAutoRefresh from "../../hooks/useAutoRefresh.js";
 
 const plans = [
   {
     id: "starter",
     name: "Starter",
-    price: "$100",
-    employeeLimit: "Up to 100 Employees",
-    expertLimit: "Up to 10 Experts",
+    price: 100,
+    employeeLimit: 100,
+    expertLimit: 10,
+    style: "outline",
   },
   {
     id: "business",
     name: "Business",
-    price: "$200",
-    employeeLimit: "Up to 1,000 Employees",
-    expertLimit: "Up to 50 Experts",
+    price: 200,
+    employeeLimit: 1000,
+    expertLimit: 50,
+    style: "primary",
     featured: true,
   },
   {
     id: "enterprise",
     name: "Enterprise",
-    price: "$300",
-    employeeLimit: "Up to 10,000 Employees",
-    expertLimit: "Up to 100 Experts",
+    price: 300,
+    employeeLimit: 10000,
+    expertLimit: 100,
+    style: "outline",
   },
 ];
 
@@ -36,78 +45,95 @@ const features = [
 ];
 
 function HRPricing() {
-  const currentPlan = getCurrentPlan();
+  const stylesReady = usePageStylesheets([
+    "/hr-dashboard-legacy.css",
+    "/hr-pricing-legacy.css",
+  ]);
+  const [currentPlan, setCurrentPlan] = useState("");
+
+  const loadCurrentPlan = () => {
+    const company = getCurrentHrCompanyContext();
+    const companyName = company.companyName.toLowerCase();
+    return hrApi
+      .getSubscriptions()
+      .then((subscriptions) => {
+        const subscription = (subscriptions || []).find(
+          (item) =>
+            String(item.status || "")
+              .trim()
+              .toLowerCase() === "active" &&
+            ((company.companyId &&
+              String(item.companyId || "").trim() === company.companyId) ||
+              String(item.companyName || "")
+                .trim()
+                .toLowerCase() === companyName),
+        );
+        setCurrentPlan(subscription?.planId || "");
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    loadCurrentPlan();
+  }, []);
+  useAutoRefresh(loadCurrentPlan, "hr-pricing");
+
+  if (!stylesReady) return <RouteLoadingScreen />;
 
   return (
-    <div className="hr-pricing-page">
+    <div className="page-shell">
       <HRNavbar activeSection="pricing" />
-
-      <section className="hr-pricing-hero">
+      <section className="pricing-hero">
         <h1>Company Subscription</h1>
         <p>
-          Every plan includes all platform features. Choose based on the number of employees
-          and wellness experts you can add.
+          Every plan includes all platform features. Choose based on the number
+          of employees and wellness experts you can add.
         </p>
       </section>
-
-      <section className="hr-plans-grid" aria-label="Company subscription plans">
-        {plans.map((plan) => {
-          const isCurrent = currentPlan === plan.id;
-
-          return (
-            <article
-              className={`hr-plan-card${plan.featured ? " featured" : ""}`}
-              key={plan.id}
-            >
-              <div className="hr-plan-name">{plan.name}</div>
-              <div className="hr-plan-price">
-                {plan.price}
-                <span>/mo</span>
+      <section className="plans-grid">
+        {plans.map((plan) => (
+          <div
+            className={`plan-card${plan.featured ? " featured" : ""}`}
+            key={plan.id}
+          >
+            <div className="plan-name">{plan.name}</div>
+            <div className="plan-price">
+              ₹{plan.price}
+              <span>/mo</span>
+            </div>
+            <div>
+              <div className="limit-badge">
+                <i className="fa fa-users" />
+                &nbsp; Up to {plan.employeeLimit.toLocaleString()} Employees
               </div>
-
-              <div className="hr-plan-limits">
-                <div className="hr-limit-badge">
-                  <span aria-hidden="true">♣</span>
-                  {plan.employeeLimit}
-                </div>
-                <div className="hr-limit-badge">
-                  <span aria-hidden="true">♙</span>
-                  {plan.expertLimit}
-                </div>
+              <div className="limit-badge">
+                <i className="fa fa-user-doctor" />
+                &nbsp; Up to {plan.expertLimit} Experts
               </div>
-
-              <ul className="hr-plan-features">
-                {features.map((feature) => (
-                  <li key={feature}>
-                    <span aria-hidden="true">✓</span>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <a
-                className={`hr-plan-button${isCurrent ? " current" : ""}`}
-                href={`/hr/payment?plan=${plan.id}`}
+            </div>
+            <ul className="plan-features">
+              {features.map((feature) => (
+                <li key={feature}>
+                  <i className="fa fa-check" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            {currentPlan === plan.id ? (
+              <span className="choose-btn current-plan">✓ Current Plan</span>
+            ) : (
+              <Link
+                className={`choose-btn ${plan.style}`}
+                to={`/hr/payment?plan=${plan.id}`}
               >
-                {isCurrent ? "✓ Current Plan" : `Choose ${plan.name}`}
-              </a>
-            </article>
-          );
-        })}
+                Choose {plan.name}
+              </Link>
+            )}
+          </div>
+        ))}
       </section>
     </div>
   );
-}
-
-function getCurrentPlan() {
-  try {
-    const subscription = JSON.parse(window.localStorage.getItem("stackbuilders.hr.subscription"));
-    if (subscription?.planId) return subscription.planId;
-  } catch {
-    // Fall through to the legacy default used by the static mockup.
-  }
-
-  return "business";
 }
 
 export default HRPricing;
