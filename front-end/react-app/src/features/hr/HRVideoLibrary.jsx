@@ -1,204 +1,289 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
+import usePageStylesheets from "../../hooks/usePageStylesheets.js";
 import HRNavbar from "./components/HRNavbar.jsx";
-import "./hr-video-library.css";
-
-const VIDEO_STORAGE_KEY = "stackbuilders.videoLibrary.v1";
-const defaultThumbnail =
-  "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80";
+import hrApi from "./hrApi.js";
+import { getCurrentHrCompanyContext } from "./hrUtils.js";
+import VideoCardMedia from "../shared/VideoCardMedia.jsx";
+import VideoPlayerModal from "../shared/VideoPlayerModal.jsx";
+import useAutoRefresh from "../../hooks/useAutoRefresh.js";
 
 const categories = [
   {
-    id: "health",
+    key: "health",
     label: "Health Related",
     title: "Health Related Videos",
-    description: "Nutrition, recovery, sleep, and practical daily health guidance.",
-    icon: "♥",
+    description:
+      "Nutrition, recovery, sleep, and practical daily health guidance.",
+    icon: "fa-heart-pulse",
     tone: "pink",
   },
   {
-    id: "mind",
+    key: "mind",
     label: "Mind Relaxation",
     title: "Mind Relaxation Videos",
-    description: "Mindfulness, stress relief, calming routines, and guided resets.",
-    icon: "◆",
+    description:
+      "Mindfulness, stress relief, calming routines, and guided resets.",
+    icon: "fa-brain",
     tone: "purple",
   },
   {
-    id: "physical",
+    key: "physical",
     label: "Physical Wellness",
     title: "Physical Wellness Videos",
-    description: "Movement, flexibility, desk mobility, and energizing body routines.",
-    icon: "↗",
+    description:
+      "Movement, flexibility, desk mobility, and energizing body routines.",
+    icon: "fa-dumbbell",
     tone: "green",
   },
 ];
 
-const categoryLookup = {
-  "Health Related": "health",
-  "Mind Relaxation": "mind",
-  "Physical Wellness": "physical",
-};
-
 function HRVideoLibrary() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [pageByCategory, setPageByCategory] = useState({});
-  const videos = useMemo(readVideos, []);
-  const normalizedSearch = searchTerm.trim().toLowerCase();
-  const groupedVideos = useMemo(() => {
-    return categories.reduce((groups, category) => {
-      groups[category.id] = videos.filter((video) => {
-        const belongsToCategory = categoryLookup[video.category] === category.id;
-        const matchesSearch =
-          !normalizedSearch ||
-          [video.title, video.description, video.creatorExpertName]
-            .filter(Boolean)
-            .some((value) => String(value).toLowerCase().includes(normalizedSearch));
+  const stylesReady = usePageStylesheets("/hr-video-library-legacy.css");
+  const [videos, setVideos] = useState([]);
+  const [search, setSearch] = useState("");
+  const [positions, setPositions] = useState({
+    health: 0,
+    mind: 0,
+    physical: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [cardsPerView, setCardsPerView] = useState(getCardsPerView());
+  const [cardSteps, setCardSteps] = useState({});
+  const categoryRefs = useRef({});
 
-        return belongsToCategory && matchesSearch;
+  const loadVideos = useCallback(async (silent = false) => {
+    try {
+      const nextVideos = await hrApi.getVideos(getCurrentHrCompanyContext());
+      setVideos(nextVideos || []);
+      setError("");
+    } catch (loadError) {
+      if (!silent)
+        setError(loadError.message || "Could not load the video library.");
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const onResize = () => setCardsPerView(getCardsPerView());
+    window.addEventListener("resize", onResize);
+    loadVideos();
+    return () => {
+      window.removeEventListener("resize", onResize);
+    };
+  }, [loadVideos]);
+
+  useAutoRefresh(() => loadVideos(true), "hr-videos");
+
+  const filteredVideos = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return videos.filter(
+      (video) =>
+        !query ||
+        String(video.title || "")
+          .toLowerCase()
+          .includes(query),
+    );
+  }, [videos, search]);
+
+  useEffect(() => {
+    const measure = () => {
+      const steps = {};
+      for (const category of categories) {
+        const section = categoryRefs.current[category.key];
+        const viewport = section?.querySelector(".video-viewport");
+        const grid = viewport?.querySelector(".video-grid");
+        const card = grid?.querySelector(".video-card");
+        if (!card || !grid) continue;
+        const gap = Number.parseFloat(getComputedStyle(grid).columnGap) || 0;
+        steps[category.key] = card.getBoundingClientRect().width + gap;
+      }
+
+      setCardSteps((current) => {
+        const changed = Object.entries(steps).some(
+          ([key, step]) => Math.abs((current[key] || 0) - step) > 0.5,
+        );
+        return changed ? { ...current, ...steps } : current;
       });
-      return groups;
-    }, {});
-  }, [normalizedSearch, videos]);
+    };
 
-  const totalVisibleVideos = categories.reduce(
-    (total, category) => total + groupedVideos[category.id].length,
-    0
+    measure();
+    const observer =
+      typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
+    Object.values(categoryRefs.current).forEach((section) => {
+      const viewport = section?.querySelector(".video-viewport");
+      if (viewport) observer?.observe(viewport);
+    });
+    window.addEventListener("resize", measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [filteredVideos, cardsPerView]);
+
+  const hasVideos = categories.some(
+    (category) => getCategoryVideos(filteredVideos, category.label).length,
   );
 
-  function changePage(categoryId, direction) {
-    const maxPage = Math.max(0, groupedVideos[categoryId].length - 3);
-    setPageByCategory((current) => {
-      const nextPage = Math.min(Math.max((current[categoryId] || 0) + direction, 0), maxPage);
-      return { ...current, [categoryId]: nextPage };
-    });
-  }
+  if (!stylesReady) return <RouteLoadingScreen />;
 
   return (
-    <div className="hr-video-page">
+    <div className="shell">
       <HRNavbar activeSection="videos" />
-
-      <main className="hr-video-main">
-        <section className="hr-video-hero">
-          <p className="hr-video-eyebrow">HR Video Library</p>
-          <h1>Video Library</h1>
-          <p>
-            Review curated wellness content, spotlight key learning tracks, and organize
-            videos employees can use across health, mind, and fitness programs.
-          </p>
+      <main className="library-page">
+        <section className="library-hero">
+          <div>
+            <p className="eyebrow">HR Video Library</p>
+            <h1>Video Library</h1>
+            <p className="subtitle">
+              Review curated wellness content, spotlight key learning tracks,
+              and organize videos employees can use across health, mind, and
+              fitness programs.
+            </p>
+          </div>
         </section>
 
-        <section className="hr-video-filter">
-          <label>
-            <span aria-hidden="true">⌕</span>
+        <section className="filter-panel">
+          <label className="search-box">
+            <i
+              className="fa-solid fa-magnifying-glass search-icon"
+              aria-hidden="true"
+            />
             <input
-              type="search"
+              onChange={(event) => setSearch(event.target.value)}
               placeholder="Search for videos..."
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
+              type="text"
+              value={search}
             />
           </label>
         </section>
 
-        {!totalVisibleVideos && (
-          <div className="hr-video-empty">
-            {videos.length
-              ? "No videos match your search right now."
-              : "No company videos are available yet. Ask a wellness expert from your company to add one."}
-          </div>
+        {loading && <p className="empty-state">Loading company videos…</p>}
+        {error && <p className="empty-state">{error}</p>}
+        {!loading && !error && !hasVideos && (
+          <p className="empty-state">
+            No company videos are available yet. Ask a wellness expert from your
+            company to add one.
+          </p>
         )}
 
         {categories.map((category) => {
-          const categoryVideos = groupedVideos[category.id];
+          const categoryVideos = getCategoryVideos(
+            filteredVideos,
+            category.label,
+          );
           if (!categoryVideos.length) return null;
-
-          const page = Math.min(pageByCategory[category.id] || 0, Math.max(0, categoryVideos.length - 3));
-          const visibleVideos = categoryVideos.slice(page, page + 3);
-          const canGoPrevious = page > 0;
-          const canGoNext = page + 3 < categoryVideos.length;
-
+          const maxIndex = Math.max(categoryVideos.length - cardsPerView, 0);
+          const position = Math.min(positions[category.key] || 0, maxIndex);
           return (
-            <section className="hr-video-category" key={category.id}>
-              <div className="hr-video-section-header">
-                <div className="hr-video-section-title">
-                  <span className={`hr-video-section-icon ${category.tone}`}>{category.icon}</span>
+            <section
+              className="video-category"
+              data-category-section={category.key}
+              key={category.key}
+              ref={(element) => {
+                categoryRefs.current[category.key] = element;
+              }}
+            >
+              <div className="section-header">
+                <div className="section-title">
+                  <span className={`section-icon ${category.tone}`}>
+                    <i className={`fa-solid ${category.icon}`} />
+                  </span>
                   <div>
                     <h2>{category.title}</h2>
                     <p>{category.description}</p>
                   </div>
                 </div>
-                <div className="hr-video-section-controls">
+                <div className="section-controls">
                   <button
+                    className="circle-btn"
+                    disabled={position === 0}
+                    onClick={() => move(category.key, -1, maxIndex)}
                     type="button"
-                    disabled={!canGoPrevious}
-                    onClick={() => changePage(category.id, -1)}
-                    aria-label={`Previous ${category.title}`}
+                    aria-label="Previous videos"
                   >
-                    ‹
+                    &lsaquo;
                   </button>
                   <button
+                    className="circle-btn active"
+                    disabled={position >= maxIndex}
+                    onClick={() => move(category.key, 1, maxIndex)}
                     type="button"
-                    className="active"
-                    disabled={!canGoNext}
-                    onClick={() => changePage(category.id, 1)}
-                    aria-label={`Next ${category.title}`}
+                    aria-label="Next videos"
                   >
-                    ›
+                    &rsaquo;
                   </button>
                 </div>
               </div>
-
-              <div className="hr-video-grid">
-                {visibleVideos.map((video) => (
-                  <VideoCard video={video} key={video.id} />
-                ))}
+              <div className="video-viewport">
+                <div
+                  className="video-grid"
+                  style={{
+                    transform: `translateX(-${position * (cardSteps[category.key] || 0)}px)`,
+                  }}
+                >
+                  {categoryVideos.map((video) => (
+                    <VideoCard
+                      key={video.id || `${category.key}-${video.title}`}
+                      video={video}
+                      onPlayVideo={setSelectedVideo}
+                    />
+                  ))}
+                </div>
               </div>
             </section>
           );
         })}
       </main>
+      <VideoPlayerModal
+        video={selectedVideo}
+        onClose={() => setSelectedVideo(null)}
+      />
     </div>
   );
+
+  function move(category, direction, maxIndex) {
+    setPositions((current) => ({
+      ...current,
+      [category]: Math.max(
+        0,
+        Math.min((current[category] || 0) + direction, maxIndex),
+      ),
+    }));
+  }
 }
 
-function VideoCard({ video }) {
+function VideoCard({ video, onPlayVideo }) {
+  const title = video.title || "Wellness video";
   return (
-    <article className="hr-video-card">
-      <a href={video.videoLink || "#"} target="_blank" rel="noreferrer">
-        <span className="hr-video-thumb">
-          <img src={video.thumbnailLink || defaultThumbnail} alt={video.title} />
-          <span>{video.duration || "00:00"}</span>
+    <article className="video-card">
+      <VideoCardMedia video={video} onPlay={onPlayVideo} />
+      <div className="card-body">
+        <h3>{title}</h3>
+        <span className="video-uploader-tag">
+          Uploaded by {video.creatorExpertName || "Wellness Expert"}
         </span>
-        <span className="hr-video-card-body">
-          <strong>{video.title || "Untitled video"}</strong>
-          <small>Uploaded by {video.creatorExpertName || "Wellness Expert"}</small>
-        </span>
-      </a>
+      </div>
     </article>
   );
 }
 
-function readVideos() {
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(VIDEO_STORAGE_KEY) || "[]");
-    return Array.isArray(parsed) ? parsed.map(normalizeVideo).filter(Boolean) : [];
-  } catch {
-    return [];
-  }
+function getCategoryVideos(videos, category) {
+  return videos.filter(
+    (video) =>
+      String(video.category || "")
+        .trim()
+        .toLowerCase() === category.toLowerCase(),
+  );
 }
 
-function normalizeVideo(video) {
-  if (!video || typeof video !== "object") return null;
-
-  return {
-    id: String(video.id || `${video.title}-${video.videoLink}`),
-    title: String(video.title || "").trim(),
-    category: String(video.category || "").trim(),
-    duration: String(video.duration || "00:00").trim(),
-    videoLink: String(video.videoLink || "#").trim(),
-    thumbnailLink: String(video.thumbnailLink || defaultThumbnail).trim(),
-    description: String(video.description || "").trim(),
-    creatorExpertName: String(video.creatorExpertName || "Wellness Expert").trim(),
-  };
+function getCardsPerView() {
+  if (typeof window === "undefined" || window.innerWidth <= 700) return 1;
+  if (window.innerWidth <= 1100) return 2;
+  return 3;
 }
 
 export default HRVideoLibrary;
