@@ -390,12 +390,12 @@ export class LiveSessionsService {
     const recordCompanyId = cleanText(record.companyId);
     const recordCompanyName = normalizeLookupValue(record.companyName);
 
-    if (
-      normalizedContext.companyId &&
-      recordCompanyId &&
-      recordCompanyId === normalizedContext.companyId
-    ) {
-      return true;
+    if (normalizedContext.companyId) {
+      // Company ID is authoritative; only use the name fallback for older
+      // records that have no company ID at all.
+      if (recordCompanyId) {
+        return recordCompanyId === normalizedContext.companyId;
+      }
     }
 
     return Boolean(

@@ -22,7 +22,7 @@ export class CompaniesService {
   constructor(private readonly data: InMemoryDataService) {}
 
   findAll(): CompanyEntity[] {
-    return [...this.data.companies];
+    return this.data.companies.filter((company) => !company.archivedAt);
   }
 
   findOne(id: string): CompanyEntity {
@@ -104,12 +104,7 @@ export class CompaniesService {
     company.email = nextEmail;
 
     this.data.hrProfiles.forEach((profile) => {
-      const profileCompanyMatches =
-        profile.companyId === company.id ||
-        normalizeLookupValue(profile.companyName) ===
-          normalizeLookupValue(previousCompanyName);
-
-      if (!profileCompanyMatches) {
+      if (!this.isLinkedToCompany(profile, { ...company, name: previousCompanyName })) {
         return;
       }
 
@@ -123,12 +118,11 @@ export class CompaniesService {
 
   remove(id: string): CompanyEntity {
     const company = this.findOne(id);
-    const companyIndex = this.data.companies.findIndex(
-      (entry) => entry.id === company.id,
-    );
+    if (company.archivedAt) return company;
 
-    this.removeLinkedHrProfiles(company);
-    this.data.companies.splice(companyIndex, 1);
+    company.archivedAt = new Date().toISOString();
+    this.removeLinkedAccounts(company);
+    this.cancelLinkedSubscriptions(company);
 
     return company;
   }
@@ -169,7 +163,7 @@ export class CompaniesService {
     company: Pick<CompanyEntity, 'name' | 'phone' | 'address' | 'email'>,
     ignoreCompanyId?: string,
   ): void {
-    const companies = this.data.companies.filter(
+    const companies = this.findAll().filter(
       (entry) => entry.id !== cleanText(ignoreCompanyId),
     );
 
@@ -207,126 +201,41 @@ export class CompaniesService {
     }
   }
 
-  private removeLinkedHrProfiles(company: CompanyEntity): void {
-    for (let index = this.data.hrProfiles.length - 1; index >= 0; index -= 1) {
-      const profile = this.data.hrProfiles[index];
-      const linkedById = cleanText(profile.companyId) === cleanText(company.id);
-      const linkedByName =
-        normalizeLookupValue(profile.companyName) ===
-        normalizeLookupValue(company.name);
+  private removeLinkedAccounts(company: CompanyEntity): void {
+    const accountCollections = [
+      this.data.hrProfiles,
+      this.data.employees,
+      this.data.experts,
+    ];
 
-      if (linkedById || linkedByName) {
-        this.data.hrProfiles.splice(index, 1);
+    accountCollections.forEach((accounts) => {
+      for (let index = accounts.length - 1; index >= 0; index -= 1) {
+        if (this.isLinkedToCompany(accounts[index], company)) {
+          accounts.splice(index, 1);
+        }
       }
-    }
+    });
+  }
 
-    for (let index = this.data.employees.length - 1; index >= 0; index -= 1) {
-      const employee = this.data.employees[index];
-      const linkedById = cleanText(employee.companyId) === cleanText(company.id);
-      const linkedByName =
-        normalizeLookupValue(employee.companyName) ===
-        normalizeLookupValue(company.name);
-
-      if (linkedById || linkedByName) {
-        this.data.employees.splice(index, 1);
+  private cancelLinkedSubscriptions(company: CompanyEntity): void {
+    this.data.subscriptions.forEach((subscription) => {
+      if (this.isLinkedToCompany(subscription, company)) {
+        subscription.status = 'cancelled';
+        subscription.cancelledAt = new Date().toISOString();
       }
-    }
+    });
+  }
 
-    for (let index = this.data.experts.length - 1; index >= 0; index -= 1) {
-      const expert = this.data.experts[index];
-      const linkedById = cleanText(expert.companyId) === cleanText(company.id);
-      const linkedByName =
-        normalizeLookupValue(expert.companyName) ===
-        normalizeLookupValue(company.name);
+  private isLinkedToCompany(
+    record: { companyId?: string; companyName?: string },
+    company: CompanyEntity,
+  ): boolean {
+    const recordCompanyId = cleanText(record.companyId);
+    if (recordCompanyId) return recordCompanyId === cleanText(company.id);
 
-      if (linkedById || linkedByName) {
-        this.data.experts.splice(index, 1);
-      }
-    }
-
-    for (let index = this.data.consultations.length - 1; index >= 0; index -= 1) {
-      const consultation = this.data.consultations[index];
-      const linkedById =
-        cleanText(consultation.companyId) === cleanText(company.id);
-      const linkedByName =
-        normalizeLookupValue(consultation.companyName) ===
-        normalizeLookupValue(company.name);
-
-      if (linkedById || linkedByName) {
-        this.data.consultations.splice(index, 1);
-      }
-    }
-
-    for (let index = this.data.wellnessCheckins.length - 1; index >= 0; index -= 1) {
-      const checkin = this.data.wellnessCheckins[index];
-      const linkedById = cleanText(checkin.companyId) === cleanText(company.id);
-      const linkedByName =
-        normalizeLookupValue(checkin.companyName) ===
-        normalizeLookupValue(company.name);
-
-      if (linkedById || linkedByName) {
-        this.data.wellnessCheckins.splice(index, 1);
-      }
-    }
-
-    for (let index = this.data.checkinResponses.length - 1; index >= 0; index -= 1) {
-      const response = this.data.checkinResponses[index];
-      const linkedById = cleanText(response.companyId) === cleanText(company.id);
-      const linkedByName =
-        normalizeLookupValue(response.companyName) ===
-        normalizeLookupValue(company.name);
-
-      if (linkedById || linkedByName) {
-        this.data.checkinResponses.splice(index, 1);
-      }
-    }
-
-    for (let index = this.data.liveSessions.length - 1; index >= 0; index -= 1) {
-      const session = this.data.liveSessions[index];
-      const linkedById = cleanText(session.companyId) === cleanText(company.id);
-      const linkedByName =
-        normalizeLookupValue(session.companyName) ===
-        normalizeLookupValue(company.name);
-
-      if (linkedById || linkedByName) {
-        this.data.liveSessions.splice(index, 1);
-      }
-    }
-
-    for (let index = this.data.videos.length - 1; index >= 0; index -= 1) {
-      const video = this.data.videos[index];
-      const linkedById = cleanText(video.companyId) === cleanText(company.id);
-      const linkedByName =
-        normalizeLookupValue(video.companyName) ===
-        normalizeLookupValue(company.name);
-
-      if (linkedById || linkedByName) {
-        this.data.videos.splice(index, 1);
-      }
-    }
-
-    for (let index = this.data.challenges.length - 1; index >= 0; index -= 1) {
-      const challenge = this.data.challenges[index];
-      const linkedById = cleanText(challenge.companyId) === cleanText(company.id);
-      const linkedByName =
-        normalizeLookupValue(challenge.companyName) ===
-        normalizeLookupValue(company.name);
-
-      if (linkedById || linkedByName) {
-        this.data.challenges.splice(index, 1);
-      }
-    }
-
-    for (let index = this.data.rewards.length - 1; index >= 0; index -= 1) {
-      const reward = this.data.rewards[index];
-      const linkedById = cleanText(reward.companyId) === cleanText(company.id);
-      const linkedByName =
-        normalizeLookupValue(reward.companyName) ===
-        normalizeLookupValue(company.name);
-
-      if (linkedById || linkedByName) {
-        this.data.rewards.splice(index, 1);
-      }
-    }
+    return (
+      normalizeLookupValue(record.companyName) ===
+      normalizeLookupValue(company.name)
+    );
   }
 }

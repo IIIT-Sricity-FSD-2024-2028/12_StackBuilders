@@ -13,14 +13,17 @@ export class VideoEntity {
   @ApiProperty({ example: '12:45' })
   duration: string;
 
-  @ApiProperty({ example: 'https://www.youtube.com/watch?v=inpok4MKVLM' })
-  videoLink: string;
+  @ApiProperty({ example: 'https://www.youtube.com/watch?v=inpok4MKVLM', required: false })
+  videoLink?: string;
+
+  @ApiProperty({ example: '/media/videos/7f04d73c-8089-4d57-a0b0-9f1996c3a4d6.mp4', required: false })
+  videoFileUrl?: string;
 
   @ApiProperty({
     example:
       'https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=900&q=80',
   })
-  thumbnailLink: string;
+  thumbnailLink?: string;
 
   @ApiProperty({ example: 'A short guided reset for stress and focus.' })
   description: string;

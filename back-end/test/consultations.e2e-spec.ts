@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
+import { InMemoryDataService } from './../src/common/data/in-memory-data.service';
 
 describe('Consultation workflows (e2e)', () => {
   let app: INestApplication;
@@ -17,6 +18,215 @@ describe('Consultation workflows (e2e)', () => {
 
   afterEach(async () => {
     await app.close();
+  });
+
+  it('prevents one employee from booking the same slot with different experts', async () => {
+    const data = app.get(InMemoryDataService);
+    const slotDate = new Date(Date.now() + 48 * 60 * 60 * 1000);
+    slotDate.setSeconds(0, 0);
+    const slotTime = slotDate.toISOString();
+    const now = new Date().toISOString();
+    const companyId = 'CMP-BOOKING-TEST';
+    const companyName = 'Booking Test Company';
+
+    data.employees.push(
+      {
+        id: 'employee-booking-one',
+        name: 'Aarav Sharma',
+        email: 'aarav.booking@example.com',
+        username: 'aarav.booking@example.com',
+        password: 'secure123',
+        department: 'Engineering',
+        status: 'Active',
+        age: '28',
+        gender: 'M',
+        phoneNumber: '',
+        companyId,
+        companyName,
+        heightCm: '',
+        weightKg: '',
+        rewardPointsBalance: '0',
+        claimedRewardIds: [],
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 'employee-booking-two',
+        name: 'Priya Nair',
+        email: 'priya.booking@example.com',
+        username: 'priya.booking@example.com',
+        password: 'secure123',
+        department: 'Design',
+        status: 'Active',
+        age: '30',
+        gender: 'F',
+        phoneNumber: '',
+        companyId,
+        companyName,
+        heightCm: '',
+        weightKg: '',
+        rewardPointsBalance: '0',
+        claimedRewardIds: [],
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 'employee-booking-three',
+        name: 'Kavya Rao',
+        email: 'kavya.booking@example.com',
+        username: 'kavya.booking@example.com',
+        password: 'secure123',
+        department: 'Operations',
+        status: 'Active',
+        age: '29',
+        gender: 'F',
+        phoneNumber: '',
+        companyId,
+        companyName,
+        heightCm: '',
+        weightKg: '',
+        rewardPointsBalance: '0',
+        claimedRewardIds: [],
+        createdAt: now,
+        updatedAt: now,
+      },
+    );
+
+    data.experts.push(
+      {
+        id: 'expert-booking-one',
+        name: 'Neha Verma',
+        email: 'neha.booking@example.com',
+        username: 'neha.booking@example.com',
+        password: 'secure123',
+        specialization: 'Psychologist',
+        experience: '5',
+        phoneNumber: '',
+        companyId,
+        companyName,
+        status: 'Active',
+        createdAt: now,
+        updatedAt: now,
+        availableSlots: [slotTime],
+      },
+      {
+        id: 'expert-booking-two',
+        name: 'Rahul Menon',
+        email: 'rahul.booking@example.com',
+        username: 'rahul.booking@example.com',
+        password: 'secure123',
+        specialization: 'Nutritionist',
+        experience: '7',
+        phoneNumber: '',
+        companyId,
+        companyName,
+        status: 'Active',
+        createdAt: now,
+        updatedAt: now,
+        availableSlots: [slotTime],
+      },
+    );
+
+    const firstBooking = await request(app.getHttpServer())
+      .post('/consultations/book-slot')
+      .set('role', 'Employee')
+      .send({
+        employeeId: 'employee-booking-one',
+        expertId: 'expert-booking-one',
+        purpose: 'First consultation',
+        slotTime,
+      })
+      .expect(201);
+
+    const duplicateBooking = await request(app.getHttpServer())
+      .post('/consultations/book-slot')
+      .set('role', 'Employee')
+      .send({
+        employeeId: 'employee-booking-one',
+        expertId: 'expert-booking-two',
+        purpose: 'Conflicting consultation',
+        slotTime,
+      })
+      .expect(400);
+
+    expect(duplicateBooking.body.message).toContain(
+      'already have a consultation booked for this time slot',
+    );
+    expect(data.experts.find((expert) => expert.id === 'expert-booking-two')?.availableSlots).toContain(slotTime);
+
+    await request(app.getHttpServer())
+      .post('/consultations/book-slot')
+      .set('role', 'Employee')
+      .send({
+        employeeId: 'employee-booking-two',
+        expertId: 'expert-booking-two',
+        purpose: 'Different employee, same clock time',
+        slotTime,
+      })
+      .expect(201);
+
+    const unscheduledRequest = await request(app.getHttpServer())
+      .post('/consultations')
+      .set('role', 'Employee')
+      .send({
+        employeeId: 'employee-booking-one',
+        expertId: 'expert-booking-two',
+        purpose: 'Request to schedule later',
+      })
+      .expect(201);
+
+    const scheduleConflict = await request(app.getHttpServer())
+      .patch(`/consultations/${unscheduledRequest.body.id}`)
+      .set('role', 'Wellness Expert')
+      .send({
+        status: 'accepted',
+        sessionTitle: 'Conflicting session',
+        sessionDate: firstBooking.body.sessionDate,
+        sessionTime: firstBooking.body.sessionTime,
+        sessionDuration: '15 min',
+        sessionMeetingLink: 'https://meet.example.com/conflicting-session',
+      })
+      .expect(400);
+
+    expect(scheduleConflict.body.message).toContain(
+      'already have a consultation booked for this time slot',
+    );
+
+    const expertCollisionRequest = await request(app.getHttpServer())
+      .post('/consultations')
+      .set('role', 'Employee')
+      .send({
+        employeeId: 'employee-booking-three',
+        expertId: 'expert-booking-one',
+        purpose: 'Request without a selected slot',
+      })
+      .expect(201);
+
+    const overlappingStart = new Date(slotDate.getTime() + 10 * 60 * 1000);
+    const expertCollision = await request(app.getHttpServer())
+      .patch(`/consultations/${expertCollisionRequest.body.id}`)
+      .set('role', 'Wellness Expert')
+      .send({
+        status: 'accepted',
+        sessionTitle: 'Overlapping unslotted consultation',
+        sessionDate: `${overlappingStart.getFullYear()}-${String(overlappingStart.getMonth() + 1).padStart(2, '0')}-${String(overlappingStart.getDate()).padStart(2, '0')}`,
+        sessionTime: `${String(overlappingStart.getHours()).padStart(2, '0')}:${String(overlappingStart.getMinutes()).padStart(2, '0')}`,
+        sessionDuration: '15 min',
+        sessionMeetingLink: 'https://meet.example.com/overlap',
+      })
+      .expect(400);
+
+    expect(expertCollision.body.message).toContain(
+      'wellness expert already has a consultation booked during this time',
+    );
+
+    const employeeConsultations = await request(app.getHttpServer())
+      .get('/consultations')
+      .set('role', 'Employee')
+      .query({ employeeId: 'employee-booking-one' })
+      .expect(200);
+
+    expect(employeeConsultations.body.find((item) => item.id === unscheduledRequest.body.id).status).toBe('requested');
   });
 
   it('supports request, accept, schedule, and follow-up consultation flows', async () => {

@@ -80,7 +80,7 @@ export class CompaniesController {
   @Delete(':id')
   @Roles(Role.Admin)
   @ApiRoleHeader()
-  @ApiOperation({ summary: 'Delete a company and linked HR profile records' })
+  @ApiOperation({ summary: 'Remove a company and its accounts while retaining history' })
   @ApiOkResponse({ type: CompanyEntity })
   @ApiForbiddenResponse({ description: 'Missing or invalid role header.' })
   @ApiNotFoundResponse({ description: 'Company not found.' })

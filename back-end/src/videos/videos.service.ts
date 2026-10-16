@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,6 +10,8 @@ import {
   createPrefixedRecordId,
   normalizeLookupValue,
 } from '../common/utils/record.utils';
+import { unlinkSync } from 'node:fs';
+import { join } from 'node:path';
 import { CompaniesService } from '../companies/companies.service';
 import { ExpertsService } from '../experts/experts.service';
 import { CreateVideoDto } from './dto/create-video.dto';
@@ -90,6 +93,7 @@ export class VideosService {
       category: preparedVideo.category,
       duration: preparedVideo.duration,
       videoLink: preparedVideo.videoLink,
+      videoFileUrl: preparedVideo.videoFileUrl,
       thumbnailLink: preparedVideo.thumbnailLink,
       description: preparedVideo.description,
       createdAt: preparedVideo.createdAt,
@@ -150,6 +154,12 @@ export class VideosService {
     )
       ? cleanText(updateVideoDto.videoLink)
       : currentVideo.videoLink;
+    const nextVideoFileUrl = Object.prototype.hasOwnProperty.call(
+      updateVideoDto,
+      'videoFileUrl',
+    )
+      ? cleanText(updateVideoDto.videoFileUrl)
+      : currentVideo.videoFileUrl;
     const nextThumbnailLink = Object.prototype.hasOwnProperty.call(
       updateVideoDto,
       'thumbnailLink',
@@ -168,6 +178,7 @@ export class VideosService {
       category: nextCategory,
       duration: nextDuration,
       videoLink: nextVideoLink,
+      videoFileUrl: nextVideoFileUrl,
       thumbnailLink: nextThumbnailLink,
       description: nextDescription,
     });
@@ -176,6 +187,7 @@ export class VideosService {
     currentVideo.category = nextCategory;
     currentVideo.duration = nextDuration;
     currentVideo.videoLink = nextVideoLink;
+    currentVideo.videoFileUrl = nextVideoFileUrl;
     currentVideo.thumbnailLink = nextThumbnailLink;
     currentVideo.description = nextDescription;
     currentVideo.creatorExpertId = cleanText(expert?.id || nextCreatorExpertId);
@@ -186,8 +198,17 @@ export class VideosService {
     return currentVideo;
   }
 
-  remove(id: string): VideoEntity {
+  remove(id: string, requestingExpertId?: string): VideoEntity {
     const video = this.findOne(id);
+    if (
+      requestingExpertId !== undefined &&
+      (!cleanText(requestingExpertId) ||
+        cleanText(video.creatorExpertId) !== cleanText(requestingExpertId))
+    ) {
+      throw new ForbiddenException('You can only delete videos that you uploaded.');
+    }
+    this.removeManagedMedia(video.videoFileUrl, 'videos');
+    this.removeManagedMedia(video.thumbnailLink, 'thumbnails');
     const videoIndex = this.data.videos.findIndex(
       (entry) => cleanText(entry.id) === cleanText(video.id),
     );
@@ -205,6 +226,7 @@ export class VideosService {
     const category = cleanText(createVideoDto.category);
     const duration = cleanText(createVideoDto.duration);
     const videoLink = cleanText(createVideoDto.videoLink);
+    const videoFileUrl = cleanText(createVideoDto.videoFileUrl);
     const thumbnailLink = cleanText(createVideoDto.thumbnailLink);
     const description = cleanText(createVideoDto.description);
     const creatorExpertId = cleanText(createVideoDto.creatorExpertId || expert?.id);
@@ -215,6 +237,7 @@ export class VideosService {
       category,
       duration,
       videoLink,
+      videoFileUrl,
       thumbnailLink,
       description,
     });
@@ -224,6 +247,7 @@ export class VideosService {
       category,
       duration,
       videoLink,
+      videoFileUrl,
       thumbnailLink,
       description,
       createdAt,
@@ -238,21 +262,28 @@ export class VideosService {
     title: string;
     category: string;
     duration: string;
-    videoLink: string;
-    thumbnailLink: string;
+    videoLink?: string;
+    videoFileUrl?: string;
+    thumbnailLink?: string;
     description: string;
   }): void {
     if (
       !fields.title ||
       !fields.category ||
       !fields.duration ||
-      !fields.videoLink ||
-      !fields.thumbnailLink ||
       !fields.description
     ) {
       throw new BadRequestException(
         'Please complete all video fields before saving.',
       );
+    }
+
+    const videoLink = cleanText(fields.videoLink);
+    const videoFileUrl = cleanText(fields.videoFileUrl);
+    const hasLink = Boolean(videoLink);
+    const hasUploadedFile = Boolean(videoFileUrl);
+    if (hasLink === hasUploadedFile) {
+      throw new BadRequestException('Choose either a video link or an uploaded MP4 file.');
     }
 
     if (!ALLOWED_VIDEO_CATEGORIES.has(fields.category)) {
@@ -261,16 +292,32 @@ export class VideosService {
       );
     }
 
-    if (!this.isValidHttpUrl(fields.videoLink)) {
-      throw new BadRequestException(
-        'Enter a valid video link that starts with http:// or https://.',
-      );
+    if (hasLink && !this.isValidHttpUrl(videoLink)) {
+      throw new BadRequestException('Enter a valid video link that starts with http:// or https://.');
     }
 
-    if (!this.isValidHttpUrl(fields.thumbnailLink)) {
-      throw new BadRequestException(
-        'Enter a valid thumbnail link that starts with http:// or https://.',
-      );
+    if (hasUploadedFile && !/^\/media\/videos\/[a-f0-9-]+\.mp4$/i.test(videoFileUrl)) {
+      throw new BadRequestException('The uploaded video path is invalid.');
+    }
+
+    if (fields.thumbnailLink && !this.isValidHttpUrl(fields.thumbnailLink) && !/^\/media\/thumbnails\/[a-f0-9-]+\.(?:jpg|jpeg|png|webp)$/i.test(fields.thumbnailLink)) {
+      throw new BadRequestException('Enter a valid thumbnail URL or upload a supported image file.');
+    }
+  }
+
+  private removeManagedMedia(value: string | undefined, directory: 'videos' | 'thumbnails'): void {
+    const mediaPath = cleanText(value);
+    const prefix = `/media/${directory}/`;
+    const fileName = mediaPath.startsWith(prefix) ? mediaPath.slice(prefix.length) : '';
+    const validName = directory === 'videos'
+      ? /^[a-f0-9-]+\.mp4$/i.test(fileName)
+      : /^[a-f0-9-]+\.(?:jpg|jpeg|png|webp)$/i.test(fileName);
+    if (!validName) return;
+
+    try {
+      unlinkSync(join(process.cwd(), 'uploads', directory, fileName));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     }
   }
 

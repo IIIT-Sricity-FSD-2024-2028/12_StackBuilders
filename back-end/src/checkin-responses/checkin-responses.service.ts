@@ -200,12 +200,8 @@ export class CheckinResponsesService {
     const recordCompanyId = cleanText(record.companyId);
     const recordCompanyName = normalizeLookupValue(record.companyName);
 
-    if (
-      normalizedContext.companyId &&
-      recordCompanyId &&
-      recordCompanyId === normalizedContext.companyId
-    ) {
-      return true;
+    if (normalizedContext.companyId && recordCompanyId) {
+      return recordCompanyId === normalizedContext.companyId;
     }
 
     return Boolean(

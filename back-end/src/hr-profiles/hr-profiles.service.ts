@@ -368,11 +368,12 @@ export class HrProfilesService {
 
     for (let index = this.data.hrProfiles.length - 1; index >= 0; index -= 1) {
       const currentProfile = this.data.hrProfiles[index];
-      const linkedById =
-        cleanText(currentProfile.companyId) === cleanText(companyId);
+      const currentCompanyId = cleanText(currentProfile.companyId);
+      const linkedById = currentCompanyId === cleanText(companyId);
       const linkedByName =
+        !currentCompanyId &&
         normalizeLookupValue(currentProfile.companyName) ===
-        normalizeLookupValue(companyName);
+          normalizeLookupValue(companyName);
 
       if (!linkedById && !linkedByName) {
         continue;

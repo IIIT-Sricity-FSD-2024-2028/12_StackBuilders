@@ -189,20 +189,30 @@ export class ConsultationsService {
       throw new BadRequestException('Please enter the purpose of your consultation request.');
     }
 
-    // Verify and remove the slot
+    // Verify the expert's slot before making any changes.
     const slotIndex = (expert.availableSlots || []).findIndex(s => s === slotTime);
     if (slotIndex === -1) {
       throw new BadRequestException('This slot is no longer available. Please select another time.');
     }
-    
-    // Remove the slot
-    expert.availableSlots!.splice(slotIndex, 1);
 
     const now = new Date();
     const slotDate = new Date(slotTime);
-    
+    if (Number.isNaN(slotDate.getTime())) {
+      throw new BadRequestException('This consultation slot has an invalid date and time.');
+    }
+
     const sessionDate = `${slotDate.getFullYear()}-${String(slotDate.getMonth() + 1).padStart(2, '0')}-${String(slotDate.getDate()).padStart(2, '0')}`;
     const sessionTime = `${String(slotDate.getHours()).padStart(2, '0')}:${String(slotDate.getMinutes()).padStart(2, '0')}`;
+    this.assertNoScheduleConflict(
+      employee.id,
+      expert.id,
+      sessionDate,
+      sessionTime,
+      '15 min',
+    );
+
+    // Do not consume the expert's slot until every booking validation passes.
+    expert.availableSlots!.splice(slotIndex, 1);
 
     const consultation = this.normalizeConsultationRecord({
       id: createPrefixedRecordId('consult'),
@@ -392,31 +402,15 @@ export class ConsultationsService {
       ? cleanText(updateConsultationDto.sessionCreatedAt)
       : consultation.sessionCreatedAt;
 
+    let normalizedNextStatus = consultation.status;
     if (nextStatus) {
-      const normalizedStatus = normalizeLookupValue(nextStatus);
-      if (!['requested', 'accepted', 'rejected'].includes(normalizedStatus)) {
+      normalizedNextStatus = normalizeLookupValue(nextStatus);
+      if (!['requested', 'accepted', 'rejected'].includes(normalizedNextStatus)) {
         throw new BadRequestException(
           'Consultation status must be requested, accepted, or rejected.',
         );
       }
-      consultation.status = normalizedStatus;
     }
-
-    if (Object.prototype.hasOwnProperty.call(updateConsultationDto, 'purpose')) {
-      consultation.purpose = nextPurpose;
-    }
-
-    if (
-      Object.prototype.hasOwnProperty.call(updateConsultationDto, 'rejectionReason') ||
-      consultation.status === 'accepted'
-    ) {
-      consultation.rejectionReason =
-        consultation.status === 'accepted' ? '' : nextRejectionReason;
-    }
-
-    consultation.createdByExpert = nextCreatedByExpert;
-    consultation.sourceCheckinId = nextSourceCheckinId;
-    consultation.followUpPriority = nextFollowUpPriority;
 
     const includesSessionField = [
       'sessionTitle',
@@ -430,7 +424,7 @@ export class ConsultationsService {
     );
 
     if (includesSessionField) {
-      if (consultation.status !== 'accepted') {
+      if (normalizeLookupValue(normalizedNextStatus) !== 'accepted') {
         throw new BadRequestException(
           'Only accepted consultations can be scheduled here.',
         );
@@ -443,7 +437,39 @@ export class ConsultationsService {
         sessionDuration: nextSessionDuration,
         sessionMeetingLink: nextSessionMeetingLink,
       });
+      this.assertNoScheduleConflict(
+        consultation.employeeId,
+        consultation.expertId,
+        nextSessionDate,
+        nextSessionTime,
+        nextSessionDuration,
+        consultation.id,
+      );
+    }
 
+    if (nextStatus) {
+      consultation.status = normalizedNextStatus;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(updateConsultationDto, 'purpose')) {
+      consultation.purpose = nextPurpose;
+    }
+
+    if (
+      Object.prototype.hasOwnProperty.call(updateConsultationDto, 'rejectionReason') ||
+      normalizeLookupValue(normalizedNextStatus) === 'accepted'
+    ) {
+      consultation.rejectionReason =
+        normalizeLookupValue(normalizedNextStatus) === 'accepted'
+          ? ''
+          : nextRejectionReason;
+    }
+
+    consultation.createdByExpert = nextCreatedByExpert;
+    consultation.sourceCheckinId = nextSourceCheckinId;
+    consultation.followUpPriority = nextFollowUpPriority;
+
+    if (includesSessionField) {
       consultation.sessionTitle = nextSessionTitle;
       consultation.sessionDate = nextSessionDate;
       consultation.sessionTime = nextSessionTime;
@@ -785,6 +811,121 @@ export class ConsultationsService {
         'Enter a valid meeting link that starts with http:// or https://.',
       );
     }
+  }
+
+  private assertNoScheduleConflict(
+    employeeId: string,
+    expertId: string,
+    sessionDate: string,
+    sessionTime: string,
+    sessionDuration: string,
+    ignoredConsultationId?: string,
+  ): void {
+    const normalizedEmployeeId = cleanText(employeeId);
+    const normalizedExpertId = cleanText(expertId);
+    const proposedInterval = this.getScheduleInterval(
+      sessionDate,
+      sessionTime,
+      sessionDuration,
+    );
+
+    if (!proposedInterval || (!normalizedEmployeeId && !normalizedExpertId)) {
+      return;
+    }
+
+    const terminalStatuses = new Set([
+      'completed',
+      'rejected',
+      'cancelled',
+      'canceled',
+    ]);
+    const overlaps = (consultation: ConsultationEntity): boolean => {
+      if (
+        cleanText(consultation.id) === cleanText(ignoredConsultationId) ||
+        terminalStatuses.has(normalizeLookupValue(consultation.status))
+      ) {
+        return false;
+      }
+
+      const existingInterval = this.getScheduleInterval(
+        consultation.sessionDate,
+        consultation.sessionTime,
+        consultation.sessionDuration,
+      );
+      return Boolean(
+        existingInterval &&
+          proposedInterval.start < existingInterval.end &&
+          proposedInterval.end > existingInterval.start,
+      );
+    };
+    const conflictingEmployeeSchedule = normalizedEmployeeId &&
+      this.data.consultations.some((consultation) =>
+        cleanText(consultation.employeeId) === normalizedEmployeeId && overlaps(consultation),
+      );
+    const conflictingExpertSchedule = normalizedExpertId &&
+      this.data.consultations.some((consultation) =>
+        cleanText(consultation.expertId) === normalizedExpertId && overlaps(consultation),
+      );
+
+    if (conflictingEmployeeSchedule) {
+      throw new BadRequestException(
+        'You already have a consultation booked for this time slot or an overlapping time. Please choose another time.',
+      );
+    }
+
+    if (conflictingExpertSchedule) {
+      throw new BadRequestException(
+        'This wellness expert already has a consultation booked during this time. Please choose another time.',
+      );
+    }
+  }
+
+  private getScheduleInterval(
+    sessionDate: string,
+    sessionTime: string,
+    sessionDuration: string,
+  ): { start: number; end: number } | null {
+    const date = this.parseDateOnly(cleanText(sessionDate));
+    const time = this.parseTimeOnly(this.normalizeTimeKey(sessionTime));
+    if (!date || !time) {
+      return null;
+    }
+
+    const start = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      time.hours,
+      time.minutes,
+    ).getTime();
+    const durationMinutes = this.getSessionDurationMinutes(sessionDuration);
+    return {
+      start,
+      end: start + durationMinutes * 60 * 1000,
+    };
+  }
+
+  private getSessionDurationMinutes(value: string): number {
+    const normalized = cleanText(value).toLowerCase();
+    const hourDuration = normalized.match(/^(\d+(?:\.\d+)?)\s*(?:h|hr|hrs|hour|hours)$/);
+    if (hourDuration) {
+      return Math.max(1, Math.ceil(Number(hourDuration[1]) * 60));
+    }
+
+    const clockDuration = normalized.match(/^(\d+):([0-5]\d)$/);
+    if (clockDuration) {
+      return Math.max(1, Number(clockDuration[1]) * 60 + Number(clockDuration[2]));
+    }
+
+    const minuteDuration = normalized.match(/\d+/);
+    return minuteDuration ? Math.max(1, Number(minuteDuration[0])) : 15;
+  }
+
+  private normalizeTimeKey(value?: string): string {
+    const parsedTime = this.parseTimeOnly(cleanText(value));
+    return parsedTime
+      ? `${String(parsedTime.hours).padStart(2, '0')}:${String(parsedTime.minutes).padStart(2, '0')}`
+      : '';
   }
 
   private getTodayDateInputValue(): string {
