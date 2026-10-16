@@ -1,106 +1,91 @@
-## Problem Statement: Wellness Program Management Platform
+# Stack Builders Wellness Platform
 
-Modern organizations conduct multiple wellness programs to improve employee mental and physical health. However, these programs are often managed independently, leading to poor coordination, low participation, and limited visibility into their effectiveness. The lack of a unified platform prevents organizations from efficiently organizing, tracking, and optimizing wellness initiatives, thereby limiting their potential benefits.
+A role-based employee wellness platform built with a React single-page application and a NestJS REST API. The platform brings company administration, employee wellness activities, consultations, live sessions, and wellness video content into one workspace.
 
-The objective of the platform is to streamline the management of employee wellness programs by providing a centralized and organized system that enhances accessibility, coordination, and effectiveness.
+## Features
 
-## Actors
-- Employee
-- Wellness Expert (Physical Wellness Instructor, Nutritionist, Psychologist)
-- HR (Human Resource)
-- Administrator
-- Supervisor
+- **Employees:** wellness check-ins and forms, expert consultations, live sessions, videos, challenges, and rewards.
+- **Wellness experts:** consultation requests, availability, live sessions, employee check-ins, and video uploads.
+- **HR:** employee and expert management, challenges and rewards, video library, and subscription plans.
+- **Administrators and supervisors:** company and account management, role access, reports, revenue, queries, and settings.
 
-## Planned Features
-
-### Employee
-- Access wellness video library
-- Join live wellness sessions
-- Book consultations with wellness experts
-- Participate in challenges and claim rewards
-
-### Wellness Expert
-- Conduct and manage live wellness sessions
-- Provide consultations to employees
-- Upload and manage wellness content
-
-### HR (Human Resource)
-- Manage challenges and rewards
-- Manage wellness experts and employees
-
-### Administrator
-- Manage database
-- Configure platform settings
-
-## Project Structure
+## Project layout
 
 ```text
-FFSD/
-|-- front-end/
-|-- back-end/
-|   |-- docs/
-|   |   |-- swagger.json
-|   |-- src/
-|   `-- test/
-`-- Videos/
+.
+├── front-end/
+│   └── react-app/    # React + Vite application
+│       ├── public/   # Static assets and page stylesheets
+│       └── src/      # React pages, components, and API clients
+├── back-end/         # NestJS API, tests, and uploaded media
+├── Database/         # Project database/design materials
+├── FigmaDesigns/     # Design materials
+└── Videos/           # Project video resources
 ```
 
-## Prerequisites
+## Requirements
 
-- Node.js and npm
-- Python 3
+- Node.js **20.19+** or **22.12+**
+- npm
 
-## How To Run
+## Run locally
 
-### 1. Start the Backend
+Start the backend first. In a terminal at the repository root:
 
-Open a terminal in `back-end` and run:
-
-```powershell
-cd C:\Users\sudee\OneDrive\Desktop\FFSD\back-end
-npm.cmd install
-npm.cmd run start:dev
+```bash
+cd back-end
+npm ci
+npm run start:dev
 ```
 
-The backend will run on:
+The API runs at `http://127.0.0.1:3000`. Swagger API documentation is at `http://127.0.0.1:3000/api/docs`.
 
-- [http://127.0.0.1:3000](http://127.0.0.1:3000)
+Open a second terminal at the repository root to start the React app:
 
-Swagger will be available at:
-
-- [http://127.0.0.1:3000/api/docs](http://127.0.0.1:3000/api/docs)
-
-### 2. Start the Frontend
-
-Open a second terminal in `front-end` and run:
-
-```powershell
-cd C:\Users\sudee\OneDrive\Desktop\FFSD\front-end
-python -m http.server 5500
+```bash
+cd front-end/react-app
+npm ci
+npm run dev
 ```
 
-The frontend homepage will be available at:
+Open the local URL printed by Vite (normally `http://127.0.0.1:5173`). The frontend uses `http://127.0.0.1:3000` as its default API address. If the backend is running elsewhere, create `front-end/react-app/.env.local` with:
 
-- [http://127.0.0.1:5500/homepage.html](http://127.0.0.1:5500/homepage.html)
+```text
+VITE_API_BASE_URL=http://127.0.0.1:3000
+```
 
-## Frontend Demo
+Stop either server with **Ctrl+C** in its terminal.
 
-Start by signing in as the Super User.
+## Demo sign-in
 
-### Super User Credentials
+The homepage includes these local demo accounts:
 
-- Gmail: `ravi@gmail.com`
-- Password: `1234`
+| Role | Email | Password |
+| --- | --- | --- |
+| Administrator | `ravi@gmail.com` | `1234` |
+| Supervisor | `raju@gmail.com` | `1234` |
 
-## Important Notes
+HR, employee, and wellness expert accounts can be created through the company and user management workflows.
 
-- The backend uses **NestJS** with **in-memory data structures**.
-- There is **no external database**.
-- Since the backend is in-memory, data will reset whenever the backend server is restarted.
-- Authorization is based on the request header `role`.
-- The login system remains frontend-only as required.
+## Build and test
 
-## Quick Access Links
+Build the React app:
 
-- Swagger: [http://127.0.0.1:3000/api/docs](http://127.0.0.1:3000/api/docs)
-- Homepage: [http://127.0.0.1:5500/homepage.html](http://127.0.0.1:5500/homepage.html)
+```bash
+cd front-end/react-app
+npm run build
+npm run preview
+```
+
+Build or test the backend:
+
+```bash
+cd back-end
+npm run build
+npm test
+npm run test:e2e
+```
+
+## Data and local files
+
+Most platform records are held in backend memory, so restarting the backend resets companies, accounts, consultations, and other application data. Uploaded videos and thumbnails are stored on disk under `back-end/uploads/videos` and `back-end/uploads/thumbnails`; the API serves them from `/media/videos` and `/media/thumbnails`. Logs are written under `back-end/logs`.
