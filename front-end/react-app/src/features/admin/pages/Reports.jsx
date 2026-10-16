@@ -1,74 +1,95 @@
-import { useMemo, useState } from "react";
-import "../admin-reports.css";
+import { useCallback, useEffect, useState } from "react";
+import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
+import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
+import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
+import { SupervisorBarChart, SupervisorDonutChart, SupervisorLineChart } from "../../supervisor/components/SupervisorCharts.jsx";
+import adminApi from "../adminApi.js";
 
-const reportData = {
-  "This month": { checkins: "1,284", consultations: "326", satisfaction: "92%", participation: "78%" },
-  "Last month": { checkins: "1,146", consultations: "301", satisfaction: "89%", participation: "74%" },
-  "This quarter": { checkins: "3,518", consultations: "891", satisfaction: "91%", participation: "76%" },
-};
-
-const reportCards = [
-  { title: "Wellness activity", description: "Check-ins completed across all company workspaces.", valueKey: "checkins", color: "blue" },
-  { title: "Consultations", description: "Employee sessions requested and completed.", valueKey: "consultations", color: "orange" },
-  { title: "Satisfaction score", description: "Average feedback from completed wellness sessions.", valueKey: "satisfaction", color: "green" },
-  { title: "Program participation", description: "Active members participating in a wellness program.", valueKey: "participation", color: "purple" },
-];
+function monthlyCounts(records) {
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, index) => new Date(now.getFullYear(), now.getMonth() - (5 - index), 1));
+  return {
+    labels: months.map((month) => new Intl.DateTimeFormat(undefined, { month: "short" }).format(month)),
+    values: months.map((month) => records.filter((record) => {
+      const date = new Date(record.createdAt || record.updatedAt || "");
+      return !Number.isNaN(date.valueOf()) && date.getFullYear() === month.getFullYear() && date.getMonth() === month.getMonth();
+    }).length),
+  };
+}
 
 function Reports() {
-  const [period, setPeriod] = useState("This month");
-  const metrics = useMemo(() => reportData[period], [period]);
+  const stylesReady = usePageStylesheets("/admin-analytics-legacy.css");
+  const [report, setReport] = useState(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const loadReport = useCallback(async (silent = false) => {
+    try {
+      const [companies, consultations, sessions, videos, employees, experts, hrProfiles, challenges, rewards] = await Promise.all([
+        adminApi.getCompanies(), adminApi.getConsultations(), adminApi.getLiveSessions(), adminApi.getVideos(),
+        adminApi.getUsers(), adminApi.getExperts(), adminApi.getHrProfiles(), adminApi.getChallenges(), adminApi.getRewards(),
+      ]);
+      const users = [...(employees || []), ...(experts || []), ...(hrProfiles || [])];
+      const companyRecords = companies || [];
+      const consultationRecords = consultations || [];
+      const sessionRecords = sessions || [];
+      const videoRecords = videos || [];
+      const challengeRecords = challenges || [];
+      const rewardRecords = rewards || [];
+      setReport({
+        monthlyUsers: monthlyCounts(users),
+        roleDistribution: [(employees || []).length, (hrProfiles || []).length, (experts || []).length],
+        weeklyActivity: [consultationRecords.length, sessionRecords.length, videoRecords.length, challengeRecords.length, rewardRecords.length],
+        stats: [
+          { label: "Total Companies", value: companyRecords.length, detail: "Managed company workspaces" },
+          { label: "Consultations", value: consultationRecords.length, detail: "Recorded employee requests" },
+          { label: "Scheduled Live Sessions", value: sessionRecords.length, detail: "Expert-led company sessions" },
+          { label: "Video Library Items", value: videoRecords.length, detail: "Wellness videos in the library" },
+        ],
+      });
+      setError("");
+    } catch (loadError) {
+      if (!silent) setError(loadError.message || "Could not load report data.");
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadReport(); }, [loadReport]);
+  useAutoRefresh(() => loadReport(true), "admin-reports");
+
+  if (!stylesReady) return <RouteLoadingScreen />;
 
   return (
-    <main className="admin-reports-page">
-      <header className="admin-reports-heading">
-        <div>
-          <p className="admin-eyebrow">Insights Center</p>
-          <h1>Reports</h1>
-          <p>Track platform activity and understand how teams are using their wellness programs.</p>
-        </div>
-        <div className="admin-report-actions">
-          <select value={period} onChange={(event) => setPeriod(event.target.value)} aria-label="Report period">
-            <option>This month</option>
-            <option>Last month</option>
-            <option>This quarter</option>
-          </select>
-          <button className="admin-primary-button" type="button">Export report</button>
-        </div>
-      </header>
+    <main className="admin-analytics">
+      <div className="admin-analytics-heading">
+        <div><p className="admin-analytics-eyebrow">Analytics</p><h1>Reports &amp; analytics</h1><p className="admin-analytics-subtitle">View shared workspace insights and live product trends.</p></div>
+      </div>
 
-      <section className="admin-report-highlight">
-        <div>
-          <p className="admin-eyebrow">Platform overview</p>
-          <h2>{period} activity is trending positively</h2>
-          <p>Use these indicators to identify engagement gaps and plan the next wellness initiative.</p>
-        </div>
-        <div className="admin-report-trend"><span>+12.8%</span><small>vs. previous period</small></div>
-      </section>
+      {error && <p className="admin-analytics-error" role="alert">{error}</p>}
+      {loading && <p className="admin-analytics-empty" role="status">Loading report data…</p>}
 
-      <section className="admin-report-grid" aria-label={`${period} report metrics`}>
-        {reportCards.map((card) => (
-          <article className={`admin-report-card admin-report-${card.color}`} key={card.title}>
-            <div className="admin-report-card-top"><span className="admin-report-dot" /><span>{period}</span></div>
-            <strong>{metrics[card.valueKey]}</strong>
-            <h3>{card.title}</h3>
-            <p>{card.description}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="admin-report-table-panel">
-        <div className="admin-report-panel-heading"><div><p className="admin-eyebrow">Workspace comparison</p><h2>Company engagement</h2></div><button className="admin-outline-button" type="button">View details</button></div>
-        <div className="admin-report-table-wrap">
-          <table className="admin-report-table">
-            <thead><tr><th>Company</th><th>Members</th><th>Participation</th><th>Trend</th></tr></thead>
-            <tbody>
-              <tr><td><strong>Greenfield Labs</strong></td><td>248</td><td>84%</td><td><span className="admin-report-up">+8.4%</span></td></tr>
-              <tr><td><strong>Northstar Health</strong></td><td>124</td><td>79%</td><td><span className="admin-report-up">+5.1%</span></td></tr>
-              <tr><td><strong>Brightpath Finance</strong></td><td>86</td><td>65%</td><td><span className="admin-report-neutral">+1.2%</span></td></tr>
-            </tbody>
-          </table>
+      {!loading && report && <>
+        <div className="admin-report-grid">
+          <section className="admin-analytics-panel chart-wide">
+            <div className="admin-analytics-panel-heading"><div><p className="admin-analytics-eyebrow">Growth</p><h2>Monthly user growth</h2></div><span className="admin-analytics-live">Live data</span></div>
+            <SupervisorLineChart values={report.monthlyUsers.values} labels={report.monthlyUsers.labels} color="#1565d8" />
+          </section>
+          <section className="admin-analytics-panel">
+            <div className="admin-analytics-panel-heading"><div><p className="admin-analytics-eyebrow">Mix</p><h2>Role distribution</h2></div></div>
+            <SupervisorDonutChart values={report.roleDistribution} labels={["Employees", "HR", "Experts"]} colors={["#1565d8", "#f19b72", "#1d9b63"]} />
+          </section>
         </div>
-      </section>
+
+        <section className="admin-analytics-panel admin-activity-panel">
+          <div className="admin-analytics-panel-heading"><div><p className="admin-analytics-eyebrow">Engagement</p><h2>Workspace activity</h2></div></div>
+          <SupervisorBarChart values={report.weeklyActivity} labels={["Consultations", "Sessions", "Videos", "Challenges", "Rewards"]} color="admin" />
+        </section>
+
+        <div className="admin-analytics-stats">
+          {report.stats.map((stat) => <div className="admin-analytics-stat" key={stat.label}><span>{stat.label}</span><strong>{stat.value.toLocaleString()}</strong><small>{stat.detail}</small></div>)}
+        </div>
+      </>}
     </main>
   );
 }
