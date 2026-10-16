@@ -30,3 +30,79 @@
 .admin-status-pending { color: #b36b09; background: rgba(245, 158, 11, .15); }
 .admin-table-empty { padding: 28px 12px !important; color: #667085 !important; text-align: center; }
 @media (max-width: 760px) { .admin-user-heading { align-items: flex-start; flex-direction: column; } .admin-user-heading .admin-primary-button { align-self: stretch; } .admin-user-toolbar { align-items: stretch; flex-direction: column; } .admin-user-panel { padding: 18px; } }
+.admin-api-error,
+.admin-api-status {
+  margin: 1rem 0;
+  padding: 0.8rem 1rem;
+  border-radius: 0.75rem;
+}
+
+.admin-api-error {
+  color: #8f1d1d;
+  background: #fff0f0;
+  border: 1px solid #f2b8b8;
+}
+
+.admin-api-status {
+  color: #315d67;
+  background: #eef8f8;
+}
+
+.page-modal-panel.admin-user-modal-panel {
+  max-height: min(90vh, 820px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.user-management-filters {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.user-management-filters .search-box {
+  width: min(440px, 100%);
+  margin: 0;
+}
+
+.user-role-filter {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 4px;
+  color: #667085;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.user-role-filter select {
+  min-width: 180px;
+  min-height: 48px;
+  padding: 10px 36px 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.82);
+  font: inherit;
+  cursor: pointer;
+}
+
+.user-role-filter select:focus-visible,
+.user-management-filters .search-box:focus-within {
+  outline: 3px solid rgba(21, 101, 216, 0.2);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .user-management-filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .user-management-filters .search-box,
+  .user-role-filter select {
+    width: 100%;
+  }
+}

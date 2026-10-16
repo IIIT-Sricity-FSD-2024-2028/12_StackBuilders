@@ -29,3 +29,27 @@
 .admin-role-note { margin: 20px 0 0; color: #667085; font-size: .78rem; line-height: 1.5; }
 @media (max-width: 900px) { .admin-permission-groups { grid-template-columns: 1fr; } }
 @media (max-width: 700px) { .admin-role-heading { align-items: flex-start; flex-direction: column; } .admin-role-heading .admin-primary-button { align-self: stretch; } .admin-role-layout { grid-template-columns: 1fr; } .admin-permission-panel { padding: 20px; } .admin-permission-heading { flex-direction: column; } }
+.admin-api-error,
+.admin-api-status {
+  margin: 1rem 0;
+  padding: 0.8rem 1rem;
+  border-radius: 0.75rem;
+}
+
+.admin-api-error {
+  color: #8f1d1d;
+  background: #fff0f0;
+  border: 1px solid #f2b8b8;
+}
+
+.admin-api-status {
+  color: #315d67;
+  background: #eef8f8;
+}
+
+.admin-permission-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}

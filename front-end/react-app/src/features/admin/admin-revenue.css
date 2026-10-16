@@ -8,3 +8,20 @@
 .admin-revenue-panel { padding: 24px; }.admin-revenue-panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }.admin-revenue-panel-heading h2 { margin: 0; color: #162033; font-family: "Space Grotesk", sans-serif; font-size: 1.35rem; }.admin-revenue-count { padding: 8px 10px; border-radius: 999px; color: #1565d8; background: rgba(21, 101, 216, .1); font-size: .75rem; font-weight: 800; white-space: nowrap; }.admin-revenue-table-wrap { overflow-x: auto; }.admin-revenue-table { width: 100%; min-width: 680px; border-collapse: collapse; }.admin-revenue-table th { padding: 0 12px 13px; color: #667085; font-size: .72rem; font-weight: 800; letter-spacing: .07em; text-align: left; text-transform: uppercase; }.admin-revenue-table td { padding: 15px 12px; border-top: 1px solid rgba(22, 32, 51, .08); color: #4d5b6e; font-size: .84rem; }.admin-revenue-table td strong { color: #162033; }.admin-revenue-status { display: inline-flex; padding: 5px 9px; border-radius: 999px; font-size: .72rem; font-weight: 800; }.admin-revenue-paid { color: #16804f; background: rgba(29, 155, 99, .12); }.admin-revenue-processing { color: #b36b09; background: rgba(245, 158, 11, .15); }
 @media (max-width: 850px) { .admin-revenue-overview { grid-template-columns: 1fr; gap: 1px; } }
 @media (max-width: 700px) { .admin-revenue-heading { align-items: flex-start; flex-direction: column; }.admin-revenue-actions { align-items: stretch; flex-direction: column; width: 100%; }.admin-revenue-actions .admin-primary-button { width: 100%; }.admin-revenue-panel { padding: 18px; } }
+.admin-api-error,
+.admin-api-status {
+  margin: 1rem 0;
+  padding: 0.8rem 1rem;
+  border-radius: 0.75rem;
+}
+
+.admin-api-error {
+  color: #8f1d1d;
+  background: #fff0f0;
+  border: 1px solid #f2b8b8;
+}
+
+.admin-api-status {
+  color: #315d67;
+  background: #eef8f8;
+}
