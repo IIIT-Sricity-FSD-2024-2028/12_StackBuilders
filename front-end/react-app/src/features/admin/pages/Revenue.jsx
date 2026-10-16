@@ -1,61 +1,111 @@
-import { useMemo, useState } from "react";
-import "../admin-revenue.css";
+import { useCallback, useEffect, useState } from "react";
+import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
+import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
+import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
+import { SupervisorBarChart } from "../../supervisor/components/SupervisorCharts.jsx";
+import adminApi from "../adminApi.js";
+import { buildPlanRevenue } from "../../../utils/planRevenue.js";
 
-const revenueByPeriod = {
-  "This month": { total: "$48,620", change: "+14.6%", subscriptions: "$32,400", sessions: "$16,220" },
-  "Last month": { total: "$42,440", change: "+8.2%", subscriptions: "$29,100", sessions: "$13,340" },
-  "This quarter": { total: "$136,780", change: "+11.9%", subscriptions: "$91,600", sessions: "$45,180" },
-};
+function money(value) {
+  return `₹${(Number(value) || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+}
 
-const transactions = [
-  { company: "Greenfield Labs", plan: "Enterprise", amount: "$12,800", date: "Jun 28, 2026", status: "Paid" },
-  { company: "Northstar Health", plan: "Growth", amount: "$7,400", date: "Jun 25, 2026", status: "Paid" },
-  { company: "Brightpath Finance", plan: "Growth", amount: "$5,200", date: "Jun 21, 2026", status: "Processing" },
-  { company: "Orbit Learning", plan: "Starter", amount: "$2,100", date: "Jun 18, 2026", status: "Paid" },
-];
+function monthBuckets(payments) {
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, index) => new Date(now.getFullYear(), now.getMonth() - (5 - index), 1));
+  return {
+    labels: months.map((month) => new Intl.DateTimeFormat(undefined, { month: "short" }).format(month)),
+    values: months.map((month) => payments.filter((payment) => {
+      const date = new Date(payment.paidAt || payment.createdAt || "");
+      return !Number.isNaN(date.valueOf()) && date.getFullYear() === month.getFullYear() && date.getMonth() === month.getMonth();
+    }).reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0)),
+  };
+}
+
+function formatDate(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.valueOf()) ? "—" : new Intl.DateTimeFormat(undefined, { year: "numeric", month: "short", day: "numeric" }).format(date);
+}
 
 function Revenue() {
-  const [period, setPeriod] = useState("This month");
-  const metrics = useMemo(() => revenueByPeriod[period], [period]);
+  const stylesReady = usePageStylesheets("/admin-analytics-legacy.css");
+  const [payments, setPayments] = useState([]);
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const loadRevenue = useCallback(async (silent = false) => {
+    try {
+      const [nextPayments, nextSubscriptions] = await Promise.all([adminApi.getPayments(), adminApi.getSubscriptions()]);
+      setPayments(nextPayments || []);
+      setSubscriptions(nextSubscriptions || []);
+      setError("");
+    } catch (loadError) {
+      if (!silent) setError(loadError.message || "Could not load revenue data.");
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadRevenue(); }, [loadRevenue]);
+  useAutoRefresh(() => loadRevenue(true), "admin-revenue");
+
+  if (!stylesReady) return <RouteLoadingScreen />;
+
+  const totalRevenue = payments.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0);
+  const activeSubscriptions = subscriptions.filter((subscription) => String(subscription.status || "").trim().toLowerCase() === "active").length;
+  const averageRevenue = activeSubscriptions ? totalRevenue / activeSubscriptions : 0;
+  const planRevenue = buildPlanRevenue(payments);
+  const monthlyRevenue = monthBuckets(payments);
 
   return (
-    <main className="admin-revenue-page">
-      <header className="admin-revenue-heading">
-        <div>
-          <p className="admin-eyebrow">Finance Overview</p>
-          <h1>Revenue</h1>
-          <p>Monitor subscription income, consultation payments, and recent company transactions.</p>
-        </div>
-        <div className="admin-revenue-actions">
-          <select value={period} onChange={(event) => setPeriod(event.target.value)} aria-label="Revenue period">
-            <option>This month</option>
-            <option>Last month</option>
-            <option>This quarter</option>
-          </select>
-          <button className="admin-primary-button" type="button">Download CSV</button>
-        </div>
-      </header>
+    <main className="admin-analytics">
+      <div className="admin-analytics-heading">
+        <div><p className="admin-analytics-eyebrow">Finance</p><h1>Revenue dashboard</h1><p className="admin-analytics-subtitle">Track subscription revenue and payment history across every company.</p></div>
+      </div>
 
-      <section className="admin-revenue-overview">
-        <div className="admin-revenue-total"><span>Total revenue</span><strong>{metrics.total}</strong><small><b>{metrics.change}</b> from the previous period</small></div>
-        <div className="admin-revenue-source"><span>Subscriptions</span><strong>{metrics.subscriptions}</strong><div className="admin-revenue-bar"><i style={{ width: "67%" }} /></div><small>67% of total revenue</small></div>
-        <div className="admin-revenue-source"><span>Consultation sessions</span><strong>{metrics.sessions}</strong><div className="admin-revenue-bar orange"><i style={{ width: "33%" }} /></div><small>33% of total revenue</small></div>
-      </section>
+      {error && <p className="admin-analytics-error" role="alert">{error}</p>}
+      {loading && <p className="admin-analytics-empty" role="status">Loading revenue data…</p>}
 
-      <section className="admin-revenue-panel">
-        <div className="admin-revenue-panel-heading"><div><p className="admin-eyebrow">Payment activity</p><h2>Recent transactions</h2></div><span className="admin-revenue-count">{transactions.length} transactions</span></div>
-        <div className="admin-revenue-table-wrap">
-          <table className="admin-revenue-table">
-            <thead><tr><th>Company</th><th>Plan</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
-            <tbody>{transactions.map((transaction) => (
-              <tr key={`${transaction.company}-${transaction.date}`}>
-                <td><strong>{transaction.company}</strong></td><td>{transaction.plan}</td><td>{transaction.amount}</td><td>{transaction.date}</td>
-                <td><span className={`admin-revenue-status admin-revenue-${transaction.status.toLowerCase()}`}>{transaction.status}</span></td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
-      </section>
+      {!loading && <>
+        <section className="admin-revenue-stats">
+          <div className="admin-revenue-stat"><span>Total revenue</span><strong>{money(totalRevenue)}</strong><small>All-time earnings</small></div>
+          <div className="admin-revenue-stat"><span>Active subscriptions</span><strong>{activeSubscriptions.toLocaleString()}</strong><small>Currently active plans</small></div>
+          <div className="admin-revenue-stat"><span>Average per company</span><strong>{money(averageRevenue)}</strong><small>Per active subscription</small></div>
+          <div className="admin-revenue-stat"><span>Total payments</span><strong>{payments.length.toLocaleString()}</strong><small>Recorded transactions</small></div>
+        </section>
+
+        <section className="admin-revenue-grid">
+          <div className="admin-analytics-panel">
+            <div className="admin-analytics-panel-heading"><div><p className="admin-analytics-eyebrow">Plans</p><h2>Revenue by plan</h2></div></div>
+            <SupervisorBarChart values={planRevenue.map((plan) => plan.value)} labels={planRevenue.map((plan) => plan.label)} color="admin" />
+          </div>
+          <div className="admin-analytics-panel">
+            <div className="admin-analytics-panel-heading"><div><p className="admin-analytics-eyebrow">Trend</p><h2>Monthly revenue</h2></div></div>
+            <SupervisorBarChart values={monthlyRevenue.values} labels={monthlyRevenue.labels} color="orange" />
+          </div>
+        </section>
+
+        <section className="admin-analytics-panel admin-payment-panel">
+          <div className="admin-analytics-panel-heading"><div><p className="admin-analytics-eyebrow">Transactions</p><h2>Payment history</h2></div><span className="admin-analytics-count">{payments.length.toLocaleString()} payments</span></div>
+          <div className="admin-payment-table-wrap"><table className="admin-payment-table">
+            <thead><tr><th>Payment ID</th><th>Company</th><th>Plan</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>{payments.length ? payments.map((payment, index) => {
+              const status = String(payment.status || "Unknown");
+              const statusClass = status.toLowerCase() === "completed" || status.toLowerCase() === "paid" ? "is-paid" : status.toLowerCase() === "pending" || status.toLowerCase() === "processing" ? "is-pending" : "is-other";
+              return <tr key={`${payment.id || payment.companyName || "payment"}-${index}`}>
+                <td>{payment.id || "—"}</td>
+                <td>{payment.companyName || payment.company || "—"}</td>
+                <td><span className="admin-payment-plan">{payment.planName || payment.planId || payment.plan || "—"}</span></td>
+                <td><strong>{money(payment.amount)}</strong></td>
+                <td><span className={`admin-payment-status ${statusClass}`}>{status}</span></td>
+                <td>{formatDate(payment.paidAt || payment.createdAt)}</td>
+              </tr>;
+            }) : <tr><td colSpan="6" className="admin-payment-empty">No payments recorded yet.</td></tr>}</tbody>
+          </table></div>
+        </section>
+      </>}
     </main>
   );
 }
