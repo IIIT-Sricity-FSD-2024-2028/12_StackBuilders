@@ -1,20 +1,72 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getAuthSession, logout } from "../../homepage/authService.js";
 import SupervisorIcon from "../components/SupervisorIcon.jsx";
+import usePersistedTab from "../../../hooks/usePersistedTab.js";
 
-const tabs = [["profile", "Profile", "user"], ["security", "Security", "shield"], ["notifications", "Notifications", "mail"], ["system", "System", "gear"], ["access", "Access Control", "lock"]];
+const tabs = [["profile", "Profile"], ["security", "Security"]];
 
-function Settings() {
-  const [activeTab, setActiveTab] = useState("profile");
-  const [saved, setSaved] = useState(false);
-  const [profile, setProfile] = useState({ name: "Supervisor", age: "", gender: "", email: "", phone: "" });
-  const save = (event) => { event.preventDefault(); setSaved(true); window.setTimeout(() => setSaved(false), 2200); };
-  return <>
-    <div className="supervisor-page-heading"><div><p className="supervisor-eyebrow">Account</p><h1>Profile</h1><p className="supervisor-subtitle">View and manage your profile details.</p></div><span className="supervisor-live-badge"><i /> Secure workspace</span></div>
-    <div className="settings-layout"><aside className="supervisor-panel settings-tabs" aria-label="Settings sections">{tabs.map(([id, label, icon]) => <button className={activeTab === id ? "active" : ""} type="button" key={id} onClick={() => setActiveTab(id)}><SupervisorIcon name={icon} size={17} /><span>{label}</span></button>)}</aside><section className="supervisor-panel settings-content"><div className="supervisor-panel-heading"><div><p className="supervisor-eyebrow">{tabs.find(([id]) => id === activeTab)?.[1]}</p><h2>{activeTab === "profile" ? "Profile details" : tabs.find(([id]) => id === activeTab)?.[1]}</h2></div>{saved && <span className="save-message"><SupervisorIcon name="check" size={14} /> Changes saved</span>}</div>{activeTab === "profile" && <form className="supervisor-form" onSubmit={save}><div className="profile-header"><div className="profile-avatar"><SupervisorIcon name="user" size={26} /></div><div><strong>Supervisor profile</strong><p>Keep your account details up to date.</p></div></div><div className="form-grid"><label>Name<input value={profile.name} onChange={(event) => setProfile({ ...profile, name: event.target.value })} /></label><label>Age<input type="number" value={profile.age} onChange={(event) => setProfile({ ...profile, age: event.target.value })} placeholder="Add age" /></label><label>Gender<select value={profile.gender} onChange={(event) => setProfile({ ...profile, gender: event.target.value })}><option value="">Select gender</option><option>Male</option><option>Female</option><option>Other</option></select></label><label>Gmail ID<input type="email" value={profile.email} onChange={(event) => setProfile({ ...profile, email: event.target.value })} placeholder="supervisor@gmail.com" /></label><label>Phone Number<input value={profile.phone} onChange={(event) => setProfile({ ...profile, phone: event.target.value })} placeholder="Add phone number" /></label></div><div className="form-actions"><button className="supervisor-outline-button" type="button">Logout</button><button className="supervisor-primary-button" type="submit">Save Changes</button></div></form>}{activeTab === "security" && <SettingsForm title="Security Settings" fields={["Current Password", "New Password", "Confirm Password"]} type="password" onSave={save} />}{activeTab === "notifications" && <SettingsToggles title="Notification Preferences" items={["Email Notifications", "User Activity Alerts", "System Updates"]} onSave={save} />}{activeTab === "system" && <SettingsForm title="System Configuration" fields={["Company name", "Timezone", "Date format", "Session timeout"]} onSave={save} />}{activeTab === "access" && <SettingsToggles title="Access Control" items={["Two-Factor Authentication", "IP Whitelist", "Failed Login Lockout", "Password Complexity"]} onSave={save} />}</section></div>
-  </>;
+function readSetting(key, fallback) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "null");
+    if (Array.isArray(fallback)) return Array.isArray(value) ? value : fallback;
+    return value && typeof value === "object" && !Array.isArray(value) ? { ...fallback, ...value } : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
-function SettingsForm({ fields, type = "text", onSave }) { return <form className="supervisor-form" onSubmit={onSave}><div className="settings-form-list">{fields.map((field) => <label key={field}>{field}<input type={type} placeholder={field === "Timezone" ? "Asia/Calcutta" : field === "Date format" ? "DD-MM-YYYY" : field === "Session timeout" ? "30" : `Enter ${field.toLowerCase()}`} /></label>)}</div><div className="form-actions"><button className="supervisor-outline-button" type="button">Reset</button><button className="supervisor-primary-button" type="submit">Save Settings</button></div></form>; }
-function SettingsToggles({ items, onSave }) { return <form className="supervisor-form" onSubmit={onSave}><div className="settings-toggle-list">{items.map((item, index) => <label className="settings-toggle" key={item}><span><strong>{item}</strong><small>Control this workspace preference.</small></span><input type="checkbox" defaultChecked={index !== 2} /><i /></label>)}</div><button className="supervisor-primary-button" type="submit">Save Preferences</button></form>; }
+function Settings() {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = usePersistedTab("stackbuilders.supervisor.settingsTab", "profile", tabs.map(([id]) => id));
+  const session = getAuthSession();
+  const [profile, setProfile] = useState(() => ({ name: session?.profile?.name || "", age: "", gender: "", email: session?.profile?.email || session?.username || "", phone: "", ...readSetting("stack-builders-supervisor-profile", {}) }));
+  const [status, setStatus] = useState("");
+  const [security, setSecurity] = useState({ current: "", next: "", confirm: "" });
+
+  function selectTab(tab) {
+    setStatus("");
+    setActiveTab(tab);
+  }
+
+  function saveSetting(key, value, label) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      setStatus(label);
+    } catch {
+      setStatus("Changes could not be saved in this browser.");
+    }
+  }
+
+  function updateProfile(event) {
+    event.preventDefault();
+    if (!profile.name.trim()) return setStatus("Enter your profile name before saving.");
+    if (profile.age && (Number(profile.age) < 18 || Number(profile.age) > 99)) return setStatus("Enter an age between 18 and 99.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) return setStatus("Enter a valid profile email address.");
+    const normalized = { ...profile, name: profile.name.trim(), email: profile.email.trim().toLowerCase(), phone: profile.phone.trim() };
+    setProfile(normalized);
+    saveSetting("stack-builders-supervisor-profile", normalized, "Profile changes saved in Settings.");
+  }
+
+  function updatePassword() {
+    if (!security.current || !security.next || !security.confirm) return setStatus("Complete all password fields.");
+    if (security.next.length < 6) return setStatus("The new password must be at least 6 characters.");
+    if (security.next !== security.confirm) return setStatus("The new password and confirmation do not match.");
+    setStatus("Password changes are not supported by the current authentication service.");
+  }
+
+  function handleLogout() {
+    logout();
+    navigate("/");
+  }
+
+  return <>
+    <div className="supervisor-page-heading"><div><p className="supervisor-eyebrow">Account</p><h1>Settings</h1><p className="supervisor-subtitle">Manage your supervisor profile and account security.</p></div></div>
+    <div className="settings-layout"><aside className="supervisor-panel settings-tabs"><div className="settings-nav-heading"><strong>Settings</strong><span>Profile and security</span></div>{tabs.map(([id, label]) => <button className={activeTab === id ? "active" : ""} type="button" key={id} onClick={() => selectTab(id)}><SupervisorIcon name={id === "profile" ? "user" : "shield"} size={17} /><span>{label}</span></button>)}</aside><section className="supervisor-panel settings-content">
+      {activeTab === "profile" && <form onSubmit={updateProfile}><div className="profile-header"><div className="profile-avatar"><SupervisorIcon name="user" size={22} /></div><div><strong>Supervisor profile</strong><p>Keep your account details up to date.</p></div></div><div className="settings-form-list" style={{ marginTop: 22 }}><label>Name<input type="text" value={profile.name} onChange={(event) => setProfile({ ...profile, name: event.target.value })} placeholder="Supervisor" /></label><label>Age<input type="number" min="18" max="99" value={profile.age} onChange={(event) => setProfile({ ...profile, age: event.target.value })} placeholder="Add age" /></label><label>Gender<select value={profile.gender} onChange={(event) => setProfile({ ...profile, gender: event.target.value })}><option value="">Select gender</option><option>Male</option><option>Female</option><option>Other</option></select></label><label>Gmail ID<input type="email" value={profile.email} onChange={(event) => setProfile({ ...profile, email: event.target.value })} placeholder="supervisor@gmail.com" /></label><label>Phone number<input type="tel" value={profile.phone} onChange={(event) => setProfile({ ...profile, phone: event.target.value })} placeholder="Add phone number" /></label></div><div className="form-actions" style={{ marginTop: 22 }}><button className="supervisor-outline-button" type="button" onClick={handleLogout}>Log out</button><button className="supervisor-primary-button" type="submit">Save changes</button></div>{status && <p className="save-message" role="status">{status}</p>}</form>}
+      {activeTab === "security" && <div><div className="supervisor-panel-heading"><div><p className="supervisor-eyebrow">Protection</p><h2>Security settings</h2></div></div><div className="settings-form-list"><label>Current password<input type="password" value={security.current} onChange={(event) => setSecurity({ ...security, current: event.target.value })} placeholder="Enter current password" /></label><label>New password<input type="password" value={security.next} onChange={(event) => setSecurity({ ...security, next: event.target.value })} placeholder="At least 6 characters" /></label><label>Confirm password<input type="password" value={security.confirm} onChange={(event) => setSecurity({ ...security, confirm: event.target.value })} placeholder="Repeat new password" /></label></div><div className="form-actions" style={{ marginTop: 22 }}><button className="supervisor-primary-button" type="button" onClick={updatePassword}>Update password</button></div>{status && <p className="save-message" role="status">{status}</p>}</div>}
+    </section></div>
+  </>;
+}
 
 export default Settings;
