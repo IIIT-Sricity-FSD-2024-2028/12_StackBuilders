@@ -1,0 +1,108 @@
+.video-media-button {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.video-media-play {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: rgba(15, 23, 42, .12);
+  pointer-events: none;
+}
+
+.video-media-play i {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .8);
+  border-radius: 50%;
+  background: rgba(15, 23, 42, .55);
+}
+
+.video-player-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(11, 20, 31, .78);
+}
+
+.video-player-dialog {
+  width: min(960px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 20px;
+  background: #f8fbfd;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .35);
+}
+
+.video-player-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px;
+}
+
+.video-player-header p {
+  margin: 0 0 5px;
+  color: #078c80;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.video-player-header h2 {
+  margin: 0;
+  color: #1c2a3a;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+}
+
+.video-player-header button {
+  flex: 0 0 auto;
+  padding: 9px 14px;
+  border: 1px solid #d8e2ea;
+  border-radius: 10px;
+  color: #25364a;
+  background: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.video-player-element {
+  display: block;
+  width: 100%;
+  max-height: min(68vh, 700px);
+  aspect-ratio: 16 / 9;
+  background: #05080b;
+  object-fit: contain;
+}
+
+.video-player-description {
+  margin: 0;
+  padding: 16px 24px 22px;
+  color: #536579;
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .video-player-overlay { padding: 12px; }
+  .video-player-dialog { max-height: calc(100vh - 24px); border-radius: 14px; }
+  .video-player-header { padding: 16px; }
+  .video-player-description { padding: 12px 16px 18px; }
+}
