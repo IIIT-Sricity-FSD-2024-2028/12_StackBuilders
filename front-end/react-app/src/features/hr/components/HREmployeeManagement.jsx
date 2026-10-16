@@ -1,34 +1,74 @@
+import { useRef } from "react";
+
 function HREmployeeManagement({
   employees,
   onAddEmployee,
   onDeleteEmployee,
+  onImportEmployees,
+  importFeedback,
+  importing,
   onSearch,
   searchTerm,
+  canCreate = true,
+  canDelete = true,
 }) {
+  const fileInputRef = useRef(null);
+
   return (
-    <section className="hr-section-block">
-      <div className="hr-section-header">
+    <section className="section-block">
+      <div className="section-header">
         <div>
           <h3>Employee Management Overview</h3>
           <p>Monitor employee wellness metric and program participation.</p>
         </div>
-        <div className="hr-section-actions">
-          <button className="hr-import-button" type="button">
-            Import Excel
-          </button>
-          <button className="hr-primary-button" onClick={onAddEmployee} type="button">
-            Add Employee
-          </button>
+        <div className="section-actions">
+          {canCreate && (
+            <>
+              <button
+                className="import-button"
+                disabled={importing}
+                onClick={() => fileInputRef.current?.click()}
+                type="button"
+              >
+                {importing ? "Importing…" : "Import Excel"}
+              </button>
+              <input
+                accept=".xlsx,.xls,.csv"
+                hidden
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) onImportEmployees(file);
+                  event.target.value = "";
+                }}
+                ref={fileInputRef}
+                type="file"
+              />
+              <button
+                className="primary-button"
+                onClick={onAddEmployee}
+                type="button"
+              >
+                Add Employee
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="hr-panel hr-wide-panel">
-        <div className="hr-import-note">
+      <div className="panel wide-panel">
+        <div className="import-note">
           Upload the first sheet of an Excel or CSV file with columns like{" "}
           <strong>Employee Name</strong>, <strong>Department</strong>,{" "}
           <strong>Gmail Address</strong>, and <strong>Password</strong>.
         </div>
-        <div className="hr-search-bar">
+        {importFeedback && (
+          <p
+            className={`import-feedback ${importFeedback.type === "error" ? "is-error" : "is-success"}`}
+          >
+            {importFeedback.message}
+          </p>
+        )}
+        <div className="search-bar">
           <input
             onChange={(event) => onSearch(event.target.value)}
             placeholder="Search employees or reports..."
@@ -37,8 +77,8 @@ function HREmployeeManagement({
           />
         </div>
 
-        <div className="hr-table-wrap">
-          <table className="hr-table">
+        <div className="table-wrap">
+          <table>
             <thead>
               <tr>
                 <th>Employee</th>
@@ -52,8 +92,8 @@ function HREmployeeManagement({
                 employees.map((employee) => (
                   <tr key={employee.id}>
                     <td>
-                      <div className="hr-employee-cell">
-                        <span className="hr-person-badge hr-employee-badge">
+                      <div className="employee-cell">
+                        <span className="person-badge employee-badge">
                           {getInitials(employee.name)}
                         </span>
                         <span>{employee.name}</span>
@@ -61,26 +101,37 @@ function HREmployeeManagement({
                     </td>
                     <td>{employee.department || "General"}</td>
                     <td>
-                      <span className={`hr-status-pill ${employee.status.toLowerCase()}`}>
+                      <span
+                        className={`status-pill ${employee.status.toLowerCase()}`}
+                      >
                         {employee.status}
                       </span>
                     </td>
-                    <td className="hr-action-cell">
+                    <td className="action-cell">
                       <a href={`mailto:${employee.email}`}>Contact</a>
-                      <button
-                        className="hr-delete-icon"
-                        onClick={() => onDeleteEmployee(employee.id)}
-                        type="button"
-                      >
-                        Delete
-                      </button>
+                      {canDelete && (
+                        <button
+                          className="delete-icon"
+                          onClick={() => onDeleteEmployee(employee.id)}
+                          aria-label={`Delete ${employee.name}`}
+                          title={`Delete ${employee.name}`}
+                          type="button"
+                        >
+                          <i
+                            className="fa-regular fa-trash-can"
+                            aria-hidden="true"
+                          />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td className="hr-empty-row-cell" colSpan="4">
-                    <div className="hr-empty-state">No employees match your search right now.</div>
+                  <td className="empty-row-cell" colSpan="4">
+                    <div className="empty-state">
+                      No employees match your search right now.
+                    </div>
                   </td>
                 </tr>
               )}
