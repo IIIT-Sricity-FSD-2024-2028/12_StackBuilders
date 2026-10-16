@@ -1,5 +1,4 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import AdminDashboard from "./features/admin/pages/AdminDashboard.jsx";
 import AdminConsoleLayout from "./features/admin/AdminConsoleLayout.jsx";
 import UserManagement from "./features/admin/pages/UserManagement.jsx";
@@ -9,13 +8,18 @@ import Reports from "./features/admin/pages/Reports.jsx";
 import Revenue from "./features/admin/pages/Revenue.jsx";
 import Settings from "./features/admin/pages/Settings.jsx";
 import HRDashboard from "./features/hr/HRDashboard.jsx";
+import HRLayout from "./features/hr/HRLayout.jsx";
 import HRChallenges from "./features/hr/HRChallenges.jsx";
-import HRPricing from "./features/hr/HRPricing.jsx";
-import HRProfile from "./features/hr/HRProfile.jsx";
 import HRVideoLibrary from "./features/hr/HRVideoLibrary.jsx";
+import HRPricing from "./features/hr/HRPricing.jsx";
 import HRPayment from "./features/hr/HRPayment.jsx";
 import ExpertWorkspace from "./features/expert/ExpertWorkspace.jsx";
 import SupervisorWorkspace from "./features/supervisor/SupervisorWorkspace.jsx";
+import HomePage from "./features/homepage/HomePage.jsx";
+import CompanyRequestPage from "./features/homepage/CompanyRequestPage.jsx";
+import ProtectedRoute from "./features/homepage/ProtectedRoute.jsx";
+import ProfileEditPage from "./features/homepage/ProfileEditPage.jsx";
+import { RolePermissionGate } from "./features/shared/roleAccessContext.jsx";
 
 // Employee feature pages
 import EmployeeLayout      from "./features/employee/components/EmployeeLayout.jsx";
@@ -26,49 +30,30 @@ import LiveSessions        from "./features/employee/components/LiveSessions.jsx
 import VideoLibrary        from "./features/employee/components/VideoLibrary.jsx";
 import WellnessFormPage    from "./features/employee/components/WellnessFormPage.jsx";
 
-const roles = [
-  ["Employee",   "/employee"],
-  ["HR",         "/hr"],
-  ["Expert",     "/expert"],
-  ["Admin",      "/admin"],
-  ["Superadmin", "/superadmin"],
-  ["Supervisor", "/supervisor"],
-];
-
-function PlaceholderPage({ role }) {
-  return (
-    <section className="placeholder-page">
-      <p className="eyebrow">React foundation</p>
-      <h1>{role} workspace</h1>
-      <p>
-        This route is ready for the {role.toLowerCase()} team to build without
-        changing the shared layout.
-      </p>
-    </section>
-  );
-}
-
 function App() {
   return (
     <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/company-request" element={<CompanyRequestPage />} />
+      <Route path="/profile/edit" element={<ProtectedRoute roles={["Employee", "Wellness Expert", "HR"]}><ProfileEditPage /></ProtectedRoute>} />
       {/* ── Standalone workspaces (no role-switcher sidebar) ── */}
-      <Route path="/supervisor" element={<SupervisorWorkspace />} />
-      <Route path="/expert"     element={<ExpertWorkspace />} />
+      <Route path="/supervisor" element={<ProtectedRoute roles={["Supervisor", "Admin"]}><SupervisorWorkspace /></ProtectedRoute>} />
+      <Route path="/expert" element={<ProtectedRoute roles={["Wellness Expert"]}><ExpertWorkspace /></ProtectedRoute>} />
 
       {/* ── Employee workspace (all pages share EmployeeNavbar) ── */}
-      <Route element={<EmployeeLayout />}>
-        <Route path="/employee"          element={<EmployeeDashboard />} />
-        <Route path="/consultation"      element={<EmployeeConsultation />} />
-        <Route path="/wellness-checkins" element={<WellnessCheckins />} />
-        <Route path="/live-sessions"     element={<LiveSessions />} />
-        <Route path="/video-library"     element={<VideoLibrary />} />
-        <Route path="/mental-wellness"   element={<WellnessFormPage trackKey="mental" />} />
-        <Route path="/physical-wellness" element={<WellnessFormPage trackKey="physical" />} />
-        <Route path="/diet-plan"         element={<WellnessFormPage trackKey="nutrition" />} />
+      <Route element={<ProtectedRoute roles={["Employee"]}><EmployeeLayout /></ProtectedRoute>}>
+        <Route path="/employee"          element={<RolePermissionGate anyOf={["reports-read", "user-management-read", "client-management-read", "challenge-management-read"]}><EmployeeDashboard /></RolePermissionGate>} />
+        <Route path="/consultation"      element={<RolePermissionGate permission="user-management-read"><EmployeeConsultation /></RolePermissionGate>} />
+        <Route path="/wellness-checkins" element={<RolePermissionGate permission="client-management-read"><WellnessCheckins /></RolePermissionGate>} />
+        <Route path="/live-sessions"     element={<RolePermissionGate permission="client-management-read"><LiveSessions /></RolePermissionGate>} />
+        <Route path="/video-library"     element={<RolePermissionGate permission="client-management-read"><VideoLibrary /></RolePermissionGate>} />
+        <Route path="/mental-wellness"   element={<RolePermissionGate permission="client-management-read"><WellnessFormPage trackKey="mental" /></RolePermissionGate>} />
+        <Route path="/physical-wellness" element={<RolePermissionGate permission="client-management-read"><WellnessFormPage trackKey="physical" /></RolePermissionGate>} />
+        <Route path="/diet-plan"         element={<RolePermissionGate permission="client-management-read"><WellnessFormPage trackKey="nutrition" /></RolePermissionGate>} />
       </Route>
 
       {/* ── Admin console ── */}
-      <Route element={<AdminConsoleLayout />}>
+      <Route element={<ProtectedRoute roles={["Admin"]}><AdminConsoleLayout /></ProtectedRoute>}>
         <Route path="/admin"       element={<AdminDashboard />} />
         <Route path="/admin/users" element={<UserManagement />} />
         <Route path="/admin/companies" element={<CompanyManagement />} />
@@ -78,28 +63,15 @@ function App() {
         <Route path="/admin/settings" element={<Settings />} />
       </Route>
 
-      {/* ── Shared role-switcher layout (HR, Superadmin, Supervisor placeholders) ── */}
-      <Route element={<DashboardLayout roles={roles} />}>
-        <Route index element={<Navigate to="/employee" replace />} />
-        <Route path="/hr/challenges" element={<HRChallenges />} />
+      <Route element={<ProtectedRoute roles={["HR"]}><HRLayout /></ProtectedRoute>}>
+        <Route path="/hr" element={<HRDashboard />} />
+        <Route path="/hr/challenges" element={<RolePermissionGate permission="challenge-management-read"><HRChallenges /></RolePermissionGate>} />
+        <Route path="/hr/videos" element={<RolePermissionGate permission="client-management-read"><HRVideoLibrary /></RolePermissionGate>} />
         <Route path="/hr/pricing" element={<HRPricing />} />
         <Route path="/hr/payment" element={<HRPayment />} />
-        <Route path="/hr/profile" element={<HRProfile />} />
-        <Route path="/hr/videos" element={<HRVideoLibrary />} />
-        {roles
-          .filter(([role]) => !["Employee", "Expert"].includes(role))
-          .map(([role, path]) => (
-            <Route
-              key={path}
-              path={path.slice(1)}
-              element={
-                role === "Admin" ? <AdminDashboard /> :
-                role === "HR"    ? <HRDashboard />    :
-                                   <PlaceholderPage role={role} />
-              }
-            />
-          ))}
       </Route>
+      <Route path="/superadmin" element={<ProtectedRoute roles={["Admin"]}><Navigate to="/admin" replace /></ProtectedRoute>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
