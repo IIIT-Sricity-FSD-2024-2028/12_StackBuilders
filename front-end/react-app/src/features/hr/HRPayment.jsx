@@ -1,30 +1,20 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
+import usePageStylesheets from "../../hooks/usePageStylesheets.js";
 import HRNavbar from "./components/HRNavbar.jsx";
-import "./hr-payment.css";
-
-const PLAN_STORAGE_KEY = "stackbuilders.subscriptions.v1";
-const PAYMENT_STORAGE_KEY = "stackbuilders.payments.v1";
-const PROFILE_STORAGE_KEY = "stackbuilders.hr.profiles.v2";
-const SESSION_STORAGE_KEY = "stackbuilders.hrSession.v1";
+import hrApi from "./hrApi.js";
+import { getCurrentHrCompanyContext } from "./hrUtils.js";
 
 const plans = {
-  starter: {
-    id: "starter",
-    name: "Starter",
-    price: 100,
-    employeeLimit: 100,
-    expertLimit: 10,
-  },
+  starter: { name: "Starter", price: 100, employeeLimit: 100, expertLimit: 10 },
   business: {
-    id: "business",
     name: "Business",
     price: 200,
     employeeLimit: 1000,
     expertLimit: 50,
   },
   enterprise: {
-    id: "enterprise",
     name: "Enterprise",
     price: 300,
     employeeLimit: 10000,
@@ -33,217 +23,189 @@ const plans = {
 };
 
 function HRPayment() {
-  const [searchParams] = useSearchParams();
-  const selectedPlanId = searchParams.get("plan") || "starter";
-  const selectedPlan = plans[selectedPlanId] || plans.starter;
-  const profile = useMemo(readCurrentHrProfile, []);
-  const [form, setForm] = useState({
-    cardName: profile.name,
-    cardNumber: "4242 4242 4242 4242",
-    cardExpiry: "12/28",
-    cardCvv: "123",
-  });
-  const [isProcessing, setIsProcessing] = useState(false);
+  const stylesReady = usePageStylesheets([
+    "/hr-dashboard-legacy.css",
+    "/hr-payment-legacy.css",
+  ]);
+  const [params] = useSearchParams();
+  const planId = params.get("plan") || "starter";
+  const plan = useMemo(() => plans[planId], [planId]);
+  const company = getCurrentHrCompanyContext();
+  const [cardName, setCardName] = useState(company.hrName);
+  const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  const companyName = profile.companyName || "Stack Builders";
+  if (!stylesReady) return <RouteLoadingScreen />;
 
-  function updateField(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
+  if (!plan) {
+    return (
+      <div className="page-shell">
+        <HRNavbar activeSection="pricing" />
+        <div className="payment-container">
+          <div className="payment-card">
+            <h2>Invalid plan</h2>
+            <Link className="continue-btn" to="/hr/pricing">
+              Back to pricing
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   async function submitPayment(event) {
     event.preventDefault();
+    if (!company.companyName) {
+      setError("Your HR account is not linked to a company.");
+      return;
+    }
+    setProcessing(true);
     setError("");
-
-    if (!companyName) {
-      setError("Error: No company associated with your account.");
-      return;
-    }
-
-    if (!form.cardName.trim() || !form.cardNumber.trim() || !form.cardExpiry.trim() || !form.cardCvv.trim()) {
-      setError("Enter all payment details before continuing.");
-      return;
-    }
-
-    setIsProcessing(true);
-
     try {
-      subscribeCompany(companyName, selectedPlan);
+      const [subscriptions, payments] = await Promise.all([
+        hrApi.getSubscriptions(),
+        hrApi.getPayments(),
+      ]);
+      const now = Date.now();
+      const subscription = {
+        id: `SUB-${now}`,
+        companyId: company.companyId,
+        companyName: company.companyName,
+        planId,
+        planName: plan.name,
+        price: plan.price,
+        employeeLimit: plan.employeeLimit,
+        expertLimit: plan.expertLimit,
+        status: "active",
+        subscribedAt: now,
+      };
+      const nextSubscriptions = (subscriptions || [])
+        .filter((item) => !isSameCompany(item, company))
+        .concat(subscription);
+      const payment = {
+        id: `PAY-${now}`,
+        companyId: company.companyId,
+        companyName: company.companyName,
+        planId,
+        planName: plan.name,
+        amount: plan.price,
+        status: "completed",
+        paidAt: now,
+      };
+      const nextPayments = [...(payments || []), payment];
+      await Promise.all([
+        hrApi.saveSubscriptions(nextSubscriptions),
+        hrApi.savePayments(nextPayments),
+      ]);
       setSuccess(true);
-    } catch {
-      setError("An error occurred during payment processing. Please try again.");
+    } catch (paymentError) {
+      setError(
+        paymentError.message ||
+          "An error occurred during payment processing. Please try again.",
+      );
     } finally {
-      setIsProcessing(false);
+      setProcessing(false);
     }
   }
 
   return (
-    <div className="hr-payment-page">
-      <HRNavbar />
-
-      <main className="hr-payment-container">
+    <div className="page-shell">
+      <HRNavbar activeSection="pricing" />
+      <div className="payment-container">
         {!success ? (
-          <form className="hr-payment-card" onSubmit={submitPayment}>
+          <form className="payment-card" onSubmit={submitPayment}>
             <h2>Complete Your Payment</h2>
-            <p className="hr-payment-subtitle">
-              You're subscribing to the <strong>{selectedPlan.name}</strong> plan
+            <p className="payment-subtitle">
+              You're subscribing to the <strong>{plan.name}</strong> plan
             </p>
-
-            <section className="hr-payment-plan-summary">
-              <div>
-                <h3>{selectedPlan.name} Plan</h3>
+            <div className="plan-summary">
+              <div className="plan-info">
+                <h3>{plan.name} Plan</h3>
                 <p>
-                  {selectedPlan.employeeLimit.toLocaleString()} employees ·{" "}
-                  {selectedPlan.expertLimit} experts
+                  {plan.employeeLimit.toLocaleString()} employees ·{" "}
+                  {plan.expertLimit} experts
                 </p>
               </div>
-              <strong>${selectedPlan.price}</strong>
-            </section>
-
-            <PaymentField disabled label="Company" value={companyName} />
-            <PaymentField
-              label="Cardholder Name"
-              placeholder="Jane Doe"
-              value={form.cardName}
-              onChange={(value) => updateField("cardName", value)}
-            />
-            <PaymentField
-              label="Card Number"
-              maxLength={19}
-              placeholder="4242 4242 4242 4242"
-              value={form.cardNumber}
-              onChange={(value) => updateField("cardNumber", value)}
-            />
-
-            <div className="hr-payment-row">
-              <PaymentField
-                label="Expiry Date"
-                maxLength={5}
-                placeholder="MM/YY"
-                value={form.cardExpiry}
-                onChange={(value) => updateField("cardExpiry", value)}
-              />
-              <PaymentField
-                label="CVV"
-                maxLength={4}
-                placeholder="123"
-                value={form.cardCvv}
-                onChange={(value) => updateField("cardCvv", value)}
+              <div className="plan-total">₹{plan.price}</div>
+            </div>
+            {error && <p className="payment-error">{error}</p>}
+            <div className="form-group">
+              <label>Company</label>
+              <input
+                readOnly
+                style={{
+                  background: "#f9f9f9",
+                  color: "#666",
+                  cursor: "not-allowed",
+                }}
+                value={company.companyName}
               />
             </div>
-
-            {error && <p className="hr-payment-error">{error}</p>}
-
-            <button className="hr-payment-button" disabled={isProcessing} type="submit">
-              {isProcessing ? "Processing..." : `🔒 Pay $${selectedPlan.price}/mo`}
+            <div className="form-group">
+              <label>Cardholder Name</label>
+              <input
+                onChange={(event) => setCardName(event.target.value)}
+                placeholder="Jane Doe"
+                required
+                value={cardName}
+              />
+            </div>
+            <div className="form-group">
+              <label>Card Number</label>
+              <input
+                defaultValue="4242 4242 4242 4242"
+                maxLength="19"
+                required
+              />
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Expiry Date</label>
+                <input defaultValue="12/28" maxLength="5" required />
+              </div>
+              <div className="form-group">
+                <label>CVV</label>
+                <input defaultValue="123" maxLength="4" required />
+              </div>
+            </div>
+            <button className="pay-btn" disabled={processing} type="submit">
+              <i className="fa fa-lock" />
+              &nbsp; {processing ? "Processing…" : `Pay ₹${plan.price}/mo`}
             </button>
           </form>
         ) : (
-          <section className="hr-payment-card hr-payment-success">
-            <div className="hr-payment-check">✓</div>
+          <div className="payment-card payment-success">
+            <div className="check-circle">
+              <i className="fa fa-check" />
+            </div>
             <h2>Payment Successful!</h2>
             <p>
-              Your <strong>{selectedPlan.name}</strong> plan is now active for{" "}
-              <strong>{companyName}</strong>.
+              Your <strong>{plan.name}</strong> plan is now active for{" "}
+              <strong>{company.companyName}</strong>.
             </p>
-            <a href="/hr">Back to Dashboard</a>
-          </section>
+            <Link className="continue-btn" to="/hr">
+              Back to Dashboard
+            </Link>
+          </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
 
-function PaymentField({ disabled, label, maxLength, onChange, placeholder, value }) {
+function isSameCompany(record, company) {
+  const recordCompanyId = String(record.companyId || "").trim();
+  const companyId = String(company.companyId || "").trim();
+  if (recordCompanyId && companyId) return recordCompanyId === companyId;
   return (
-    <label className="hr-payment-field">
-      <span>{label}</span>
-      <input
-        disabled={disabled}
-        maxLength={maxLength}
-        onChange={(event) => onChange?.(event.target.value)}
-        placeholder={placeholder}
-        value={value}
-      />
-    </label>
+    String(record.companyName || "")
+      .trim()
+      .toLowerCase() ===
+    String(company.companyName || "")
+      .trim()
+      .toLowerCase()
   );
-}
-
-function subscribeCompany(companyName, plan) {
-  const now = Date.now();
-  const subscriptions = readArray(PLAN_STORAGE_KEY).filter(
-    (subscription) =>
-      !subscription.companyName ||
-      subscription.companyName.toLowerCase() !== companyName.toLowerCase()
-  );
-  const payments = readArray(PAYMENT_STORAGE_KEY).filter(
-    (payment) => !payment.companyName || payment.companyName.toLowerCase() !== companyName.toLowerCase()
-  );
-
-  subscriptions.push({
-    id: `SUB-${now}`,
-    companyName,
-    planId: plan.id,
-    planName: plan.name,
-    price: plan.price,
-    employeeLimit: plan.employeeLimit,
-    expertLimit: plan.expertLimit,
-    status: "active",
-    subscribedAt: now,
-  });
-
-  payments.push({
-    id: `PAY-${now}`,
-    companyName,
-    planId: plan.id,
-    planName: plan.name,
-    amount: plan.price,
-    status: "completed",
-    paidAt: now,
-  });
-
-  window.localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(subscriptions));
-  window.localStorage.setItem(PAYMENT_STORAGE_KEY, JSON.stringify(payments));
-  window.localStorage.setItem(
-    "stackbuilders.hr.subscription",
-    JSON.stringify({ companyName, planId: plan.id, planName: plan.name })
-  );
-}
-
-function readArray(key) {
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(key) || "[]");
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function readCurrentHrProfile() {
-  const profiles = readArray(PROFILE_STORAGE_KEY);
-  const session = readSession();
-  const matchedProfile = session?.hrId
-    ? profiles.find((profile) => profile.id === session.hrId)
-    : null;
-
-  return {
-    name: "HR",
-    email: "hr@example.com",
-    companyName: "Stack Builders",
-    ...(matchedProfile || profiles[0] || {}),
-  };
-}
-
-function readSession() {
-  try {
-    const raw = window.sessionStorage.getItem(SESSION_STORAGE_KEY)
-      || window.localStorage.getItem(SESSION_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
 }
 
 export default HRPayment;
