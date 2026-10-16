@@ -173,71 +173,6 @@
                 </div>
               </div>
 
-              <div class="bmi-card">
-                <div class="bmi-decorative-1"></div>
-                <div class="bmi-decorative-2"></div>
-
-                <div class="bmi-content">
-                  <div class="bmi-header">
-                    <div class="bmi-title-group">
-                      <div class="bmi-icon">
-                        <i class="fas fa-heart"></i>
-                      </div>
-                      <p class="bmi-title" id="summaryMetricTitle">
-                        BMI (Body Mass Index)
-                      </p>
-                    </div>
-                    <span class="bmi-status" id="summaryMetricStatus">
-                      Not Available
-                    </span>
-                  </div>
-
-                  <div class="bmi-value-group">
-                    <p class="bmi-value" id="summaryMetricValue">--</p>
-                    <p class="bmi-unit" id="summaryMetricUnit">kg/m2</p>
-                  </div>
-
-                  <div class="bmi-indicator">
-                    <div class="bmi-range-bar">
-                      <div class="range-segment cyan"></div>
-                      <div class="range-segment green"></div>
-                      <div class="range-segment yellow"></div>
-                      <div class="range-segment orange"></div>
-                      <div class="range-segment red"></div>
-
-                      <div class="bmi-pointer">
-                        <div class="pointer-circle">
-                          <div class="pointer-dot"></div>
-                        </div>
-                        <div class="pointer-line"></div>
-                      </div>
-                    </div>
-
-                    <div class="range-labels">
-                      <div class="range-label">
-                        <span class="label-value">18.5</span>
-                        <span class="label-text">Under</span>
-                      </div>
-                      <div class="range-label center">
-                        <span class="label-value">24.9</span>
-                        <span class="label-text">Normal</span>
-                      </div>
-                      <div class="range-label center">
-                        <span class="label-value">29.9</span>
-                        <span class="label-text">Over</span>
-                      </div>
-                      <div class="range-label right">
-                        <span class="label-value">40+</span>
-                        <span class="label-text">Obese</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <p class="bmi-message" id="summaryMetricMessage">
-                    Profile details will appear here after your data is loaded.
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -262,14 +197,26 @@
       const metricsSectionTitle = document.getElementById("metricsSectionTitle");
       const infoItems = Array.from(document.querySelectorAll(".info-item"));
       const metricCards = Array.from(document.querySelectorAll(".metric-card"));
-      const summaryMetricTitle = document.getElementById("summaryMetricTitle");
-      const summaryMetricStatus = document.getElementById("summaryMetricStatus");
-      const summaryMetricValue = document.getElementById("summaryMetricValue");
-      const summaryMetricUnit = document.getElementById("summaryMetricUnit");
-      const summaryMetricMessage = document.getElementById("summaryMetricMessage");
       const employeeAuthStore = window.employeeAuthStore || null;
       const expertAuthStore = window.expertAuthStore || null;
       const hrAuthStore = window.hrAuthStore || null;
+      const clearReactAuthSession = () => {
+        const keys = [
+          "stackbuilders.react.auth.v1",
+          "stackbuilders.employeeSession.v1",
+          "stackbuilders.expertSession.v1",
+          "stackbuilders.hrSession.v1",
+        ];
+        [window.sessionStorage, window.localStorage].forEach((storage) => {
+          keys.forEach((key) => {
+            try {
+              storage.removeItem(key);
+            } catch (error) {
+              // Keep clearing other session keys if one storage operation fails.
+            }
+          });
+        });
+      };
       const readStoredCollection = (storageKey) => {
         try {
           const raw = window.localStorage.getItem(storageKey);
@@ -279,11 +226,51 @@
           return [];
         }
       };
-      const currentEmployeeProfile = employeeAuthStore?.getEmployeeProfile();
-      const currentExpertProfile = expertAuthStore?.getExpertProfile();
-      const currentHrProfile = hrAuthStore?.getCurrentHr?.() || null;
-      const hrEmployeeCount = readStoredCollection("stackbuilders.hr.employees").length;
-      const hrExpertCount = readStoredCollection("stackbuilders.hr.experts").length;
+      const readReactSession = () => {
+        try {
+          const raw = window.sessionStorage.getItem("stackbuilders.react.auth.v1")
+            || window.localStorage.getItem("stackbuilders.react.auth.v1");
+          const parsed = raw ? JSON.parse(raw) : null;
+          return parsed && typeof parsed === "object" ? parsed : null;
+        } catch (error) {
+          return null;
+        }
+      };
+      const reactSession = readReactSession();
+      const reactProfile = reactSession?.profile || null;
+      const reactRole = String(reactSession?.role || "").trim().toLowerCase();
+      const getReactInitials = (name) => String(name || "NA").trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("") || "NA";
+      const getReactEmployeeProfile = (profile) => {
+        return {
+          ...profile,
+          ageLabel: profile?.age ? `${profile.age} years` : "Not added",
+          genderLabel: profile?.gender || "Not added",
+          phoneLabel: profile?.phoneNumber || profile?.phone || "Not added",
+          heightLabel: profile?.heightCm || "--",
+          weightLabel: profile?.weightKg || "--",
+        };
+      };
+      const getReactExpertProfile = (profile) => ({
+        ...profile,
+        initials: getReactInitials(profile?.name),
+        phoneLabel: profile?.phoneNumber || profile?.phone || "Not added",
+        experienceLabel: profile?.experience || "Not specified",
+      });
+      const currentEmployeeProfile = profileRole === "employee" && reactRole === "employee" && reactProfile
+        ? getReactEmployeeProfile(reactProfile)
+        : employeeAuthStore?.getEmployeeProfile();
+      const currentExpertProfile = profileRole === "wellness" && reactRole === "wellness expert" && reactProfile
+        ? getReactExpertProfile(reactProfile)
+        : expertAuthStore?.getExpertProfile();
+      const currentHrProfile = profileRole === "hr" && reactRole === "hr" && reactProfile
+        ? reactProfile
+        : hrAuthStore?.getCurrentHr?.() || null;
+      const isCurrentHrCompanyRecord = (record) => currentHrProfile && (
+        (currentHrProfile.companyId && record.companyId === currentHrProfile.companyId)
+        || (currentHrProfile.companyName && String(record.companyName || "").trim().toLowerCase() === String(currentHrProfile.companyName).trim().toLowerCase())
+      );
+      const hrEmployeeCount = readStoredCollection("stackbuilders.hr.employees").filter(isCurrentHrCompanyRecord).length;
+      const hrExpertCount = readStoredCollection("stackbuilders.hr.experts").filter(isCurrentHrCompanyRecord).length;
 
       const employeeProfileContent = currentEmployeeProfile
         ? {
@@ -313,13 +300,6 @@
                 unit: "kilograms",
               },
             ],
-            summary: {
-              title: "BMI (Body Mass Index)",
-              status: currentEmployeeProfile.bmi.status,
-              value: currentEmployeeProfile.bmi.value,
-              unit: "kg/m2",
-              message: currentEmployeeProfile.bmi.message,
-            },
           }
         : {
             headerSubtitle: "Manage your personal and wellness information",
@@ -340,13 +320,6 @@
               { label: "Height", value: "--", unit: "centimeters" },
               { label: "Weight", value: "--", unit: "kilograms" },
             ],
-            summary: {
-              title: "BMI (Body Mass Index)",
-              status: "Not Available",
-              value: "--",
-              unit: "kg/m2",
-              message: "Add your health details to see your BMI summary.",
-            },
           };
 
       const wellnessProfileContent = currentExpertProfile
@@ -380,13 +353,6 @@
                 unit: "focus area",
               },
             ],
-            summary: {
-              title: "Account Status",
-              status: currentExpertProfile.status || "Active",
-              value: currentExpertProfile.initials || "--",
-              unit: "profile",
-              message: `${currentExpertProfile.name} is signed in with ${currentExpertProfile.email}.`,
-            },
           }
         : {
             headerSubtitle: "Manage your expert profile and consultation details",
@@ -407,13 +373,6 @@
               { label: "Experience", value: "--", unit: "years" },
               { label: "Specialization", value: "--", unit: "focus area" },
             ],
-            summary: {
-              title: "Account Status",
-              status: "Not Available",
-              value: "--",
-              unit: "profile",
-              message: "Profile details will appear here after sign-in data is loaded.",
-            },
           };
 
       const profileContentByRole = {
@@ -438,15 +397,6 @@
             { label: "Employees", value: currentHrProfile ? String(hrEmployeeCount) : "--", unit: "managed" },
             { label: "Experts", value: currentHrProfile ? String(hrExpertCount) : "--", unit: "active" },
           ],
-          summary: {
-            title: "Account Status",
-            status: currentHrProfile?.status || "Not Configured",
-            value: currentHrProfile ? String(hrEmployeeCount + hrExpertCount) : "--",
-            unit: "users",
-            message: currentHrProfile
-              ? `${currentHrProfile.name} can manage ${hrEmployeeCount + hrExpertCount} linked workspace users.`
-              : "The HR account has not been created by the super user yet.",
-          },
         },
       };
 
@@ -465,12 +415,22 @@
       }
 
       if (editProfileLink) {
-        editProfileLink.href = profileContent.editHref;
+        const returnTo = window.top.location.pathname || "/";
+        const editUrl = new URL("/profile/edit", window.location.origin);
+        editUrl.searchParams.set("returnTo", returnTo);
+        editProfileLink.href = editUrl.toString();
+        editProfileLink.target = "_top";
+        editProfileLink.addEventListener("click", (event) => {
+          if (window.top === window) return;
+          event.preventDefault();
+          window.parent.postMessage({ type: "stackbuilders:edit-profile" }, window.location.origin);
+        });
       }
 
       if (logoutProfileLink && profileRole === "employee") {
         logoutProfileLink.addEventListener("click", (event) => {
           event.preventDefault();
+          clearReactAuthSession();
           employeeAuthStore?.clearCurrentEmployeeSession();
           window.top.location.href = "homepage.html";
         });
@@ -479,6 +439,7 @@
       if (logoutProfileLink && profileRole === "wellness") {
         logoutProfileLink.addEventListener("click", (event) => {
           event.preventDefault();
+          clearReactAuthSession();
           expertAuthStore?.clearCurrentExpertSession();
           window.top.location.href = "homepage.html";
         });
@@ -487,6 +448,7 @@
       if (logoutProfileLink && profileRole === "hr") {
         logoutProfileLink.addEventListener("click", (event) => {
           event.preventDefault();
+          clearReactAuthSession();
           window.hrAuthStore?.clearCurrentHrSession?.();
           window.top.location.href = "homepage.html";
         });
@@ -542,24 +504,31 @@
         }
       });
 
-      if (summaryMetricTitle) {
-        summaryMetricTitle.textContent = profileContent.summary.title;
-      }
-
-      if (summaryMetricStatus) {
-        summaryMetricStatus.textContent = profileContent.summary.status;
-      }
-
-      if (summaryMetricValue) {
-        summaryMetricValue.textContent = profileContent.summary.value;
-      }
-
-      if (summaryMetricUnit) {
-        summaryMetricUnit.textContent = profileContent.summary.unit;
-      }
-
-      if (summaryMetricMessage) {
-        summaryMetricMessage.textContent = profileContent.summary.message;
+      if (profileRole === "hr" && currentHrProfile?.companyId) {
+        const refreshWorkspaceCounts = async () => {
+          const query = `companyId=${encodeURIComponent(currentHrProfile.companyId)}`;
+          const headers = { role: "Admin" };
+          try {
+            const [employeeResponse, expertResponse] = await Promise.all([
+              fetch(`http://127.0.0.1:3000/employees?${query}`, { headers }),
+              fetch(`http://127.0.0.1:3000/experts?${query}`, { headers }),
+            ]);
+            if (!employeeResponse.ok || !expertResponse.ok) return;
+            const [employees, experts] = await Promise.all([employeeResponse.json(), expertResponse.json()]);
+            const companyMatches = (record) => record.companyId === currentHrProfile.companyId
+              || (!record.companyId && String(record.companyName || "").trim().toLowerCase() === String(currentHrProfile.companyName || "").trim().toLowerCase());
+            const employeeCount = Array.isArray(employees) ? employees.filter(companyMatches).length : 0;
+            const expertCount = Array.isArray(experts) ? experts.filter(companyMatches).length : 0;
+            const counts = [employeeCount, expertCount];
+            metricCards.slice(0, 2).forEach((card, index) => {
+              const value = card.querySelector(".metric-value");
+              if (value) value.textContent = String(counts[index]);
+            });
+          } catch (error) {
+            // Keep the company-filtered local snapshot when the API is unavailable.
+          }
+        };
+        refreshWorkspaceCounts();
       }
     </script>
   </body>

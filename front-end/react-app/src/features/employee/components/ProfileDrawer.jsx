@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 /**
  * Exact match for the original profile overlay HTML:
@@ -10,6 +11,10 @@ import { useEffect } from 'react';
  *   </div>
  */
 export default function ProfileDrawer({ open, onClose }) {
+  const frameRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
   useEffect(() => {
     if (open) {
       document.body.classList.add('profile-open');
@@ -18,6 +23,22 @@ export default function ProfileDrawer({ open, onClose }) {
     }
     return () => document.body.classList.remove('profile-open');
   }, [open]);
+
+  useEffect(() => {
+    function handleProfileNavigation(event) {
+      if (
+        event.origin !== window.location.origin ||
+        event.source !== frameRef.current?.contentWindow ||
+        event.data?.type !== 'stackbuilders:edit-profile'
+      ) return;
+
+      onClose();
+      navigate(`/profile/edit?returnTo=${encodeURIComponent(location.pathname)}`);
+    }
+
+    window.addEventListener('message', handleProfileNavigation);
+    return () => window.removeEventListener('message', handleProfileNavigation);
+  }, [location.pathname, navigate, onClose]);
 
   if (!open) return null;
 
@@ -43,6 +64,7 @@ export default function ProfileDrawer({ open, onClose }) {
           Back
         </button>
         <iframe
+          ref={frameRef}
           className="profile-frame"
           src="/profile.html?role=employee"
           title="Employee Profile"

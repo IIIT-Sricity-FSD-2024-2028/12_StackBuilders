@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="Wellness video thumbnail">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f8179"/>
+      <stop offset="1" stop-color="#173e57"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".76" cy=".18" r=".78">
+      <stop offset="0" stop-color="#c4f1df" stop-opacity=".58"/>
+      <stop offset="1" stop-color="#c4f1df" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#background)"/>
+  <rect width="960" height="540" fill="url(#glow)"/>
+  <circle cx="792" cy="144" r="170" fill="#d4f7e6" fill-opacity=".12"/>
+  <circle cx="178" cy="476" r="248" fill="#6dd6bc" fill-opacity=".12"/>
+  <path d="M0 425c131-65 213-46 332 8s245 49 375-19 177-67 253-54v180H0z" fill="#102f48" fill-opacity=".32"/>
+  <circle cx="480" cy="270" r="66" fill="#ffffff" fill-opacity=".94"/>
+  <path d="m465 237 52 33-52 33z" fill="#0f8179"/>
+  <text x="480" y="420" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="27" font-weight="700" letter-spacing="3">WELLNESS VIDEO</text>
+</svg>

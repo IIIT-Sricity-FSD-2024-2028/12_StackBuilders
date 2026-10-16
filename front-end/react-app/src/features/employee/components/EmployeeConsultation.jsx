@@ -1,19 +1,33 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCurrentEmployee, getCompanyContext } from '../services/employeeAuth';
 import {
-  readConsultationsByEmployee,
-  readExperts,
-  addConsultation,
   formatScheduleDate,
   formatScheduleTime,
   splitRequestedOn,
 } from '../services/storageServices';
+import employeeApi from '../services/employeeApi';
+import useAutoRefresh from '../../../hooks/useAutoRefresh.js';
+import { useRoleAccess } from '../../shared/roleAccessContext.jsx';
 
-function genId() {
-  return `c_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+const TERMINAL_CONSULTATION_STATUSES = new Set(['completed', 'rejected', 'cancelled', 'canceled']);
+
+function slotKeyFromDate(dateValue) {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.valueOf())) return '';
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}|${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function consultationSlotKey(consultation) {
+  const date = String(consultation.sessionDate || '').trim();
+  const match = String(consultation.sessionTime || '').trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!date || !match) return '';
+  return `${date}|${match[1].padStart(2, '0')}:${match[2]}`;
 }
 
 export default function EmployeeConsultation() {
+  const { hasPermission } = useRoleAccess();
+  const canCreateConsultations = hasPermission('user-management-create');
   const employee = getCurrentEmployee();
   const companyCtx = getCompanyContext(employee);
 
@@ -24,57 +38,82 @@ export default function EmployeeConsultation() {
   const [modalOpen, setModalOpen] = useState(false);
   const [formState, setFormState] = useState({ purpose: '', expertId: '', slotTime: '' });
   const [formError, setFormError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const purposeRef = useRef(null);
+  const selectedExpert = experts.find((expert) => expert.id === formState.expertId);
+  const bookedSlotKeys = new Set(consultations
+    .filter((consultation) => !TERMINAL_CONSULTATION_STATUSES.has(String(consultation.status || '').trim().toLowerCase()))
+    .map(consultationSlotKey)
+    .filter(Boolean));
+  const futureSlots = (selectedExpert?.availableSlots || [])
+    .filter((slot) => !Number.isNaN(new Date(slot).valueOf()) && new Date(slot).getTime() > Date.now())
+    .sort((left, right) => new Date(left) - new Date(right));
+  const bookableSlots = futureSlots.filter((slot) => !bookedSlotKeys.has(slotKeyFromDate(slot)));
 
-  function loadData() {
-    setConsultations(readConsultationsByEmployee(employee?.id, companyCtx));
-    setExperts(readExperts(companyCtx));
+  async function loadData() {
+    const [consultationList, expertList] = await Promise.all([
+      employeeApi.getConsultations(employee, companyCtx),
+      employeeApi.getExperts(companyCtx),
+    ]);
+    setConsultations(consultationList || []);
+    setExperts(expertList || []);
   }
 
   useEffect(() => {
     if (!employee) return;
-    loadData();
-  }, []);
+    loadData().catch((error) => setFormError(error.message || 'Could not load consultations.'));
+  }, [employee?.id, companyCtx.companyId, companyCtx.companyName]);
+  useAutoRefresh(loadData, `${employee?.id || ''}:${companyCtx.companyId || companyCtx.companyName || ''}`);
 
-  const upcoming = consultations.filter((c) => c.status === 'approved');
+  const upcoming = consultations.filter((c) => c.status === 'accepted' || c.status === 'approved');
   const requested = consultations.filter((c) => c.status === 'requested');
   const rejected  = consultations.filter((c) => c.status === 'rejected');
   const previous  = consultations.filter((c) => c.status === 'completed');
 
   function openModal() {
+    if (!canCreateConsultations) return;
     setFormState({ purpose: '', expertId: '', slotTime: '' });
     setFormError('');
     setModalOpen(true);
     setTimeout(() => purposeRef.current?.focus(), 100);
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    if (!canCreateConsultations) return;
     if (!formState.purpose.trim()) { setFormError('Please describe the purpose.'); return; }
     if (!formState.expertId)       { setFormError('Please select an expert.'); return; }
+    if (formState.slotTime && bookedSlotKeys.has(slotKeyFromDate(formState.slotTime))) {
+      setFormError('You already have a consultation booked for this time slot. Please choose another time.');
+      return;
+    }
 
     const expert = experts.find(
       (ex) => ex.id === formState.expertId || ex.name === formState.expertId,
     );
 
     const record = {
-      id:          genId(),
       employeeId:  employee?.id,
       employeeName: employee?.name,
-      companyId:   companyCtx.companyId,
-      companyName: companyCtx.companyName,
       expertId:    expert?.id   || formState.expertId,
       expertName:  expert?.name || formState.expertId,
-      category:    expert?.category || expert?.specialization || '',
       purpose:     formState.purpose,
-      status:      'requested',
-      requestedOn: new Date().toISOString(),
-      slotTime:    formState.slotTime || null,
     };
 
-    addConsultation(record);
-    setModalOpen(false);
-    loadData();
+    setSubmitting(true);
+    try {
+      if (formState.slotTime) {
+        await employeeApi.bookConsultationSlot({ ...record, slotTime: formState.slotTime });
+      } else {
+        await employeeApi.createConsultation(record);
+      }
+      setModalOpen(false);
+      await loadData();
+    } catch (error) {
+      setFormError(error.message || 'Could not submit the consultation request.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -82,9 +121,9 @@ export default function EmployeeConsultation() {
       <div className="container">
         <div className="consultation-header">
           <h1>Consultation Dashboard</h1>
-          <button className="btn" id="requestConsultationBtn" onClick={openModal}>
+          {canCreateConsultations && <button className="btn" id="requestConsultationBtn" onClick={openModal}>
             + Request Consultation
-          </button>
+          </button>}
         </div>
 
         <div className="main-layout">
@@ -184,7 +223,7 @@ export default function EmployeeConsultation() {
               name="expertId"
               required
               value={formState.expertId}
-              onChange={(e) => setFormState((s) => ({ ...s, expertId: e.target.value }))}
+              onChange={(e) => setFormState((s) => ({ ...s, expertId: e.target.value, slotTime: '' }))}
             >
               <option value="">Select a wellness expert</option>
               {experts.length === 0 ? (
@@ -199,6 +238,16 @@ export default function EmployeeConsultation() {
               )}
             </select>
 
+            {selectedExpert && <>
+              <label htmlFor="modalConsultationSlot">Available time slot (optional)</label>
+              <select id="modalConsultationSlot" value={formState.slotTime} onChange={(event) => setFormState((current) => ({ ...current, slotTime: event.target.value }))}>
+                <option value="">Submit a request without booking a time</option>
+                {bookableSlots.map((slot) => <option key={slot} value={slot}>{new Date(slot).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</option>)}
+              </select>
+              {!futureSlots.length && <small>No future slots are available; you can still submit a regular request.</small>}
+              {futureSlots.length > 0 && !bookableSlots.length && <small>You already have consultations during all of this expert’s available slots.</small>}
+            </>}
+
             <div className="request-modal-actions">
               <button
                 className="request-secondary-btn"
@@ -207,8 +256,8 @@ export default function EmployeeConsultation() {
               >
                 Back
               </button>
-              <button className="request-primary-btn" type="submit">
-                Submit Request
+              <button className="request-primary-btn" type="submit" disabled={submitting}>
+                {submitting ? 'Submitting…' : formState.slotTime ? 'Book Slot' : 'Submit Request'}
               </button>
             </div>
           </form>

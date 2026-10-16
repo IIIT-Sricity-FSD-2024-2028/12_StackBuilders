@@ -1,0 +1,60 @@
+.dashboard-profile-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 2000;
+  background: rgba(15, 23, 42, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.dashboard-profile-overlay .profile-frame-shell {
+  position: relative;
+  width: min(500px, 100%);
+  height: 100vh;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: -18px 0 44px rgba(15, 23, 42, 0.18);
+}
+
+.dashboard-profile-overlay .profile-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #ffffff;
+}
+
+.dashboard-profile-overlay .profile-overlay-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #111827;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+}
+
+.dashboard-profile-trigger {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dashboard-profile-trigger:hover,
+.dashboard-profile-trigger:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}

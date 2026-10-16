@@ -1,0 +1,23 @@
+.query-notifications { position: relative; display: inline-flex; align-items: center; flex: 0 0 auto; }
+.query-notifications .query-notifications-trigger { position: relative; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; color: #475569; background: transparent; cursor: pointer; transition: background-color .2s ease, color .2s ease; }
+.query-notifications .query-notifications-trigger:hover, .query-notifications .query-notifications-trigger[aria-expanded="true"] { color: #0f766e; background: #eef7f2; }
+.query-notifications .query-notifications-trigger i { position: static; padding: 0; color: inherit; font-size: 17px; line-height: 1; }
+.query-notifications-badge { position: absolute; top: -2px; right: -3px; display: grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px; border: 2px solid #fff; border-radius: 999px; color: #fff; background: #d9485f; font-size: 9px; font-weight: 800; line-height: 1; }
+.dashboard-nav .nav-right .query-notifications .query-notifications-badge { color: #fff; font-size: 9px; font-weight: 800; }
+.query-notifications-panel { position: absolute; z-index: 10001; top: calc(100% + 10px); right: 0; width: min(360px, calc(100vw - 24px)); max-height: min(72vh, 480px); overflow: auto; border: 1px solid #dce7e7; border-radius: 16px; color: #243746; background: #fff; box-shadow: 0 18px 45px rgba(20, 42, 56, .2); white-space: normal; }
+.query-notifications-heading { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #edf1f2; background: #fff; }
+.query-notifications-heading strong { font-size: .95rem; }
+.query-notifications-heading span { color: #748591; font-size: .72rem; font-weight: 700; }
+.query-notifications-empty, .query-notifications-error { margin: 0; padding: 22px 16px; color: #70808b; font-size: .84rem; text-align: center; }
+.query-notifications-error { color: #b44343; }
+.query-notifications-list { display: grid; }
+.query-notification { padding: 14px 16px; border-bottom: 1px solid #edf1f2; }
+.query-notification:last-child { border-bottom: 0; }
+.query-notification.is-unread { background: #f1fbf8; }
+.query-notification-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.query-notification-title strong { color: #087b72; font-size: .82rem; }
+.query-notification-title time { flex: 0 0 auto; color: #83919b; font-size: .66rem; }
+.query-notification-question { margin: 9px 0 5px; color: #6e7e88; font-size: .75rem; line-height: 1.4; }
+.query-notification-reply { margin: 0; color: #2f414e; font-size: .83rem; line-height: 1.5; overflow-wrap: anywhere; }
+.query-notification-mark-read { margin-top: 10px; padding: 0; border: 0; color: #087b72; background: none; font: inherit; font-size: .72rem; font-weight: 800; cursor: pointer; }
+.query-notification-mark-read:disabled { cursor: wait; opacity: .6; }
