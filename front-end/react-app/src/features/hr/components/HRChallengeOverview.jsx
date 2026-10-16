@@ -1,27 +1,33 @@
-function HRChallengeOverview({ challenges, onSelectChallenge, selectedChallenge }) {
+function HRChallengeOverview({
+  challenges,
+  onSelectChallenge,
+  selectedChallenge,
+}) {
   return (
-    <section className="hr-two-column-grid" id="challenges">
-      <article className="hr-panel">
-        <div className="hr-panel-header">
+    <section className="two-column-grid" id="challenges">
+      <article className="panel">
+        <div className="panel-header">
           <h3>Active Challenges</h3>
         </div>
-
-        <div className="hr-challenge-list">
+        <div className="challenge-list">
           {challenges.length ? (
             challenges.map((challenge) => (
               <button
-                className={`hr-challenge-item ${
-                  selectedChallenge?.id === challenge.id ? "selected" : ""
-                }`}
+                className={`challenge-item${selectedChallenge?.id === challenge.id ? " selected" : ""}`}
                 key={challenge.id}
                 onClick={() => onSelectChallenge(challenge.id)}
                 type="button"
               >
-                <span className={`hr-challenge-icon ${getChallengeTone(challenge.type)}`}>
-                  {getChallengeSymbol(challenge.type)}
+                <span
+                  className={`challenge-icon ${getChallengeTone(challenge.type)}`}
+                >
+                  <i
+                    className={getChallengeSymbol(challenge.type)}
+                    aria-hidden="true"
+                  />
                 </span>
                 <span>{challenge.name}</span>
-                <span className="hr-challenge-arrow">&gt;</span>
+                <span className="challenge-arrow">&gt;</span>
               </button>
             ))
           ) : (
@@ -30,12 +36,15 @@ function HRChallengeOverview({ challenges, onSelectChallenge, selectedChallenge 
         </div>
       </article>
 
-      <article className="hr-panel">
-        <div className="hr-panel-header">
-          <h3>{selectedChallenge ? `${selectedChallenge.name} - Summary` : "Challenge Summary"}</h3>
+      <article className="panel">
+        <div className="panel-header">
+          <h3 id="dashboardLeaderboardTitle">
+            {selectedChallenge
+              ? `${selectedChallenge.name} - Summary`
+              : "Challenge Summary"}
+          </h3>
         </div>
-
-        <div className="hr-leaderboard">
+        <div className="leaderboard">
           {selectedChallenge ? (
             [
               ["Type", selectedChallenge.type, "TY", "highlight"],
@@ -43,13 +52,13 @@ function HRChallengeOverview({ challenges, onSelectChallenge, selectedChallenge 
               ["Reward", selectedChallenge.reward, "RW", ""],
               ["Deadline", selectedChallenge.deadline, "DL", ""],
             ].map(([label, value, initials, rowClass]) => (
-              <div className={`hr-leaderboard-row ${rowClass}`} key={label}>
-                <div className="hr-person-meta">
-                  <span className="hr-rank-avatar">◎</span>
-                  <span className="hr-person-badge">{initials}</span>
+              <div className={`leaderboard-row ${rowClass}`} key={label}>
+                <div className="person-meta">
+                  <span className="rank-avatar">◎</span>
+                  <span className="person-badge">{initials}</span>
                   <span>{label}</span>
                 </div>
-                <strong>{value}</strong>
+                <strong>{value || "Not specified"}</strong>
               </div>
             ))
           ) : (
@@ -61,23 +70,25 @@ function HRChallengeOverview({ challenges, onSelectChallenge, selectedChallenge 
   );
 }
 
-function getChallengeTone(type) {
+function getChallengeTone(type = "") {
   const normalized = type.toLowerCase();
-  if (normalized.includes("fitness")) return "trend";
+  if (normalized.includes("fitness") || normalized.includes("community"))
+    return "trend";
   if (normalized.includes("health")) return "water";
   return "trophy";
 }
 
-function getChallengeSymbol(type) {
+function getChallengeSymbol(type = "") {
   const normalized = type.toLowerCase();
-  if (normalized.includes("fitness")) return "↗";
-  if (normalized.includes("health")) return "◖";
-  if (normalized.includes("community")) return "◆";
-  return "★";
+  if (normalized.includes("fitness")) return "fa-solid fa-shoe-prints";
+  if (normalized.includes("health")) return "fa-solid fa-droplet";
+  if (normalized.includes("wellness")) return "fa-solid fa-spa";
+  if (normalized.includes("community")) return "fa-solid fa-users";
+  return "fa-solid fa-trophy";
 }
 
 function EmptyState({ message }) {
-  return <div className="hr-empty-state">{message}</div>;
+  return <div className="empty-state">{message}</div>;
 }
 
 export default HRChallengeOverview;
