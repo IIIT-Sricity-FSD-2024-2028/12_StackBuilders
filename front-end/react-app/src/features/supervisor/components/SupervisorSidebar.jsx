@@ -36,14 +36,6 @@ function SupervisorSidebar({ activeView, onSelect, isOpen = false }) {
           </button>
         ))}
       </nav>
-
-      <div className="supervisor-sidebar-card">
-        <h3>Workspace Overview</h3>
-        <p>Connect your project data here to surface activity, alerts, and the most important workflows.</p>
-        <button type="button" onClick={() => onSelect("reports")}>
-          <SupervisorIcon name="file" size={15} /> Open reports
-        </button>
-      </div>
     </aside>
   );
 }

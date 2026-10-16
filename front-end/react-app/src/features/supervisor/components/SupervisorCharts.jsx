@@ -13,7 +13,7 @@ function SupervisorBarChart({ values, labels, color = "teal" }) {
   );
 }
 
-function SupervisorLineChart({ values = [], labels = [] }) {
+function SupervisorLineChart({ values = [], labels = [], color = "#0fa7a0" }) {
   const width = 640;
   const height = 220;
   const max = Math.max(...values, 1);
@@ -29,31 +29,35 @@ function SupervisorLineChart({ values = [], labels = [] }) {
       <svg viewBox="0 0 640 220" preserveAspectRatio="none">
         <defs>
           <linearGradient id="supervisor-line-fill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor="#0fa7a0" stopOpacity=".28" />
-            <stop offset="1" stopColor="#0fa7a0" stopOpacity="0" />
+            <stop offset="0" stopColor={color} stopOpacity=".28" />
+            <stop offset="1" stopColor={color} stopOpacity="0" />
           </linearGradient>
         </defs>
         <path className="chart-grid-line" d="M0 40H640M0 95H640M0 150H640M0 205H640" />
         <path className="chart-area" d={areaPath} />
-        <path className="chart-line" d={linePath} />
-        {points.map(([x, y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="4" />)}
+        <path className="chart-line" d={linePath} style={{ stroke: color }} />
+        {points.map(([x, y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="4" style={{ stroke: color }} />)}
       </svg>
       <div className="chart-axis-labels">{labels.map((label) => <span key={label}>{label}</span>)}</div>
     </div>
   );
 }
 
-function SupervisorDonutChart({ values, labels }) {
-  const total = values.reduce((sum, value) => sum + value, 0) || 1;
-  const first = (values[0] / total) * 360;
-  const second = first + (values[1] / total) * 360;
+function SupervisorDonutChart({ values, labels, colors = ["#0fa7a0", "#5e83d6", "#f2a36f"] }) {
+  const total = values.reduce((sum, value) => sum + value, 0);
+  const denominator = total || 1;
+  const first = (values[0] / denominator) * 360;
+  const second = first + (values[1] / denominator) * 360;
+  const background = total
+    ? `conic-gradient(${colors[0]} 0deg ${first}deg, ${colors[1]} ${first}deg ${second}deg, ${colors[2]} ${second}deg 360deg)`
+    : "conic-gradient(#e7ebf2 0deg 360deg)";
   return (
     <div className="donut-layout">
-      <div className="donut" style={{ background: `conic-gradient(#0fa7a0 0deg ${first}deg, #5e83d6 ${first}deg ${second}deg, #f2a36f ${second}deg 360deg)` }}>
+      <div className="donut" style={{ background }}>
         <div><strong>{total}</strong><span>accounts</span></div>
       </div>
       <div className="chart-legend">
-        {labels.map((label, index) => <div key={label}><span className={`legend-dot legend-${index}`} /><span>{label}</span><strong>{values[index]}</strong></div>)}
+        {labels.map((label, index) => <div key={label}><span className={`legend-dot legend-${index}`} style={{ background: colors[index] }} /><span>{label}</span><strong>{values[index]}</strong></div>)}
       </div>
     </div>
   );
