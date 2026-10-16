@@ -1,91 +1,128 @@
-import "../admin-dashboard.css";
-
-function AdminIcon({ name }) {
-  const paths = {
-    users: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75",
-    user: "M20 21a8 8 0 0 0-16 0 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8",
-    heartbeat: "M3 12h4l2-7 4 14 2-7h6",
-    plus: "M12 5v14 M5 12h14",
-    database: "M4 5c0-1.1 3.6-2 8-2s8 .9 8 2-3.6 2-8 2-8-.9-8-2Zm0 0v7c0 1.1 3.6 2 8 2s8-.9 8-2V5m-16 7v7c0 1.1 3.6 2 8 2s8-.9 8-2v-7",
-    file: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Zm0 0v6h6 M8 18h8 M8 14h2",
-    settings: "M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.7 1.7-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V20h-2.4v-.2a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-1.7-1.7.06-.06A1.7 1.7 0 0 0 8.4 15a1.7 1.7 0 0 0-1.56-1.03H6v-2.4h.2A1.7 1.7 0 0 0 7.76 10a1.7 1.7 0 0 0-.34-1.88l-.06-.06 1.7-1.7.06.06A1.7 1.7 0 0 0 11 6.76 1.7 1.7 0 0 0 12.03 5.2V5h2.4v.2A1.7 1.7 0 0 0 15.46 6.76a1.7 1.7 0 0 0 1.88-.34l.06-.06 1.7 1.7-.06.06A1.7 1.7 0 0 0 18.7 10a1.7 1.7 0 0 0 1.56 1.03h.2v2.4h-.2A1.7 1.7 0 0 0 19.4 15Z",
-  };
-
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d={paths[name] || paths.user} />
-    </svg>
-  );
-}
-
-const stats = [
-  { label: "Total Users", value: "0", detail: "Synced from employee, expert, and HR accounts", icon: "users" },
-  { label: "Active Users", value: "0", detail: "Live enabled accounts across the workspace", icon: "user" },
-  { label: "System Activity", value: "0", detail: "Consultations, sessions, videos, challenges, and rewards", icon: "heartbeat" },
-];
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
+import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
+import adminApi from "../adminApi.js";
+import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
+import { buildRecentActivityEntries } from "../../../utils/recentActivity.js";
 
 const quickActions = [
-  { title: "Add User", detail: "Create new user account", icon: "plus", target: "#user-management" },
-  { title: "Manage Companies", detail: "Review company records", icon: "database", target: "#company-management" },
-  { title: "View Reports", detail: "Access analytics", icon: "file", target: "#reports" },
-  { title: "System Settings", detail: "Configure system", icon: "settings", target: "#settings" },
+  { title: "Add User", detail: "Create new user account", icon: "plus", target: "/admin/users" },
+  { title: "Manage Companies", detail: "Review company records", icon: "database", target: "/admin/companies" },
+  { title: "View Reports", detail: "Access analytics", icon: "file", target: "/admin/reports" },
+  { title: "System Settings", detail: "Configure system", icon: "cog", target: "/admin/settings" },
 ];
 
 function AdminDashboard() {
+  const stylesReady = usePageStylesheets("/admin-dashboard-legacy.css");
+  const navigate = useNavigate();
+  const [stats, setStats] = useState([
+    { label: "Total Users", value: "0", detail: "Synced from employee, expert, and HR accounts", icon: "users", id: "dashboardTotalUsers" },
+    { label: "Active Users", value: "0", detail: "Live enabled accounts across the workspace", icon: "user", id: "dashboardActiveUsers" },
+    { label: "System Activity", value: "0", detail: "Consultations, sessions, videos, challenges, and rewards", icon: "heartbeat", id: "dashboardActivityVolume" },
+  ]);
+  const [activity, setActivity] = useState([]);
+  const [error, setError] = useState("");
+
+  const loadDashboard = useCallback(async (silent = false) => {
+    try {
+      const [employees, experts, hrProfiles, companies, consultations, sessions, videos, challenges, rewards] = await Promise.all([
+      adminApi.getUsers(),
+      adminApi.getExperts(),
+      adminApi.getHrProfiles(),
+      adminApi.getCompanies(),
+      adminApi.getConsultations(),
+      adminApi.getLiveSessions(),
+      adminApi.getVideos(),
+      adminApi.getChallenges(),
+      adminApi.getRewards(),
+      ]);
+      const users = [
+        ...(employees || []).map((user) => ({ ...user, role: "Employee" })),
+        ...(experts || []).map((user) => ({ ...user, role: "Wellness Expert" })),
+        ...(hrProfiles || []).map((user) => ({ ...user, role: "HR" })),
+      ];
+      const records = [
+        ...(consultations || []).map((item) => ({ label: "Consultation", detail: item.purpose || item.sessionTitle || "Consultation record" })),
+        ...(sessions || []).map((item) => ({ label: "Live session", detail: item.title || "Live session record" })),
+        ...(videos || []).map((item) => ({ label: "Video", detail: item.title || "Video record" })),
+        ...(challenges || []).map((item) => ({ label: "Challenge", detail: item.name || "Challenge record" })),
+        ...(rewards || []).map((item) => ({ label: "Reward", detail: item.name || "Reward record" })),
+      ];
+      setStats([
+        { label: "Total Users", value: String(users.length), detail: "Synced from employee, expert, and HR accounts", icon: "users", id: "dashboardTotalUsers" },
+        { label: "Active Users", value: String(users.filter((user) => (user.status || "Active") === "Active").length), detail: "Live enabled accounts across the workspace", icon: "user", id: "dashboardActiveUsers" },
+        { label: "System Activity", value: String(records.length), detail: "Consultations, sessions, videos, challenges, and rewards", icon: "heartbeat", id: "dashboardActivityVolume" },
+      ]);
+      setActivity(buildRecentActivityEntries({ users, companies, consultations, liveSessions: sessions, videos, challenges, rewards }));
+      setError("");
+    } catch (loadError) {
+      if (!silent) setError(loadError.message || "Could not load dashboard data.");
+    }
+  }, []);
+
+  useEffect(() => { loadDashboard(); }, [loadDashboard]);
+  useAutoRefresh(() => loadDashboard(true), "admin-dashboard");
+
+  if (!stylesReady) return <RouteLoadingScreen />;
+
   return (
-    <main className="admin-dashboard-page">
-      <div className="admin-page-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
+    <main className="container">
+      <div className="page-heading">
         <div>
-          <p className="admin-eyebrow">Overview</p>
+          <p className="eyebrow">Overview</p>
           <h1>Dashboard overview</h1>
-          <p style={{ margin: "8px 0 0", color: "#667085", fontSize: "0.95rem", lineHeight: 1.5 }}>
-            Monitor key metrics, user activity, and administrative operations.
-          </p>
-        </div>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "999px", background: "rgba(22, 163, 74, 0.1)", color: "#15803d", fontSize: "0.85rem", fontWeight: 700 }}>
-          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#16a34a" }} />
-          All systems operational
         </div>
       </div>
 
-      <section className="admin-stats" aria-label="Dashboard statistics">
+      {error && <p className="placeholder-text" role="alert">{error}</p>}
+
+      <section className="stats">
         {stats.map((stat) => (
-          <article className="admin-card" key={stat.label}>
-            <div className="admin-card-header">
+          <div className="card" key={stat.label}>
+            <div className="card-header">
               <span>{stat.label}</span>
-              <span className="admin-card-icon"><AdminIcon name={stat.icon} /></span>
+              <i className={`fa fa-${stat.icon}`} />
             </div>
-            <h2>{stat.value}</h2>
-            <p>{stat.detail}</p>
-          </article>
+            <h2 className="placeholder-value" id={stat.id}>{stat.value}</h2>
+            <p className="placeholder-text">{stat.detail}</p>
+          </div>
         ))}
       </section>
 
-      <section className="admin-content-grid">
-        <article className="admin-panel">
+      <section className="grid">
+        <div className="panel">
           <h3>Quick Actions</h3>
-          <div className="admin-action-list">
-            {quickActions.map((action) => (
-              <a className="admin-action" href={action.target} key={action.title}>
-                <span className="admin-action-icon"><AdminIcon name={action.icon} /></span>
-                <span>
-                  <strong>{action.title}</strong>
-                  <small>{action.detail}</small>
-                </span>
-              </a>
-            ))}
-          </div>
-        </article>
+          {quickActions.map((action) => (
+            <div
+              className="action"
+              data-href={action.target}
+              key={action.title}
+              onClick={() => navigate(action.target)}
+              onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") navigate(action.target); }}
+              role="link"
+              tabIndex={0}
+            >
+              <i className={`fa fa-${action.icon}`} />
+              <div>
+                <strong>{action.title}</strong>
+                <span>{action.detail}</span>
+              </div>
+            </div>
+          ))}
+        </div>
 
-        <article className="admin-panel">
+        <div className="panel">
           <h3>Recent Activity</h3>
-          <ul className="admin-activity-list">
-            <li className="admin-empty-activity">
-              <span className="admin-activity-dot" />
-              <span>No recent activity loaded yet.</span>
-            </li>
+          <ul className="activity" id="dashboardActivityList">
+            {activity.length ? activity.map((item) => (
+              <li key={item.id}>
+                <strong><span className={`dot ${item.tone}`} />{item.title}</strong>
+                <small>{item.details} | {item.time}</small>
+              </li>
+            )) : <li className="placeholder-text">No workspace activity has been created yet.</li>}
           </ul>
-        </article>
+        </div>
       </section>
     </main>
   );
