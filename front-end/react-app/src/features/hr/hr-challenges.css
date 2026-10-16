@@ -1,3 +1,23 @@
+body:has(.hr-challenges-page) {
+  padding: 0;
+}
+
+.app-shell:has(.hr-challenges-page) > .topbar,
+.app-shell:has(.hr-challenges-page) .sidebar {
+  display: none;
+}
+
+.app-shell:has(.hr-challenges-page) .workspace-shell {
+  display: block;
+  min-height: 100vh;
+}
+
+.app-shell:has(.hr-challenges-page) .workspace-main {
+  width: 100vw;
+  max-width: none;
+  padding: 0;
+}
+
 .hr-challenges-page { min-height: 100vh; padding: 18px 28px 40px; color: #26394a; background: linear-gradient(180deg, #e5f0fb, #dcebf8); font-family: "DM Sans", Arial, sans-serif; }
 .hr-challenges-hero, .hr-challenge-board { max-width: 1180px; margin: 0 auto 22px; border: 1px solid rgba(151,180,204,.45); border-radius: 18px; background: #fff; box-shadow: 0 8px 18px rgba(74,112,146,.09); }
 .hr-challenges-hero { display: flex; align-items: center; gap: 16px; padding: 28px 30px; background: linear-gradient(135deg, #d8f5f3, #eef7ff); }
@@ -13,18 +33,18 @@
 @media (max-width: 820px) { .hr-challenges-page { padding: 12px 16px 28px; }.hr-challenges-grid, .hr-rewards-grid { grid-template-columns: 1fr; }.hr-challenge-toolbar { align-items: flex-start; flex-direction: column; }.hr-create-button { width: 100%; justify-content: center; } }
 
 /* Match the legacy hr_challenges.html composition and proportions. */
-.hr-challenges-page { min-height: 100vh; padding: 0 18px 22px; background: linear-gradient(180deg,#f8fdff 0%,#eefcfb 100%); }
-.hr-challenges-page > .hr-navbar { width: min(100%,1580px); margin: 0 auto; padding: 14px 18px; border-radius: 0 0 18px 18px; box-shadow: 0 8px 18px rgba(74,112,146,.09); }
+.hr-challenges-page { width: 100%; min-height: 100vh; margin: 0; padding: 10px 14px 28px; background: linear-gradient(180deg,#f8fdff 0%,#eefcfb 100%); }
+.hr-challenges-page > .hr-navbar { width: 100%; margin: 0; padding: 14px 18px; border-radius: 0 0 18px 18px; box-shadow: 0 8px 18px rgba(74,112,146,.09); }
 .hr-challenges-page .hr-nav-links a { min-width: auto; padding: 9px 15px; border: 0; border-radius: 9px; background: transparent; }
 .hr-challenges-page .hr-nav-links a.active { color: #fff; background: #0ea79e; }
 .hr-challenges-page .hr-nav-right { display: flex; align-items: center; gap: 12px; color: #63778a; font-size: .86rem; }
 .hr-challenges-page .hr-upgrade { padding: 8px 16px; border-radius: 20px; color: #fff; background: #ff914d; font-weight: 700; text-decoration: none; box-shadow: 0 4px 10px rgba(255,145,77,.3); }
 .hr-challenges-page .hr-round-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; color: #4b718d; background: #e7f2f7; font-size: .78rem; }
-.hr-challenges-hero, .hr-challenge-board { width: min(100%,1580px); max-width: none; border-radius: 0; }
-.hr-challenges-hero { min-height: 124px; margin: 10px auto 0; padding: 30px; border: 0; border-radius: 26px 26px 0 0; color: #fff; background: linear-gradient(90deg,#0a93b8 0%,#0ca1a4 55%,#0aa38f 100%); box-shadow: 0 16px 34px rgba(10,147,184,.2); }
+.hr-challenges-hero, .hr-challenge-board { width: 100%; max-width: none; border-radius: 0; }
+.hr-challenges-hero { min-height: 124px; margin: 10px 0 0; padding: 30px; border: 0; border-radius: 26px 26px 0 0; color: #fff; background: linear-gradient(90deg,#0a93b8 0%,#0ca1a4 55%,#0aa38f 100%); box-shadow: 0 16px 34px rgba(10,147,184,.2); }
 .hr-trophy-mark { width: 66px; height: 66px; border-radius: 20px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.15); }
 .hr-challenges-hero h1 { color: #fff; font-size: 40px; }.hr-challenges-hero p { color: rgba(255,255,255,.84); font-size: 17px; }
-.hr-challenge-board { margin: 0 auto; padding: 18px 20px 20px; border: 1px solid #dff3f2; border-top: 0; border-radius: 0 0 26px 26px; background: linear-gradient(180deg,#fbffff 0%,#f2fffc 100%); box-shadow: 0 18px 36px rgba(108,169,182,.12); }
+.hr-challenge-board { margin: 0; padding: 18px 20px 20px; border: 1px solid #dff3f2; border-top: 0; border-radius: 0 0 26px 26px; background: linear-gradient(180deg,#fbffff 0%,#f2fffc 100%); box-shadow: 0 18px 36px rgba(108,169,182,.12); }
 .hr-challenge-board.rewards { margin-top: 24px; border-top: 1px solid #dff3f2; border-radius: 26px; background: radial-gradient(circle at top right,rgba(37,99,235,.08),transparent 26%),linear-gradient(180deg,#fcffff 0%,#f6fbff 100%); }
 .hr-challenge-toolbar { display: grid; grid-template-columns: 1fr auto; align-items: start; margin-bottom: 18px; }.hr-challenge-toolbar h2 { color: #111827; font-size: 22px; }.hr-challenge-toolbar p { color: #7c8a96; font-size: 14px; }
 .hr-create-button { height: 40px; border-radius: 9px; background: #0ea79e; box-shadow: 0 4px 12px rgba(14,167,158,.2); }.hr-challenge-board.rewards .hr-create-button { background: linear-gradient(135deg,#2563eb 0%,#0ea5e9 100%); }

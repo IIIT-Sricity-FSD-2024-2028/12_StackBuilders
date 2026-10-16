@@ -17,7 +17,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
     res.setHeader(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;",
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: https://images.unsplash.com; connect-src 'self' http://127.0.0.1:5174 http://localhost:5174;",
     );
     res.setHeader('Cache-Control', 'no-store');
     res.removeHeader('X-Powered-By');
@@ -32,7 +32,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 // Deliberately in-memory/per-process — this app has no shared cache layer, and
 // per-process limiting is enough for this scope.
 const WINDOW_MS = 15 * 60 * 1000;
-const MAX_REQUESTS_PER_WINDOW = 300;
+const MAX_REQUESTS_PER_WINDOW = process.env.NODE_ENV === 'production' ? 300 : 5000;
 const SWEEP_INTERVAL_MS = 5 * 60 * 1000;
 
 interface Bucket {

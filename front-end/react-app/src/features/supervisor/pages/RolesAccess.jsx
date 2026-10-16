@@ -1,25 +1,202 @@
 import { useEffect, useState } from "react";
+import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
+import usePersistedTab from "../../../hooks/usePersistedTab.js";
+import {
+  makeDefaultRolePermissions,
+  ROLE_ACCESS_ACTIONS,
+  ROLE_ACCESS_RESOURCES,
+  ROLE_ACCESS_ROLES,
+} from "../../shared/roleAccessConfig.js";
+import { cacheRolePermissions } from "../../shared/roleAccessContext.jsx";
 import SupervisorIcon from "../components/SupervisorIcon.jsx";
 import supervisorApi from "../supervisorApi.js";
 
-const roles = ["HR", "Employee", "Wellness Expert"];
-const operations = ["Create", "Read", "Update", "Delete"];
-const resources = [["User Management", "user-management"], ["Company Management", "client-management"], ["Reports & Analytics", "reports"], ["Challenge Management", "challenge-management"]];
-const permissionGroups = { HR: "hr", Employee: "employee", "Wellness Expert": "wellness-expert" };
+const roleLabels = ROLE_ACCESS_ROLES.map(({ label }) => label);
 
 function RolesAccess() {
-  const [activeRole, setActiveRole] = useState("HR");
+  const [activeRole, setActiveRole] = usePersistedTab("stackbuilders.supervisor.rolesAccessTab", "HR", roleLabels);
   const [permissions, setPermissions] = useState({});
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const loadPermissions = async (role) => { setLoading(true); setError(""); try { const result = await supervisorApi.getPermissions(permissionGroups[role]); setPermissions(result?.permissions || {}); } catch (requestError) { setPermissions({}); setError(requestError.message || "Permissions could not be loaded."); } finally { setLoading(false); } };
-  useEffect(() => { loadPermissions(activeRole); }, [activeRole]);
-  const togglePermission = async (key) => { const next = { ...permissions, [key]: !permissions[key] }; setPermissions(next); try { const result = await supervisorApi.updatePermissions(permissionGroups[activeRole], next); setPermissions(result?.permissions || next); } catch (requestError) { setError(requestError.message || "Permission changes could not be saved."); setPermissions(permissions); } };
-  const enableAll = async () => { const next = Object.fromEntries(resources.flatMap(([, prefix]) => operations.map((operation) => [`${prefix}-${operation.toLowerCase()}`, true]))); setPermissions(next); try { const result = await supervisorApi.updatePermissions(permissionGroups[activeRole], next); setPermissions(result?.permissions || next); } catch (requestError) { setError(requestError.message || "Permission changes could not be saved."); } };
-  return <>
-    <div className="supervisor-page-heading"><div><p className="supervisor-eyebrow">Access Center</p><h1>Roles & Access Control</h1><p className="supervisor-subtitle">Manage role-based permissions and access levels.</p></div><button className="supervisor-primary-button" type="button" onClick={enableAll}><SupervisorIcon name="shield" size={17} /> Enable all</button></div>
-    <div className="roles-layout"><section className="supervisor-panel role-selector"><div className="supervisor-panel-heading"><div><p className="supervisor-eyebrow">Workspace roles</p><h2>Roles</h2></div><SupervisorIcon name="users" /></div>{roles.map((role) => <button className={`role-selector-item${activeRole === role ? " active" : ""}`} type="button" key={role} onClick={() => setActiveRole(role)}><span className="role-selector-icon"><SupervisorIcon name={role === "HR" ? "shield" : role === "Employee" ? "user" : "heart"} size={18} /></span><span><strong>{role}</strong><small>Modules configurable</small></span><SupervisorIcon name="chevron" size={16} /></button>)}</section><section className="supervisor-panel permissions-panel"><div className="supervisor-panel-heading"><div><p className="supervisor-eyebrow">Permissions for {activeRole}</p><h2>Permission Matrix</h2></div><span className="role-pill">{activeRole}</span></div>{error && <p className="form-error">{error}</p>}{loading ? <div className="supervisor-loading compact"><span className="supervisor-spinner" />Loading permissions…</div> : <div className="permission-table-wrap"><table className="permission-table"><thead><tr><th>Module</th>{operations.map((operation) => <th key={operation}>{operation}</th>)}</tr></thead><tbody>{resources.map(([resource, prefix]) => <tr key={resource}><td><strong>{resource}</strong></td>{operations.map((operation) => { const key = `${prefix}-${operation.toLowerCase()}`; const enabled = Boolean(permissions[key]); return <td key={key}><button className={`permission-toggle${enabled ? " active" : ""}`} type="button" onClick={() => togglePermission(key)} aria-label={`${resource} ${operation} permission`}><span /></button></td>; })}</tr>)}</tbody></table></div>}<p className="permission-note"><SupervisorIcon name="shield" size={15} /> Changes are saved to the role-permissions API.</p></section></div>
-  </>;
+  const [notice, setNotice] = useState("Changes save automatically");
+  const [reloadCount, setReloadCount] = useState(0);
+
+  const activeRoleConfig = ROLE_ACCESS_ROLES.find(({ label }) => label === activeRole) || ROLE_ACCESS_ROLES[0];
+  const resources = ROLE_ACCESS_RESOURCES[activeRoleConfig.group];
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError("");
+    setNotice("Loading permissions…");
+
+    supervisorApi.getPermissions(activeRoleConfig.group)
+      .then((result) => {
+        if (!active) return;
+        setPermissions(cacheRolePermissions(activeRoleConfig.group, result?.permissions || makeDefaultRolePermissions()));
+        setNotice("Changes save automatically");
+      })
+      .catch((loadError) => {
+        if (!active) return;
+        setError(loadError.message || "Permissions could not be loaded.");
+        setNotice("Permissions could not be loaded");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [activeRoleConfig.group, reloadCount]);
+
+  useAutoRefresh(async () => {
+    if (saving || loading) return;
+    try {
+      const result = await supervisorApi.getPermissions(activeRoleConfig.group);
+      setPermissions(cacheRolePermissions(activeRoleConfig.group, result?.permissions || makeDefaultRolePermissions()));
+      setError("");
+    } catch (refreshError) {
+      setError(refreshError.message || "Permissions could not be refreshed.");
+    }
+  }, saving || loading ? "" : `supervisor-permissions:${activeRoleConfig.group}`);
+
+  async function savePermissions(nextPermissions) {
+    if (saving || loading || error) return;
+
+    const previousPermissions = permissions;
+    setSaving(true);
+    setError("");
+    setNotice("Saving changes…");
+    setPermissions(nextPermissions);
+
+    try {
+      const result = await supervisorApi.updatePermissions(activeRoleConfig.group, nextPermissions);
+      setPermissions(cacheRolePermissions(activeRoleConfig.group, result?.permissions || nextPermissions));
+      setNotice("Changes saved to the backend");
+    } catch (saveError) {
+      setPermissions(previousPermissions);
+      setNotice("Changes were not saved");
+      setError(saveError.message || "Permission changes could not be saved.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function togglePermission(prefix, action) {
+    const key = `${prefix}-${action.toLowerCase()}`;
+    void savePermissions({ ...permissions, [key]: !permissions[key] });
+  }
+
+  async function resetPermissions() {
+    if (saving || loading || error) return;
+
+    setSaving(true);
+    setError("");
+    setNotice("Restoring defaults…");
+    try {
+      const result = await supervisorApi.resetPermissions(activeRoleConfig.group);
+      setPermissions(cacheRolePermissions(activeRoleConfig.group, result?.permissions || makeDefaultRolePermissions()));
+      setNotice("Defaults restored from the backend");
+    } catch (resetError) {
+      setNotice("Defaults could not be restored");
+      setError(resetError.message || "Permissions could not be reset.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <div className="supervisor-page-heading">
+        <div>
+          <p className="supervisor-eyebrow">Permissions</p>
+          <h1>Roles &amp; access control</h1>
+          <p className="supervisor-subtitle">Manage role-based permissions and access levels across the wellness platform.</p>
+        </div>
+      </div>
+
+      <div className="roles-layout">
+        <aside className="supervisor-panel role-selector">
+          <div className="supervisor-panel-heading">
+            <div><p className="supervisor-eyebrow">Directory</p><h2>Roles</h2></div>
+          </div>
+          {ROLE_ACCESS_ROLES.map(({ label, icon }) => (
+            <button
+              aria-pressed={activeRole === label}
+              className={`role-selector-item${activeRole === label ? " active" : ""}`}
+              disabled={saving}
+              key={label}
+              onClick={() => setActiveRole(label)}
+              type="button"
+            >
+              <span className="role-selector-icon">
+                <SupervisorIcon name={icon === "fa-user-shield" ? "shield" : icon === "fa-heart-pulse" ? "heart" : "user"} size={18} />
+              </span>
+              <span><strong>{label}</strong><small>Modules configurable</small></span>
+              <SupervisorIcon name="chevron" size={16} />
+            </button>
+          ))}
+        </aside>
+
+        <section className="supervisor-panel permissions">
+          <div className="supervisor-panel-heading">
+            <div>
+              <p className="supervisor-eyebrow">Access matrix</p>
+              <h2>Permissions for {activeRole}</h2>
+              <p className="supervisor-subtitle">Toggle individual permissions for each workflow.</p>
+            </div>
+          </div>
+
+          {error && <p className="supervisor-empty-state" role="alert">{error}</p>}
+          {loading ? <p className="supervisor-empty-state" role="status">Loading permissions…</p> : !error && (
+            <div className="permission-table-wrap">
+              <table className="permission-table">
+                <thead><tr><th>Module</th>{ROLE_ACCESS_ACTIONS.map((action) => <th key={action}>{action}</th>)}</tr></thead>
+                <tbody>
+                  {resources.map(([resource, prefix]) => (
+                    <tr key={prefix}>
+                      <td>{resource}</td>
+                      {ROLE_ACCESS_ACTIONS.map((action) => {
+                        const key = `${prefix}-${action.toLowerCase()}`;
+                        const enabled = Boolean(permissions[key]);
+                        return (
+                          <td key={key}>
+                            <button
+                              aria-label={`${resource} ${action} permission ${enabled ? "enabled" : "disabled"}`}
+                              aria-pressed={enabled}
+                              className={`permission-toggle${enabled ? " active" : ""}`}
+                              disabled={saving}
+                              onClick={() => togglePermission(prefix, action)}
+                              type="button"
+                            ><span /></button>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div className="form-actions">
+            <span className="permission-note" role="status">
+              <SupervisorIcon name="check" size={15} /> {loading ? "Loading permissions…" : saving ? "Saving permissions…" : notice}
+            </span>
+            <button
+              className="supervisor-outline-button"
+              disabled={loading || saving || Boolean(error)}
+              onClick={resetPermissions}
+              type="button"
+            >Reset to default</button>
+            {error && <button className="supervisor-outline-button" disabled={loading || saving} onClick={() => setReloadCount((count) => count + 1)} type="button">Retry</button>}
+          </div>
+        </section>
+      </div>
+    </>
+  );
 }
 
 export default RolesAccess;

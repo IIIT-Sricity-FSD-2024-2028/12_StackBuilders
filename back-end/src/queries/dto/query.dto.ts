@@ -12,6 +12,10 @@ export class QueryDto {
   @IsOptional()
   userType?: string;
   @IsOptional()
+  companyId?: string;
+  @IsOptional()
+  companyName?: string;
+  @IsOptional()
   description?: string;
   @IsOptional()
   status?: string;
@@ -21,4 +25,6 @@ export class QueryDto {
   createdAt?: number;
   @IsOptional()
   readBySender?: boolean;
+  @IsOptional()
+  repliedAt?: number;
 }

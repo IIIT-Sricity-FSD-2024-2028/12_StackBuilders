@@ -35,6 +35,7 @@
             "role": []
           }
         ],
+        "summary": "Check backend readiness",
         "tags": [
           "app"
         ]
@@ -717,7 +718,7 @@
             "role": []
           }
         ],
-        "summary": "Delete a company and linked HR profile records",
+        "summary": "Remove a company and its accounts while retaining history",
         "tags": [
           "companies"
         ]
@@ -1139,7 +1140,7 @@
             "description": "Validation failed or the wellness expert conflicts with existing users."
           },
           "403": {
-            "description": "Missing or invalid role header."
+            "description": "Missing or invalid role header, no active subscription, or the plan limit has been reached."
           }
         },
         "security": [
@@ -1723,7 +1724,7 @@
             "description": "Validation failed or the employee conflicts with existing users."
           },
           "403": {
-            "description": "Missing or invalid role header."
+            "description": "Missing or invalid role header, no active subscription, or the plan limit has been reached."
           }
         },
         "security": [
@@ -1896,6 +1897,351 @@
         "summary": "Delete an employee",
         "tags": [
           "employees"
+        ]
+      }
+    },
+    "/companies/with-hr": {
+      "post": {
+        "operationId": "CompanyWorkspacesController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCompanyWorkspaceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The company and linked HR profile were created successfully."
+          },
+          "400": {
+            "description": "Company or HR details are invalid or conflict with existing records."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create a company and its initial HR account together",
+        "tags": [
+          "company-workspaces"
+        ]
+      }
+    },
+    "/hr-profiles": {
+      "get": {
+        "operationId": "HrProfilesController_findAll",
+        "parameters": [
+          {
+            "name": "email",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "companyName",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HrProfileEntity"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "List HR profiles",
+        "tags": [
+          "hr-profiles"
+        ]
+      },
+      "post": {
+        "operationId": "HrProfilesController_create",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHrProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "hrProfile": {
+                      "id": "hr-1777718400000-a1b2c3d4",
+                      "name": "Priya Sharma",
+                      "email": "priya.sharma@gmail.com",
+                      "username": "priya.sharma@gmail.com",
+                      "phoneNumber": "+91 98765 43210",
+                      "department": "HR",
+                      "designation": "HR Admin",
+                      "location": "",
+                      "companyId": "CMP-1001",
+                      "companyName": "Stack Builders Pvt Ltd",
+                      "status": "Active",
+                      "createdBySuperUser": true,
+                      "password": "secure123",
+                      "createdAt": "2026-05-02T12:30:00.000Z",
+                      "updatedAt": "2026-05-02T12:30:00.000Z"
+                    },
+                    "replacedProfiles": []
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or company reference is invalid."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Create an HR profile and replace any existing HR mapped to the same company",
+        "tags": [
+          "hr-profiles"
+        ]
+      }
+    },
+    "/hr-profiles/{id}": {
+      "get": {
+        "operationId": "HrProfilesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrProfileEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "HR profile not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Get an HR profile by id",
+        "tags": [
+          "hr-profiles"
+        ]
+      },
+      "patch": {
+        "operationId": "HrProfilesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateHrProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrProfileEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or conflicting company/email details."
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "HR profile not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Update an HR profile",
+        "tags": [
+          "hr-profiles"
+        ]
+      },
+      "delete": {
+        "operationId": "HrProfilesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrProfileEntity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid role header."
+          },
+          "404": {
+            "description": "HR profile not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Delete an HR profile",
+        "tags": [
+          "hr-profiles"
         ]
       }
     },
@@ -2386,305 +2732,6 @@
         "summary": "Instantly book an available slot for a consultation",
         "tags": [
           "consultations"
-        ]
-      }
-    },
-    "/hr-profiles": {
-      "get": {
-        "operationId": "HrProfilesController_findAll",
-        "parameters": [
-          {
-            "name": "email",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "companyId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "companyName",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "role",
-            "in": "header",
-            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/HrProfileEntity"
-                  }
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Missing or invalid role header."
-          }
-        },
-        "security": [
-          {
-            "role": []
-          }
-        ],
-        "summary": "List HR profiles",
-        "tags": [
-          "hr-profiles"
-        ]
-      },
-      "post": {
-        "operationId": "HrProfilesController_create",
-        "parameters": [
-          {
-            "name": "role",
-            "in": "header",
-            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateHrProfileDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "hrProfile": {
-                      "id": "hr-1777718400000-a1b2c3d4",
-                      "name": "Priya Sharma",
-                      "email": "priya.sharma@gmail.com",
-                      "username": "priya.sharma@gmail.com",
-                      "phoneNumber": "+91 98765 43210",
-                      "department": "HR",
-                      "designation": "HR Admin",
-                      "location": "",
-                      "companyId": "CMP-1001",
-                      "companyName": "Stack Builders Pvt Ltd",
-                      "status": "Active",
-                      "createdBySuperUser": true,
-                      "password": "secure123",
-                      "createdAt": "2026-05-02T12:30:00.000Z",
-                      "updatedAt": "2026-05-02T12:30:00.000Z"
-                    },
-                    "replacedProfiles": []
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation failed or company reference is invalid."
-          },
-          "403": {
-            "description": "Missing or invalid role header."
-          }
-        },
-        "security": [
-          {
-            "role": []
-          }
-        ],
-        "summary": "Create an HR profile and replace any existing HR mapped to the same company",
-        "tags": [
-          "hr-profiles"
-        ]
-      }
-    },
-    "/hr-profiles/{id}": {
-      "get": {
-        "operationId": "HrProfilesController_findOne",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "role",
-            "in": "header",
-            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HrProfileEntity"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Missing or invalid role header."
-          },
-          "404": {
-            "description": "HR profile not found."
-          }
-        },
-        "security": [
-          {
-            "role": []
-          }
-        ],
-        "summary": "Get an HR profile by id",
-        "tags": [
-          "hr-profiles"
-        ]
-      },
-      "patch": {
-        "operationId": "HrProfilesController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "role",
-            "in": "header",
-            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateHrProfileDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HrProfileEntity"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation failed or conflicting company/email details."
-          },
-          "403": {
-            "description": "Missing or invalid role header."
-          },
-          "404": {
-            "description": "HR profile not found."
-          }
-        },
-        "security": [
-          {
-            "role": []
-          }
-        ],
-        "summary": "Update an HR profile",
-        "tags": [
-          "hr-profiles"
-        ]
-      },
-      "delete": {
-        "operationId": "HrProfilesController_remove",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "role",
-            "in": "header",
-            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HrProfileEntity"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Missing or invalid role header."
-          },
-          "404": {
-            "description": "HR profile not found."
-          }
-        },
-        "security": [
-          {
-            "role": []
-          }
-        ],
-        "summary": "Delete an HR profile",
-        "tags": [
-          "hr-profiles"
         ]
       }
     },
@@ -3976,9 +4023,17 @@
           },
           {
             "name": "role",
+            "required": true,
             "in": "header",
             "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-expert-id",
             "required": true,
+            "in": "header",
             "schema": {
               "type": "string"
             }
@@ -3996,7 +4051,7 @@
             }
           },
           "403": {
-            "description": "Missing or invalid role header."
+            "description": "Missing or invalid role header, or the wellness expert does not own this video."
           },
           "404": {
             "description": "Video not found."
@@ -4234,6 +4289,10 @@
           "createdLabel": {
             "type": "string",
             "example": "02 May 2026"
+          },
+          "archivedAt": {
+            "type": "string",
+            "example": "2026-10-14T12:30:00.000Z"
           }
         },
         "required": [
@@ -5235,6 +5294,237 @@
           }
         }
       },
+      "CreateCompanyWorkspaceDto": {
+        "type": "object",
+        "properties": {
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "companyPhone": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "companyAddress": {
+            "type": "string",
+            "example": "Bengaluru, Karnataka"
+          },
+          "companyEmail": {
+            "type": "string",
+            "example": "contact@stackbuilders.com"
+          },
+          "hrName": {
+            "type": "string",
+            "example": "Priya Sharma"
+          },
+          "hrPhoneNumber": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "hrEmail": {
+            "type": "string",
+            "example": "priya.sharma@gmail.com"
+          },
+          "hrPassword": {
+            "type": "string",
+            "example": "secure123"
+          }
+        },
+        "required": [
+          "companyName",
+          "companyPhone",
+          "companyAddress",
+          "companyEmail",
+          "hrName",
+          "hrEmail",
+          "hrPassword"
+        ]
+      },
+      "HrProfileEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "hr-1777718400000-a1b2c3d4"
+          },
+          "name": {
+            "type": "string",
+            "example": "Priya Sharma"
+          },
+          "email": {
+            "type": "string",
+            "example": "priya.sharma@gmail.com"
+          },
+          "username": {
+            "type": "string",
+            "example": "priya.sharma@gmail.com"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+91 98765 43210"
+          },
+          "department": {
+            "type": "string",
+            "example": "Operations"
+          },
+          "designation": {
+            "type": "string",
+            "example": "HR Manager"
+          },
+          "location": {
+            "type": "string",
+            "example": "Bengaluru"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "status": {
+            "type": "string",
+            "example": "Active"
+          },
+          "createdBySuperUser": {
+            "type": "boolean",
+            "example": true
+          },
+          "password": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-05-02T12:30:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-05-02T12:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "username",
+          "phoneNumber",
+          "department",
+          "designation",
+          "location",
+          "companyId",
+          "companyName",
+          "status",
+          "createdBySuperUser",
+          "password",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateHrProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Priya Sharma"
+          },
+          "email": {
+            "type": "string",
+            "example": "priya.sharma@gmail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "department": {
+            "type": "string",
+            "example": "HR"
+          },
+          "designation": {
+            "type": "string",
+            "example": "HR Admin"
+          },
+          "location": {
+            "type": "string",
+            "example": "Bengaluru"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "status": {
+            "type": "string",
+            "example": "Active"
+          },
+          "createdBySuperUser": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "password"
+        ]
+      },
+      "UpdateHrProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Priya Sharma"
+          },
+          "email": {
+            "type": "string",
+            "example": "priya.sharma@gmail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "secure123"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "department": {
+            "type": "string",
+            "example": "HR"
+          },
+          "designation": {
+            "type": "string",
+            "example": "HR Admin"
+          },
+          "location": {
+            "type": "string",
+            "example": "Bengaluru"
+          },
+          "companyId": {
+            "type": "string",
+            "example": "CMP-1001"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Stack Builders Pvt Ltd"
+          },
+          "status": {
+            "type": "string",
+            "example": "Active"
+          },
+          "createdBySuperUser": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
       "ConsultationEntity": {
         "type": "object",
         "properties": {
@@ -5534,191 +5824,6 @@
           "purpose": {
             "type": "string",
             "example": "Need guidance for nutrition planning."
-          }
-        }
-      },
-      "HrProfileEntity": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "hr-1777718400000-a1b2c3d4"
-          },
-          "name": {
-            "type": "string",
-            "example": "Priya Sharma"
-          },
-          "email": {
-            "type": "string",
-            "example": "priya.sharma@gmail.com"
-          },
-          "username": {
-            "type": "string",
-            "example": "priya.sharma@gmail.com"
-          },
-          "phoneNumber": {
-            "type": "string",
-            "example": "+91 98765 43210"
-          },
-          "department": {
-            "type": "string",
-            "example": "Operations"
-          },
-          "designation": {
-            "type": "string",
-            "example": "HR Manager"
-          },
-          "location": {
-            "type": "string",
-            "example": "Bengaluru"
-          },
-          "companyId": {
-            "type": "string",
-            "example": "CMP-1001"
-          },
-          "companyName": {
-            "type": "string",
-            "example": "Stack Builders Pvt Ltd"
-          },
-          "status": {
-            "type": "string",
-            "example": "Active"
-          },
-          "createdBySuperUser": {
-            "type": "boolean",
-            "example": true
-          },
-          "password": {
-            "type": "string",
-            "example": "secure123"
-          },
-          "createdAt": {
-            "type": "string",
-            "example": "2026-05-02T12:30:00.000Z"
-          },
-          "updatedAt": {
-            "type": "string",
-            "example": "2026-05-02T12:30:00.000Z"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "email",
-          "username",
-          "phoneNumber",
-          "department",
-          "designation",
-          "location",
-          "companyId",
-          "companyName",
-          "status",
-          "createdBySuperUser",
-          "password",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
-      "CreateHrProfileDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "Priya Sharma"
-          },
-          "email": {
-            "type": "string",
-            "example": "priya.sharma@gmail.com"
-          },
-          "password": {
-            "type": "string",
-            "example": "secure123"
-          },
-          "phoneNumber": {
-            "type": "string",
-            "example": "9876543210"
-          },
-          "department": {
-            "type": "string",
-            "example": "HR"
-          },
-          "designation": {
-            "type": "string",
-            "example": "HR Admin"
-          },
-          "location": {
-            "type": "string",
-            "example": "Bengaluru"
-          },
-          "companyId": {
-            "type": "string",
-            "example": "CMP-1001"
-          },
-          "companyName": {
-            "type": "string",
-            "example": "Stack Builders Pvt Ltd"
-          },
-          "status": {
-            "type": "string",
-            "example": "Active"
-          },
-          "createdBySuperUser": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "name",
-          "email",
-          "password"
-        ]
-      },
-      "UpdateHrProfileDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "Priya Sharma"
-          },
-          "email": {
-            "type": "string",
-            "example": "priya.sharma@gmail.com"
-          },
-          "password": {
-            "type": "string",
-            "example": "secure123"
-          },
-          "phoneNumber": {
-            "type": "string",
-            "example": "9876543210"
-          },
-          "department": {
-            "type": "string",
-            "example": "HR"
-          },
-          "designation": {
-            "type": "string",
-            "example": "HR Admin"
-          },
-          "location": {
-            "type": "string",
-            "example": "Bengaluru"
-          },
-          "companyId": {
-            "type": "string",
-            "example": "CMP-1001"
-          },
-          "companyName": {
-            "type": "string",
-            "example": "Stack Builders Pvt Ltd"
-          },
-          "status": {
-            "type": "string",
-            "example": "Active"
-          },
-          "createdBySuperUser": {
-            "type": "boolean",
-            "example": true
           }
         }
       },
@@ -6337,6 +6442,10 @@
             "type": "string",
             "example": "https://www.youtube.com/watch?v=inpok4MKVLM"
           },
+          "videoFileUrl": {
+            "type": "string",
+            "example": "/media/videos/7f04d73c-8089-4d57-a0b0-9f1996c3a4d6.mp4"
+          },
           "thumbnailLink": {
             "type": "string",
             "example": "https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=900&q=80"
@@ -6371,7 +6480,6 @@
           "title",
           "category",
           "duration",
-          "videoLink",
           "thumbnailLink",
           "description",
           "createdAt",
@@ -6399,6 +6507,10 @@
           "videoLink": {
             "type": "string",
             "example": "https://www.youtube.com/watch?v=inpok4MKVLM"
+          },
+          "videoFileUrl": {
+            "type": "string",
+            "example": "/media/videos/7f04d73c-8089-4d57-a0b0-9f1996c3a4d6.mp4"
           },
           "thumbnailLink": {
             "type": "string",
@@ -6429,8 +6541,6 @@
           "title",
           "category",
           "duration",
-          "videoLink",
-          "thumbnailLink",
           "description"
         ]
       },
@@ -6452,6 +6562,10 @@
           "videoLink": {
             "type": "string",
             "example": "https://www.youtube.com/watch?v=inpok4MKVLM"
+          },
+          "videoFileUrl": {
+            "type": "string",
+            "example": "/media/videos/7f04d73c-8089-4d57-a0b0-9f1996c3a4d6.mp4"
           },
           "thumbnailLink": {
             "type": "string",

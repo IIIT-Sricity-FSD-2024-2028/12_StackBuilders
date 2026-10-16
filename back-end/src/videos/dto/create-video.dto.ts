@@ -17,18 +17,23 @@ export class CreateVideoDto {
   @IsNotEmpty()
   duration: string;
 
-  @ApiProperty({ example: 'https://www.youtube.com/watch?v=inpok4MKVLM' })
+  @ApiPropertyOptional({ example: 'https://www.youtube.com/watch?v=inpok4MKVLM' })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  videoLink: string;
+  videoLink?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({ example: '/media/videos/7f04d73c-8089-4d57-a0b0-9f1996c3a4d6.mp4' })
+  @IsOptional()
+  @IsString()
+  videoFileUrl?: string;
+
+  @ApiPropertyOptional({
     example:
       'https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=900&q=80',
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  thumbnailLink: string;
+  thumbnailLink?: string;
 
   @ApiProperty({ example: 'A short guided reset for stress and focus.' })
   @IsString()

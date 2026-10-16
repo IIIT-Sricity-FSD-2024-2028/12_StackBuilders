@@ -1,0 +1,22 @@
+.pricing-hero { text-align:center; padding: 40px 20px 20px; }
+.pricing-hero h1 { font-family:'Playfair Display', serif; font-size:2.5rem; color:#1b3b36; margin-bottom:10px; }
+.pricing-hero p { font-size:1.1rem; color:#4a6a66; max-width:600px; margin:0 auto; }
+.plans-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; max-width:1060px; margin:40px auto; padding:0 20px 80px; }
+@media (max-width:900px) { .plans-grid { grid-template-columns:1fr; } }
+.plan-card { background:white; border:1px solid rgba(0,0,0,.08); border-radius:16px; padding:32px 24px; display:flex; flex-direction:column; box-shadow:0 10px 30px rgba(0,0,0,.05); transition:.3s; }
+.plan-card:hover { transform:translateY(-8px); box-shadow:0 20px 40px rgba(0,0,0,.1); }
+.plan-card.featured { border:2px solid #0e9f92; box-shadow:0 15px 35px rgba(14,159,146,.15); position:relative; }
+.plan-card.featured::before { content:"Most Popular"; position:absolute; top:20px; right:-35px; background:#0e9f92; color:white; font-size:.7rem; font-weight:700; text-transform:uppercase; padding:6px 40px; transform:rotate(45deg); }
+.plan-name { font-family:'DM Sans',sans-serif; font-size:1.3rem; font-weight:700; color:#0e9f92; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px; }
+.plan-price { font-size:3rem; font-weight:800; color:#1b3b36; margin-bottom:24px; line-height:1; }
+.plan-price span { font-size:1rem; font-weight:500; color:#666; }
+.limit-badge { background:rgba(14,159,146,.1); color:#0c8a7e; font-size:.85rem; font-weight:600; padding:8px 14px; border-radius:99px; margin-bottom:8px; display:inline-block; width:100%; text-align:center; }
+.plan-features { list-style:none; flex:1; margin:24px 0; padding:0; }
+.plan-features li { padding:10px 0; font-size:.95rem; color:#444; border-bottom:1px solid #eee; }
+.plan-features li i { color:#0e9f92; margin-right:8px; }
+.choose-btn { display:block; width:100%; padding:14px; border-radius:12px; font-size:1.05rem; font-weight:700; cursor:pointer; transition:.3s; text-align:center; text-decoration:none; border:none; }
+.choose-btn.primary { background:#0e9f92; color:white; }
+.choose-btn.primary:hover { background:#0b8075; }
+.choose-btn.outline { background:transparent; color:#0e9f92; border:2px solid rgba(14,159,146,.3); }
+.choose-btn.outline:hover { border-color:#0e9f92; background:rgba(14,159,146,.05); }
+.choose-btn.current-plan { background:#e0f5f2; color:#0c8a7e; border:2px solid #0e9f92; cursor:default; pointer-events:none; }

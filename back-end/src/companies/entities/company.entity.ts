@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CompanyEntity {
   @ApiProperty({ example: 'CMP-1001' })
@@ -21,5 +21,8 @@ export class CompanyEntity {
 
   @ApiProperty({ example: '02 May 2026' })
   createdLabel: string;
+
+  @ApiPropertyOptional({ example: '2026-10-14T12:30:00.000Z' })
+  archivedAt?: string;
 }
 

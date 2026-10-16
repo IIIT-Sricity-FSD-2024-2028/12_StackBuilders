@@ -7,6 +7,7 @@ import { RoleHeaderGuard } from './common/guards/role-header.guard';
 import { InMemoryDataModule } from './common/data/in-memory-data.module';
 import { CheckinResponsesModule } from './checkin-responses/checkin-responses.module';
 import { CompaniesModule } from './companies/companies.module';
+import { CompanyWorkspacesModule } from './company-workspaces/company-workspaces.module';
 import { ConsultationsModule } from './consultations/consultations.module';
 import { EmployeesModule } from './employees/employees.module';
 import { ExpertsModule } from './experts/experts.module';
@@ -32,6 +33,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
     ChallengesModule,
     CheckinResponsesModule,
     CompaniesModule,
+    CompanyWorkspacesModule,
     ConsultationsModule,
     EmployeesModule,
     ExpertsModule,

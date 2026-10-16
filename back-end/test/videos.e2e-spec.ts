@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
+import { InMemoryDataService } from './../src/common/data/in-memory-data.service';
 
 describe('Video library workflows (e2e)', () => {
   let app: INestApplication;
@@ -39,6 +40,14 @@ describe('Video library workflows (e2e)', () => {
       .set('role', 'Admin')
       .expect(201);
 
+    app.get(InMemoryDataService).subscriptions.push({
+      companyId: 'CMP-1001',
+      companyName: 'Stack Builders Pvt Ltd',
+      planId: 'starter',
+      planName: 'Starter',
+      status: 'active',
+    });
+
     const employeeResponse = await request(app.getHttpServer())
       .post('/employees')
       .set('role', 'HR')
@@ -59,6 +68,19 @@ describe('Video library workflows (e2e)', () => {
         specialization: 'Psychologist',
         experience: '5',
         email: 'neha.verma@gmail.com',
+        password: 'secure123',
+        companyId: 'CMP-1001',
+      })
+      .expect(201);
+
+    const otherExpertResponse = await request(app.getHttpServer())
+      .post('/experts')
+      .set('role', 'HR')
+      .send({
+        name: 'Rohan Mehta',
+        specialization: 'Nutritionist',
+        experience: '4',
+        email: 'rohan.mehta@gmail.com',
         password: 'secure123',
         companyId: 'CMP-1001',
       })
@@ -129,6 +151,18 @@ describe('Video library workflows (e2e)', () => {
     await request(app.getHttpServer())
       .delete(`/videos/${createVideoResponse.body.id}`)
       .set('role', 'Wellness Expert')
+      .set('x-expert-id', otherExpertResponse.body.id)
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .get(`/videos/${createVideoResponse.body.id}`)
+      .set('role', 'Employee')
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .delete(`/videos/${createVideoResponse.body.id}`)
+      .set('role', 'Wellness Expert')
+      .set('x-expert-id', expertResponse.body.id)
       .expect(200);
 
     await request(app.getHttpServer())

@@ -99,4 +99,36 @@ describe('Admin onboarding workflows (e2e)', () => {
       companyId: 'CMP-1001',
     });
   });
+
+  it('allows an admin to reject and remove a pending company request', async () => {
+    const createResponse = await request(app.getHttpServer())
+      .post('/company-onboarding-requests')
+      .send({
+        companyName: 'Rejected Example Pvt Ltd',
+        companyPhone: '9876543210',
+        companyAddress: 'Bengaluru, Karnataka',
+        companyEmail: 'contact@rejected-example.com',
+        hrName: 'Riya Sharma',
+        hrPhoneNumber: '9876543210',
+        hrEmail: 'riya.rejected@gmail.com',
+        hrPassword: 'secure123',
+      })
+      .expect(201);
+
+    const requestId = createResponse.body.id;
+
+    await request(app.getHttpServer())
+      .delete(`/company-onboarding-requests/${requestId}`)
+      .set('role', 'Admin')
+      .expect(200);
+
+    const listResponse = await request(app.getHttpServer())
+      .get('/company-onboarding-requests')
+      .set('role', 'Admin')
+      .expect(200);
+
+    expect(listResponse.body).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: requestId })]),
+    );
+  });
 });

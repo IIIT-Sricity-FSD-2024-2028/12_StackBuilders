@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
+import { InMemoryDataService } from './../src/common/data/in-memory-data.service';
 
 describe('Wellness check-ins, responses, and live sessions (e2e)', () => {
   let app: INestApplication;
@@ -17,6 +18,62 @@ describe('Wellness check-ins, responses, and live sessions (e2e)', () => {
 
   afterEach(async () => {
     await app.close();
+  });
+
+  it('returns responses from every expert in the requested company', async () => {
+    const data = app.get(InMemoryDataService);
+    data.checkinResponses.push(
+      {
+        id: 'response-expert-one',
+        checkinId: 'checkin-shared',
+        checkinType: 'mental',
+        employeeId: 'employee-shared',
+        employeeName: 'Aarav Sharma',
+        expertId: 'expert-one',
+        expertName: 'Neha Verma',
+        companyId: 'CMP-1001',
+        companyName: 'Stack Builders Pvt Ltd',
+        message: 'Take a short break and follow the suggested routine.',
+        createdAt: '2026-10-14T10:00:00.000Z',
+      },
+      {
+        id: 'response-expert-two',
+        checkinId: 'checkin-shared',
+        checkinType: 'mental',
+        employeeId: 'employee-shared',
+        employeeName: 'Aarav Sharma',
+        expertId: 'expert-two',
+        expertName: 'Rahul Menon',
+        companyId: 'CMP-1001',
+        companyName: 'Stack Builders Pvt Ltd',
+        message: 'A breathing exercise may also help.',
+        createdAt: '2026-10-15T10:00:00.000Z',
+      },
+      {
+        id: 'response-same-name-other-company',
+        checkinId: 'checkin-other-company',
+        checkinType: 'mental',
+        employeeId: 'employee-other-company',
+        employeeName: 'Other Employee',
+        expertId: 'expert-other-company',
+        expertName: 'Other Expert',
+        companyId: 'CMP-2002',
+        companyName: 'Stack Builders Pvt Ltd',
+        message: 'This response belongs to a different company with the same name.',
+        createdAt: '2026-10-15T11:00:00.000Z',
+      },
+    );
+
+    const response = await request(app.getHttpServer())
+      .get('/checkin-responses')
+      .set('role', 'Wellness Expert')
+      .query({ companyId: 'CMP-1001' })
+      .expect(200);
+
+    expect(response.body).toHaveLength(2);
+    expect(response.body.map((item) => item.expertId)).toEqual(
+      expect.arrayContaining(['expert-one', 'expert-two']),
+    );
   });
 
   it('supports employee check-ins, expert responses, and expert live sessions', async () => {

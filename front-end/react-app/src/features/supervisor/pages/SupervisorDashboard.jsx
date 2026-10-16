@@ -1,42 +1,28 @@
-import StatCard from "../../../components/StatCard.jsx";
 import SupervisorIcon from "../components/SupervisorIcon.jsx";
 
-const actions = [
-  ["users", "User Management", "Review employee, HR, and expert accounts.", "users"],
-  ["building", "Company Management", "Review company records and requests.", "companies"],
-  ["file", "View Reports", "Access analytics and workspace trends.", "reports"],
-  ["gear", "System Settings", "Configure profile and access rules.", "settings"],
-];
-
 function SupervisorDashboard({ navigate, stats, activities }) {
-  return (
-    <>
-      <div className="supervisor-page-heading">
-        <div><p className="supervisor-eyebrow">Overview</p><h1>Dashboard overview</h1></div>
-        <span className="supervisor-live-badge"><i /> Live workspace</span>
-      </div>
+  const actions = [
+    ["plus", "Add User", "Create a new user account", "users"],
+    ["building", "Manage Companies", "Review company records", "companies"],
+    ["file", "View Reports", "Access workspace analytics", "reports"],
+    ["gear", "System Settings", "Configure supervisor controls", "settings"],
+  ];
 
-      <section className="supervisor-stat-grid" aria-label="Dashboard statistics">
-        {stats.map((stat) => <StatCard key={stat.label} label={stat.label} value={stat.value} />)}
-      </section>
-
-      <section className="supervisor-content-grid">
-        <article className="supervisor-panel">
-          <div className="supervisor-panel-heading"><div><p className="supervisor-eyebrow">Shortcuts</p><h2>Quick Actions</h2></div><SupervisorIcon name="plus" /></div>
-          <div className="supervisor-action-list">
-            {actions.map(([icon, title, detail, target]) => <button className="supervisor-action" type="button" key={title} onClick={() => navigate(target)}><span className="supervisor-action-icon"><SupervisorIcon name={icon} /></span><span><strong>{title}</strong><small>{detail}</small></span><SupervisorIcon name="chevron" size={17} /></button>)}
-          </div>
-        </article>
-
-        <article className="supervisor-panel">
-          <div className="supervisor-panel-heading"><div><p className="supervisor-eyebrow">System pulse</p><h2>Recent Activity</h2></div><span className="supervisor-muted-label">Today</span></div>
-          <ul className="supervisor-activity-list">
-            {activities.length === 0 ? <li className="supervisor-empty-state">No recent activity loaded yet.</li> : activities.map((activity) => <li key={activity.id}><span className="activity-dot" /><span><strong>{activity.title}</strong><small>{activity.detail}</small></span><time>{activity.time}</time></li>)}
-          </ul>
-        </article>
-      </section>
-    </>
-  );
+  return <>
+    <div className="supervisor-page-heading">
+      <div><p className="supervisor-eyebrow">Overview</p><h1>Dashboard overview</h1><p className="supervisor-subtitle">A clear view of users, activity, and the operational health of every wellness workspace.</p></div>
+    </div>
+    <section className="supervisor-stat-grid">
+      {stats.map((stat, index) => <article className="stat-card" key={stat.label}>
+        <div className="supervisor-panel-heading"><span className="supervisor-muted-label">{stat.label}</span><span className="stat-card-icon"><SupervisorIcon name={["users", "user", "activity"][index]} size={20} /></span></div>
+        <strong>{stat.value}</strong><p>{stat.detail}</p>
+      </article>)}
+    </section>
+    <section className="supervisor-content-grid">
+      <article className="supervisor-panel"><div className="supervisor-panel-heading"><div><p className="supervisor-eyebrow">Shortcuts</p><h2>Quick actions</h2></div><SupervisorIcon name="chevron" size={20} /></div><div className="supervisor-action-list">{actions.map(([icon, title, detail, target]) => <button className="supervisor-action" type="button" key={title} onClick={() => navigate(target)}><span className="supervisor-action-icon"><SupervisorIcon name={icon} size={20} /></span><span><strong>{title}</strong><small>{detail}</small></span><SupervisorIcon name="chevron" size={18} /></button>)}</div></article>
+      <article className="supervisor-panel"><div className="supervisor-panel-heading"><div><p className="supervisor-eyebrow">Workspace pulse</p><h2>Recent activity</h2></div><SupervisorIcon name="activity" size={20} /></div>{activities.length ? <ul className="supervisor-activity-list">{activities.map((activity) => <li key={activity.id}><span className={`activity-dot ${activity.tone}`} /><div><strong>{activity.title}</strong><small>{activity.details} | {activity.time}</small></div></li>)}</ul> : <p className="supervisor-empty-state">No workspace activity has been created yet.</p>}</article>
+    </section>
+  </>;
 }
 
 export default SupervisorDashboard;

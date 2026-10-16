@@ -15,6 +15,7 @@ import {
   normalizeLookupValue,
 } from '../common/utils/record.utils';
 import { CompaniesService } from '../companies/companies.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { CreateExpertDto } from './dto/create-expert.dto';
 import { UpdateExpertDto } from './dto/update-expert.dto';
 import { ExpertEntity } from './entities/expert.entity';
@@ -24,6 +25,7 @@ export class ExpertsService {
   constructor(
     private readonly data: InMemoryDataService,
     private readonly companiesService: CompaniesService,
+    private readonly subscriptionsService: SubscriptionsService,
   ) {}
 
   findAll(filters?: {
@@ -88,11 +90,17 @@ export class ExpertsService {
     return expert;
   }
 
-  create(createExpertDto: CreateExpertDto): ExpertEntity {
+  create(
+    createExpertDto: CreateExpertDto,
+    requireActiveSubscription = false,
+  ): ExpertEntity {
     const company = this.resolveCompanyReference(
       createExpertDto.companyId,
       createExpertDto.companyName,
     );
+    if (requireActiveSubscription) {
+      this.subscriptionsService.assertCanAddUser(company, 'expert');
+    }
     const preparedExpert = this.prepareCreateInput(createExpertDto, company);
     this.assertEmailIsAvailable(preparedExpert.email);
 
@@ -165,9 +173,12 @@ export class ExpertsService {
     const nextStatus = Object.prototype.hasOwnProperty.call(updateExpertDto, 'status')
       ? cleanText(updateExpertDto.status)
       : currentExpert.status;
-    const nextAvailableSlots = Object.prototype.hasOwnProperty.call(updateExpertDto, 'availableSlots')
-      ? updateExpertDto.availableSlots
-      : currentExpert.availableSlots;
+    const nextAvailableSlots = this.filterAvailableSlots(
+      Object.prototype.hasOwnProperty.call(updateExpertDto, 'availableSlots')
+        ? updateExpertDto.availableSlots
+        : currentExpert.availableSlots,
+      currentExpert.id,
+    );
 
     if (!nextName) {
       throw new BadRequestException('Wellness expert name cannot be blank.');
@@ -217,6 +228,102 @@ export class ExpertsService {
     currentExpert.updatedAt = new Date().toISOString();
 
     return currentExpert;
+  }
+
+  private filterAvailableSlots(
+    slots: string[] | undefined,
+    expertId: string,
+  ): string[] {
+    if (!Array.isArray(slots)) {
+      return [];
+    }
+
+    const now = Date.now();
+    const bookedIntervals = this.data.consultations
+      .filter((consultation) => {
+        const status = cleanText(consultation.status).toLowerCase();
+        return (
+          consultation.expertId === expertId &&
+          !['completed', 'rejected', 'cancelled', 'canceled'].includes(status)
+        );
+      })
+      .map((consultation) => this.getConsultationInterval(consultation))
+      .filter(
+        (interval): interval is { start: number; end: number } =>
+          interval !== null,
+      );
+
+    const uniqueSlots = new Set<string>();
+    return slots.filter((slot) => {
+      // Availability values are ISO timestamps. Discard legacy/malformed values
+      // instead of allowing them to bypass the time and booking checks.
+      if (
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/.test(
+          slot,
+        )
+      ) {
+        return false;
+      }
+
+      const slotStart = Date.parse(slot);
+      if (!Number.isFinite(slotStart) || slotStart <= now || uniqueSlots.has(slot)) {
+        return false;
+      }
+
+      const slotEnd = slotStart + 15 * 60 * 1000;
+      const overlapsConsultation = bookedIntervals.some(
+        (interval) => slotStart < interval.end && slotEnd > interval.start,
+      );
+      if (overlapsConsultation) {
+        return false;
+      }
+
+      uniqueSlots.add(slot);
+      return true;
+    });
+  }
+
+  private getConsultationInterval(
+    consultation: (typeof this.data.consultations)[number],
+  ): { start: number; end: number } | null {
+    const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(
+      cleanText(consultation.sessionDate),
+    );
+    const timeMatch = /^(\d{2}):([0-5]\d)(?::[0-5]\d)?$/.exec(
+      cleanText(consultation.sessionTime),
+    );
+    if (!dateMatch || !timeMatch) {
+      return null;
+    }
+
+    const [, year, month, day] = dateMatch;
+    const [, hour, minute] = timeMatch;
+    const localStart = new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+    );
+    if (
+      localStart.getFullYear() !== Number(year) ||
+      localStart.getMonth() !== Number(month) - 1 ||
+      localStart.getDate() !== Number(day) ||
+      localStart.getHours() !== Number(hour) ||
+      localStart.getMinutes() !== Number(minute)
+    ) {
+      return null;
+    }
+
+    const parsedDuration = Number.parseInt(
+      cleanText(consultation.sessionDuration),
+      10,
+    );
+    const durationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
+      ? parsedDuration
+      : 15;
+    const start = localStart.getTime();
+    return { start, end: start + durationMinutes * 60 * 1000 };
   }
 
   remove(id: string): ExpertEntity {

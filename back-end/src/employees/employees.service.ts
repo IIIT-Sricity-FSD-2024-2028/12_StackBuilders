@@ -15,6 +15,7 @@ import {
   normalizeLookupValue,
 } from '../common/utils/record.utils';
 import { CompaniesService } from '../companies/companies.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { EmployeeEntity } from './entities/employee.entity';
@@ -24,6 +25,7 @@ export class EmployeesService {
   constructor(
     private readonly data: InMemoryDataService,
     private readonly companiesService: CompaniesService,
+    private readonly subscriptionsService: SubscriptionsService,
   ) {}
 
   findAll(filters?: {
@@ -85,11 +87,17 @@ export class EmployeesService {
     return employee;
   }
 
-  create(createEmployeeDto: CreateEmployeeDto): EmployeeEntity {
+  create(
+    createEmployeeDto: CreateEmployeeDto,
+    requireActiveSubscription = false,
+  ): EmployeeEntity {
     const company = this.resolveCompanyReference(
       createEmployeeDto.companyId,
       createEmployeeDto.companyName,
     );
+    if (requireActiveSubscription) {
+      this.subscriptionsService.assertCanAddUser(company, 'employee');
+    }
     const preparedEmployee = this.prepareCreateInput(createEmployeeDto, company);
     this.assertEmailIsAvailable(preparedEmployee.email);
 

@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -78,9 +79,17 @@ export class ExpertsController {
     description:
       'Validation failed or the wellness expert conflicts with existing users.',
   })
-  @ApiForbiddenResponse({ description: 'Missing or invalid role header.' })
-  create(@Body() createExpertDto: CreateExpertDto) {
-    return this.expertsService.create(createExpertDto);
+  @ApiForbiddenResponse({
+    description: 'Missing or invalid role header, no active subscription, or the plan limit has been reached.',
+  })
+  create(
+    @Req() request: { role?: Role },
+    @Body() createExpertDto: CreateExpertDto,
+  ) {
+    return this.expertsService.create(
+      createExpertDto,
+      request.role === Role.HR,
+    );
   }
 
   @Patch(':id')

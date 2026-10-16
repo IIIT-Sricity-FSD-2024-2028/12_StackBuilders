@@ -7,5 +7,6 @@ import { InMemoryDataModule } from '../common/data/in-memory-data.module';
   imports: [InMemoryDataModule],
   controllers: [SubscriptionsController],
   providers: [SubscriptionsService],
+  exports: [SubscriptionsService],
 })
 export class SubscriptionsModule {}
