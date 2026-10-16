@@ -1,0 +1,23 @@
+.payment-container { max-width:520px; margin:60px auto 80px; padding:0 20px; }
+.payment-card { background:white; border:1px solid rgba(0,0,0,.08); border-radius:16px; padding:36px 32px; box-shadow:0 10px 30px rgba(0,0,0,.05); }
+.payment-card h2 { font-family:'Playfair Display',serif; font-size:1.8rem; color:#1b3b36; margin-bottom:6px; }
+.payment-subtitle { color:#4a6a66; font-size:.95rem; margin-bottom:24px; }
+.plan-summary { background:rgba(14,159,146,.05); border:1px solid rgba(14,159,146,.2); border-radius:12px; padding:18px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; }
+.plan-summary h3 { font-size:1.1rem; color:#0e9f92; margin-bottom:4px; }
+.plan-summary p { font-size:.85rem; color:#666; }
+.plan-total { font-size:1.8rem; font-weight:800; color:#1b3b36; }
+.form-group { margin-bottom:18px; }
+.form-group label { display:block; font-size:.85rem; font-weight:700; color:#333; margin-bottom:8px; text-transform:uppercase; letter-spacing:.5px; }
+.form-group input { width:100%; padding:12px 14px; border:1px solid #ddd; border-radius:10px; font-size:.95rem; font-family:inherit; transition:.2s; }
+.form-group input:focus { outline:none; border-color:#0e9f92; box-shadow:0 0 0 3px rgba(14,159,146,.15); }
+.form-row { display:flex; gap:12px; }
+.form-row .form-group { flex:1; }
+.pay-btn { display:block; width:100%; padding:16px; border:none; border-radius:12px; font-size:1.05rem; font-weight:700; cursor:pointer; transition:.3s; background:#ff914d; color:white; margin-top:8px; font-family:inherit; }
+.pay-btn:hover { background:#e67e3c; transform:translateY(-2px); }
+.payment-success { text-align:center; padding:40px 20px; }
+.payment-success .check-circle { width:72px; height:72px; border-radius:50%; background:#0e9f92; color:white; display:inline-flex; align-items:center; justify-content:center; font-size:2rem; margin:0 auto 24px; }
+.payment-success h2 { font-size:1.8rem; margin-bottom:12px; }
+.payment-success p { color:#666; margin-bottom:32px; font-size:1.05rem; }
+.payment-success .continue-btn { display:inline-block; padding:14px 32px; background:#0e9f92; color:white; border:none; border-radius:10px; font-size:1.05rem; font-weight:700; text-decoration:none; cursor:pointer; transition:.2s; }
+.payment-success .continue-btn:hover { background:#0b8075; }
+.payment-error { color:#b42318; background:#fff2f0; border:1px solid #f5c2c0; border-radius:10px; padding:10px 12px; margin-bottom:16px; }
