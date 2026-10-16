@@ -13,6 +13,7 @@
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "latest",
-    "vite": "latest"
+    "vite": "latest",
+    "xlsx": "^0.18.5"
   }
 }
