@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import SupervisorIcon from "./components/SupervisorIcon.jsx";
-import SupervisorSidebar from "./components/SupervisorSidebar.jsx";
+import { useNavigate } from "react-router-dom";
 import SupervisorDashboard from "./pages/SupervisorDashboard.jsx";
 import UserManagement from "./pages/UserManagement.jsx";
 import CompanyManagement from "./pages/CompanyManagement.jsx";
@@ -9,10 +8,17 @@ import Reports from "./pages/Reports.jsx";
 import Revenue from "./pages/Revenue.jsx";
 import Queries from "./pages/Queries.jsx";
 import Settings from "./pages/Settings.jsx";
+import SupervisorSidebar from "./components/SupervisorSidebar.jsx";
+import SupervisorIcon from "./components/SupervisorIcon.jsx";
 import supervisorApi from "./supervisorApi.js";
+import { getAuthSession, logout } from "../homepage/authService.js";
+import usePersistedTab from "../../hooks/usePersistedTab.js";
+import { buildRecentActivityEntries } from "../../utils/recentActivity.js";
+import { buildPlanRevenue } from "../../utils/planRevenue.js";
+import useAutoRefresh from "../../hooks/useAutoRefresh.js";
 import "./supervisor.css";
 
-const pageNames = { dashboard: "Dashboard", users: "User Management", roles: "Roles & Access", companies: "Company Management", reports: "Reports", revenue: "Revenue", queries: "Queries", settings: "Settings" };
+const navigationItems = [["chart-pie", "Dashboard", "dashboard"], ["users", "User Management", "users"], ["user-shield", "Roles & Access", "roles"], ["database", "Company Management", "companies"], ["chart-column", "Reports", "reports"], ["dollar-sign", "Revenue", "revenue"], ["envelope", "Queries", "queries"], ["gear", "Settings", "settings"]];
 const emptyData = { users: [], companies: [], requests: [], queries: [], payments: [], subscriptions: [], consultations: [], liveSessions: [], videos: [], challenges: [], rewards: [] };
 
 function formatDate(value) {
@@ -28,7 +34,7 @@ function formatRelativeDate(value) {
 }
 
 function normalizeUsers({ employees, experts, hrProfiles }) {
-  const mapUser = (record, role) => ({ id: record.id, name: record.name || record.email || "Unnamed user", email: record.email || "—", role, company: record.companyName || "—", companyId: record.companyId || "", status: record.status || "Unknown", lastActive: formatRelativeDate(record.updatedAt || record.createdAt), createdAt: record.createdAt || record.updatedAt });
+  const mapUser = (record, role) => ({ id: record.id, name: record.name || record.email || "Unnamed user", email: record.email || "—", role, company: record.companyName || "—", companyName: record.companyName || "--", companyId: record.companyId || "", isSeededDefault: Boolean(record.isSeededDefault), status: record.status || "Unknown", lastActive: formatRelativeDate(record.updatedAt || record.createdAt), createdAt: record.createdAt || record.updatedAt });
   return [...employees.map((record) => mapUser(record, "Employee")), ...experts.map((record) => mapUser(record, "Wellness Expert")), ...hrProfiles.map((record) => mapUser(record, "HR"))];
 }
 
@@ -56,40 +62,91 @@ function amountBuckets(records) {
 }
 
 function SupervisorWorkspace() {
-  const [activeView, setActiveView] = useState("dashboard");
+  const navigateHome = useNavigate();
+  const [activeView, setActiveView] = usePersistedTab("stackbuilders.supervisor.activeView", "dashboard", navigationItems.map(([, , view]) => view));
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [data, setData] = useState(emptyData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const refresh = async () => {
-    setLoading(true);
-    setError("");
+  const refresh = async (silent = false) => {
+    if (!silent) setLoading(true);
+    if (!silent) setError("");
     try {
       const raw = await supervisorApi.loadWorkspace();
       const users = normalizeUsers(raw);
       setData({ ...raw, users, companies: normalizeCompanies(raw.companies, users, raw.subscriptions), requests: normalizeRequests(raw.requests), queries: normalizeQueries(raw.queries), payments: normalizePayments(raw.payments) });
+      setError("");
     } catch (requestError) {
-      setData(emptyData);
-      setError(requestError.message || "The supervisor data could not be loaded.");
-    } finally { setLoading(false); }
+      if (!silent) {
+        setData(emptyData);
+        setError(requestError.message || "The supervisor data could not be loaded.");
+      }
+    } finally { if (!silent) setLoading(false); }
   };
 
   useEffect(() => { refresh(); }, []);
+  useAutoRefresh(() => refresh(true), "supervisor-workspace");
+
+  useEffect(() => {
+    document.body.classList.add("app-body");
+    return () => document.body.classList.remove("app-body");
+  }, []);
 
   const stats = useMemo(() => [{ label: "Total Users", value: String(data.users.length), detail: "Synced from employee, expert, and HR accounts" }, { label: "Active Users", value: String(data.users.filter((user) => user.status.toLowerCase() === "active").length), detail: "Live enabled accounts across the workspace" }, { label: "System Activity", value: String(data.consultations.length + data.liveSessions.length + data.videos.length + data.challenges.length + data.rewards.length), detail: "Consultations, sessions, videos, challenges, and rewards" }], [data]);
-  const activities = useMemo(() => [{ id: "requests", title: `${data.requests.length} company onboarding requests`, detail: "Company Management", time: "Live" }, { id: "queries", title: `${data.queries.filter((query) => query.status.toLowerCase() === "open").length} open user queries`, detail: "Queries", time: "Live" }, { id: "companies", title: `${data.companies.length} company workspaces`, detail: "Workspace health", time: "Live" }], [data]);
-  const reportData = useMemo(() => ({ monthlyUsers: monthBuckets(data.users, "createdAt"), roleDistribution: ["Employee", "HR", "Wellness Expert"].map((role) => data.users.filter((user) => user.role === role).length), weeklyActivity: [data.consultations, data.liveSessions, data.videos, data.challenges, data.rewards].map((records) => records.length), monthlyRevenue: amountBuckets(data.payments), planRevenue: [...new Set(data.payments.map((payment) => payment.planName || payment.planId).filter(Boolean))].map((plan) => ({ label: plan, value: data.payments.filter((payment) => (payment.planName || payment.planId) === plan).reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0) })) }), [data]);
+  const activities = useMemo(() => buildRecentActivityEntries(data), [data]);
+  const reportData = useMemo(() => ({ monthlyUsers: monthBuckets(data.users, "createdAt"), roleDistribution: ["Employee", "HR", "Wellness Expert"].map((role) => data.users.filter((user) => user.role === role).length), weeklyActivity: [data.consultations, data.liveSessions, data.videos, data.challenges, data.rewards].map((records) => records.length), monthlyRevenue: amountBuckets(data.payments), planRevenue: buildPlanRevenue(data.payments) }), [data]);
 
   const navigate = (view) => { setActiveView(view); setSidebarOpen(false); };
   const addUser = async (user) => { const company = data.companies.find((entry) => entry.id === user.companyId); const common = { name: user.name, email: user.email, password: user.password, companyId: user.companyId, companyName: company?.name, phoneNumber: user.phone, status: "Active" }; const created = user.role === "Employee" ? await supervisorApi.createEmployee({ ...common, department: user.department }) : user.role === "HR" ? await supervisorApi.createHrProfile(common) : await supervisorApi.createExpert({ ...common, specialization: user.specialization, experience: user.experience }); const record = created.hrProfile || created; setData((current) => ({ ...current, users: [...current.users, normalizeUsers({ employees: user.role === "Employee" ? [record] : [], experts: user.role === "Wellness Expert" ? [record] : [], hrProfiles: user.role === "HR" ? [record] : [] })[0]] })); };
-  const addCompany = async (company) => { const created = await supervisorApi.createCompany(company); setData((current) => ({ ...current, companies: [normalizeCompanies([created], current.users, current.subscriptions)[0], ...current.companies] })); };
+  const addCompany = async (form) => {
+    const result = await supervisorApi.createCompanyWithHr({
+      companyName: form.name,
+      companyPhone: form.phone,
+      companyAddress: form.address,
+      companyEmail: form.email,
+      hrName: form.hrName,
+      hrPhoneNumber: form.hrPhoneNumber,
+      hrEmail: form.hrEmail,
+      hrPassword: form.hrPassword,
+    });
+    const hrUser = normalizeUsers({ employees: [], experts: [], hrProfiles: [result.hrProfile] })[0];
+    setData((current) => {
+      const users = [hrUser, ...current.users];
+      return {
+        ...current,
+        users,
+        companies: [normalizeCompanies([result.company], users, current.subscriptions)[0], ...current.companies],
+      };
+    });
+  };
   const approveRequest = async (id) => { await supervisorApi.approveRequest(id); await refresh(); };
-  const replyToQuery = async (id, reply) => { const updated = await supervisorApi.updateQuery(id, { reply, status: "Replied" }); setData((current) => ({ ...current, queries: current.queries.map((query) => query.id === id ? { ...query, ...updated, status: "Replied", reply } : query) })); };
+  const rejectRequest = async (id) => { await supervisorApi.rejectRequest(id); await refresh(); };
+  const replyToQuery = async (id, reply) => { const updated = await supervisorApi.updateQuery(id, { reply, status: "Replied", readBySender: false, repliedAt: Date.now() }); setData((current) => ({ ...current, queries: current.queries.map((query) => query.id === id ? { ...query, ...updated, status: "Replied", reply, readBySender: false } : query) })); };
 
-  const page = { dashboard: <SupervisorDashboard navigate={navigate} stats={stats} activities={activities} />, users: <UserManagement users={data.users} companies={data.companies} onAddUser={addUser} />, companies: <CompanyManagement companies={data.companies} requests={data.requests} onAddCompany={addCompany} onApproveRequest={approveRequest} />, roles: <RolesAccess />, reports: <Reports stats={[{ label: "Total Companies", value: String(data.companies.length), detail: "Managed from the supervisor workspace" }, { label: "Consultations", value: String(data.consultations.length), detail: "Requested and accepted sessions" }, { label: "Scheduled Live Sessions", value: String(data.liveSessions.length), detail: "Upcoming expert-led sessions" }, { label: "Video Library Items", value: String(data.videos.length), detail: "Expert content in the library" }]} chartData={reportData} />, revenue: <Revenue payments={data.payments} subscriptions={data.subscriptions} chartData={reportData} />, queries: <Queries queries={data.queries} onReply={replyToQuery} />, settings: <Settings /> }[activeView];
+  const page = { dashboard: <SupervisorDashboard navigate={navigate} stats={stats} activities={activities} />, users: <UserManagement users={data.users} companies={data.companies} onAddUser={addUser} />, companies: <CompanyManagement companies={data.companies} users={data.users} requests={data.requests} onAddCompany={addCompany} onApproveRequest={approveRequest} onRejectRequest={rejectRequest} />, roles: <RolesAccess />, reports: <Reports stats={[{ label: "Total Companies", value: String(data.companies.length), detail: "Managed from the supervisor workspace" }, { label: "Consultations", value: String(data.consultations.length), detail: "Requested and accepted sessions" }, { label: "Scheduled Live Sessions", value: String(data.liveSessions.length), detail: "Upcoming expert-led sessions" }, { label: "Video Library Items", value: String(data.videos.length), detail: "Expert content in the library" }]} chartData={reportData} />, revenue: <Revenue payments={data.payments} subscriptions={data.subscriptions} chartData={reportData} />, queries: <Queries queries={data.queries} onReply={replyToQuery} />, settings: <Settings /> }[activeView];
 
-  return <div className="supervisor-workspace"><SupervisorSidebar activeView={activeView} isOpen={sidebarOpen} onSelect={navigate} /><main className="supervisor-main"><header className="supervisor-topbar"><button className="supervisor-mobile-menu" type="button" onClick={() => setSidebarOpen((open) => !open)} aria-label="Toggle supervisor navigation"><span /><span /><span /></button><div className="supervisor-breadcrumb"><span>Supervisor Console</span><SupervisorIcon name="chevron" size={14} /><strong>{pageNames[activeView]}</strong></div><div className="supervisor-topbar-actions"><span className="supervisor-status-dot" /><span>{loading ? "Loading workspace" : "Wellness workspace"}</span><span className="supervisor-avatar">SB</span></div></header><div className="supervisor-content">{error && <div className="supervisor-error" role="alert"><span>{error}</span><button type="button" onClick={refresh}>Retry</button></div>}{loading ? <div className="supervisor-loading"><span className="supervisor-spinner" />Loading supervisor data…</div> : page}</div></main></div>;
+  const session = getAuthSession();
+  const profileName = session?.profile?.name || session?.username || "Supervisor";
+  const initials = profileName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "SB";
+  const activeLabel = navigationItems.find(([, label, view]) => view === activeView)?.[1] || "Dashboard";
+
+  return <div className="supervisor-workspace">
+    <SupervisorSidebar activeView={activeView} onSelect={navigate} isOpen={sidebarOpen} />
+    <main className="supervisor-main">
+      <header className="supervisor-topbar">
+        <button className="supervisor-mobile-menu" type="button" onClick={() => setSidebarOpen((open) => !open)} aria-label="Toggle supervisor navigation">
+          <span /><span /><span />
+        </button>
+        <div className="supervisor-breadcrumb"><SupervisorIcon name="layer" size={16} /><span>Workspace</span><span>/</span><strong>{activeLabel}</strong></div>
+        <div className="supervisor-topbar-actions"><span className="supervisor-avatar" title={profileName}>{initials}</span><button className="supervisor-logout-button" type="button" onClick={() => { logout(); navigateHome("/"); }}>Log out</button></div>
+      </header>
+      <div className="supervisor-content">
+        {error && <p className="supervisor-empty-state" role="alert">{error} <button className="supervisor-outline-button" type="button" onClick={refresh}>Retry</button></p>}
+        {loading ? <p className="supervisor-empty-state">Loading supervisor data…</p> : page}
+      </div>
+    </main>
+  </div>;
 }
 
 export default SupervisorWorkspace;
