@@ -1045,6 +1045,14 @@ body.profile-open {
   padding: 8px;
 }
 
+.employee-dashboard-video-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+}
+
 .video-card:hover {
   animation-name: videoCardHover;
   animation-duration: 0.3s;
@@ -4738,4 +4746,13 @@ body {
   .expert-response-head {
     flex-direction: column;
   }
+}
+.employee-api-error {
+  margin: 16px auto;
+  max-width: 1180px;
+  padding: 12px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fff1f2;
+  color: #b91c1c;
 }

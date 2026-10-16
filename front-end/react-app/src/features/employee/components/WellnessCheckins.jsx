@@ -3,49 +3,64 @@ import { Link } from 'react-router-dom';
 import { getCurrentEmployee, getCompanyContext } from '../services/employeeAuth';
 import {
   getTrackConfig,
-  readCheckinsByTrack,
-  readCheckinsByEmployee,
-  getLatestResponseByCheckinId,
   formatDateTime,
   formatFieldValue,
   getCheckinUrgency,
 } from '../services/storageServices';
+import employeeApi from '../services/employeeApi';
+import useAutoRefresh from '../../../hooks/useAutoRefresh.js';
 
 const TRACKS = ['mental', 'physical', 'nutrition'];
+
+function getResponseHistory(responses, checkinId) {
+  return responses
+    .filter((item) => String(item.checkinId) === String(checkinId))
+    .sort((left, right) => new Date(left.createdAt).valueOf() - new Date(right.createdAt).valueOf());
+}
 
 export default function WellnessCheckins() {
   const employee = getCurrentEmployee();
   const companyCtx = getCompanyContext(employee);
   const [trackData, setTrackData] = useState({});
   const [recentCheckins, setRecentCheckins] = useState([]);
+  const [responses, setResponses] = useState([]);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     if (!employee) return;
-    loadData();
-  }, []);
+    loadData().catch((error) => setLoadError(error.message || 'Could not load wellness check-ins.'));
+  }, [employee?.id, companyCtx.companyId, companyCtx.companyName]);
 
-  function loadData() {
+  async function loadData() {
+    const [records, responseRecords] = await Promise.all([
+      employeeApi.getCheckins(employee, companyCtx),
+      employeeApi.getCheckinResponses(companyCtx, undefined, employee?.id),
+    ]);
     const data = {};
     TRACKS.forEach((key) => {
-      const entries = readCheckinsByTrack(key, employee?.id, companyCtx);
+      const entries = (records || []).filter((record) => record.checkinType === key);
       data[key] = { entries, latest: entries[0] || null };
     });
     setTrackData(data);
-    setRecentCheckins(readCheckinsByEmployee(employee?.id, companyCtx).slice(0, 6));
+    setRecentCheckins((records || []).slice(0, 6));
+    setResponses(responseRecords || []);
   }
+
+  useAutoRefresh(loadData, `${employee?.id || ''}:${companyCtx.companyId || companyCtx.companyName || ''}`);
 
   function createRecentSummary(record) {
     if (record.checkinType === 'mental')
-      return record.mood ? `Mood was ${record.mood.toLowerCase()}.` : 'Mental wellness update.';
+      return record.moodScore ? `Mood score: ${record.moodScore}/10.` : 'Mental wellness update.';
     if (record.checkinType === 'physical')
-      return record.energyLevel ? `Energy level was ${record.energyLevel.toLowerCase()}.` : 'Physical wellness update.';
+      return record.activityMinutes ? `${record.activityMinutes} active minutes recorded.` : 'Physical wellness update.';
     if (record.checkinType === 'nutrition')
-      return record.dietaryGoals ? `Goals: ${record.dietaryGoals.substring(0, 40)}...` : 'Diet plan update.';
+      return record.nutritionGoal ? `Goal: ${record.nutritionGoal}.` : 'Diet plan update.';
     return 'Check-in submitted.';
   }
 
   return (
     <div className="page-shell">
+      {loadError && <p className="employee-api-error" role="alert">{loadError}</p>}
       <main className="page">
         <section className="hero">
           <div className="hero-copy">
@@ -131,7 +146,7 @@ export default function WellnessCheckins() {
               recentCheckins.map((record) => {
                 const config    = getTrackConfig(record.checkinType);
                 const urgency   = getCheckinUrgency(record);
-                const response  = getLatestResponseByCheckinId(record.id, companyCtx);
+                  const responseHistory = getResponseHistory(responses, record.id);
                 const chips     = (config?.fields || []).slice(0, 4)
                   .map((f) => record[f.name]
                     ? <span key={f.name} className="detail-chip">{f.label}: {formatFieldValue(f, record[f.name])}</span>
@@ -148,15 +163,15 @@ export default function WellnessCheckins() {
                     </div>
                     <p className="recent-summary">{createRecentSummary(record)}</p>
                     <div className="detail-chips">{chips}</div>
-                    {response && (
-                      <div className="expert-response-box">
+                    {responseHistory.map((response) => (
+                      <div className="expert-response-box" key={response.id || `${response.createdAt}-${response.message}`}>
                         <div className="expert-response-head">
                           <strong>{response.expertName}</strong>
                           <span>{formatDateTime(response.createdAt)}</span>
                         </div>
                         <p>{response.message}</p>
                       </div>
-                    )}
+                    ))}
                   </article>
                 );
               })

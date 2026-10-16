@@ -3,16 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getCurrentEmployee, getCompanyContext } from '../services/employeeAuth';
 import {
   getTrackConfig,
-  readCheckinsByTrack,
-  addCheckin,
-  getLatestResponseByCheckinId,
   formatDateTime,
   formatFieldValue,
   getCheckinUrgency,
 } from '../services/storageServices';
+import employeeApi from '../services/employeeApi';
+import useAutoRefresh from '../../../hooks/useAutoRefresh.js';
+import { useRoleAccess } from '../../shared/roleAccessContext.jsx';
 
-function generateId() {
-  return `chk_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+function getResponseHistory(responses, checkinId) {
+  return responses
+    .filter((item) => String(item.checkinId) === String(checkinId))
+    .sort((left, right) => new Date(left.createdAt).valueOf() - new Date(right.createdAt).valueOf());
 }
 
 /**
@@ -20,12 +22,15 @@ function generateId() {
  * @param {{ trackKey: 'mental' | 'physical' | 'nutrition' }} props
  */
 export default function WellnessFormPage({ trackKey }) {
+  const { hasPermission } = useRoleAccess();
+  const canSubmitCheckins = hasPermission('client-management-create');
   const navigate   = useNavigate();
   const employee   = getCurrentEmployee();
   const companyCtx = getCompanyContext(employee);
 
   const [config,        setConfig]        = useState(null);
   const [history,       setHistory]       = useState([]);
+  const [responses,      setResponses]      = useState([]);
   const [formData,      setFormData]      = useState({});
   const [statusMessage, setStatusMessage] = useState(null);
 
@@ -33,7 +38,7 @@ export default function WellnessFormPage({ trackKey }) {
     if (!employee) return;
     const cfg = getTrackConfig(trackKey);
     setConfig(cfg);
-    loadHistory(cfg);
+    loadHistory(cfg).catch((error) => setStatusMessage(error.message || 'Could not load check-in history.'));
 
     document.body.dataset.checkinType = trackKey;
     document.body.classList.add('form-only-page');
@@ -41,35 +46,45 @@ export default function WellnessFormPage({ trackKey }) {
       delete document.body.dataset.checkinType;
       document.body.classList.remove('form-only-page');
     };
-  }, [trackKey, employee]);
+  }, [trackKey, employee?.id, companyCtx.companyId, companyCtx.companyName]);
 
-  function loadHistory(cfg) {
+  async function loadHistory(cfg) {
     if (!cfg) return;
-    setHistory(readCheckinsByTrack(cfg.key, employee?.id, companyCtx));
+    const [records, responseRecords] = await Promise.all([
+      employeeApi.getCheckins(employee, companyCtx, cfg.key),
+      employeeApi.getCheckinResponses(companyCtx, undefined, employee?.id),
+    ]);
+    setHistory(records || []);
+    setResponses(responseRecords || []);
   }
+
+  useAutoRefresh(() => loadHistory(config), `${employee?.id || ''}:${trackKey}:${companyCtx.companyId || companyCtx.companyName || ''}`);
 
   function handleChange(name, value) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!config) return;
+    if (!config || !canSubmitCheckins) return;
     const record = {
-      id:          generateId(),
       employeeId:  employee?.id,
       employeeName: employee?.name,
+      checkinType: config.key,
       companyId:   companyCtx.companyId,
       companyName: companyCtx.companyName,
-      checkinType: config.key,
-      submittedAt: new Date().toISOString(),
       ...formData,
     };
-    addCheckin(record);
-    setStatusMessage('Check-in submitted successfully!');
-    setFormData({});
-    loadHistory(config);
-    setTimeout(() => setStatusMessage(null), 4000);
+
+    try {
+      await employeeApi.createCheckin(record);
+      setStatusMessage('Check-in submitted successfully!');
+      setFormData({});
+      await loadHistory(config);
+      setTimeout(() => setStatusMessage(null), 4000);
+    } catch (error) {
+      setStatusMessage(error.message || 'Could not submit this check-in.');
+    }
   }
 
   if (!config) return null;
@@ -105,7 +120,7 @@ export default function WellnessFormPage({ trackKey }) {
 
             {statusMessage && <p className="status-message success-status">{statusMessage}</p>}
 
-            <form id="wellnessCheckinForm" onSubmit={handleSubmit} noValidate>
+            {canSubmitCheckins ? <form id="wellnessCheckinForm" onSubmit={handleSubmit} noValidate>
               <div className="form-grid" id="wellnessCheckinFields">
                 {config.fields.map((field) => (
                   <label key={field.name} className="form-field">
@@ -158,7 +173,7 @@ export default function WellnessFormPage({ trackKey }) {
                 <button className="primary-btn" type="submit">Save Check-in</button>
                 <Link className="secondary-btn" to="/wellness-checkins">Back to wellness check-ins</Link>
               </div>
-            </form>
+            </form> : <p className="status-message" role="status">Your role does not currently have permission to submit wellness updates.</p>}
           </section>
 
           <aside className="panel">
@@ -174,7 +189,7 @@ export default function WellnessFormPage({ trackKey }) {
               ) : (
                 history.slice(0, 5).map((record) => {
                   const urgency  = getCheckinUrgency(record);
-                  const response = getLatestResponseByCheckinId(record.id, companyCtx);
+                  const responseHistory = getResponseHistory(responses, record.id);
                   return (
                     <article key={record.id} className="history-card">
                       <div className="history-card-head">
@@ -201,15 +216,15 @@ export default function WellnessFormPage({ trackKey }) {
                           </div>
                         )}
                       </div>
-                      {response && (
-                        <div className="expert-response-box">
+                      {responseHistory.map((response) => (
+                        <div className="expert-response-box" key={response.id || `${response.createdAt}-${response.message}`}>
                           <div className="expert-response-head">
                             <strong>{response.expertName}</strong>
                             <span>{formatDateTime(response.createdAt)}</span>
                           </div>
                           <p>{response.message}</p>
                         </div>
-                      )}
+                      ))}
                     </article>
                   );
                 })

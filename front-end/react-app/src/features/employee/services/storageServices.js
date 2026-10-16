@@ -137,41 +137,48 @@ const CHECKIN_KEY = 'stackbuilders.wellnessCheckins';
 
 const TRACK_CONFIGS = {
   mental: {
+    key: 'mental',
     label: 'Mental Wellness',
-    eyebrow: 'Psychologist Review',
+    expertLabel: 'Psychologist',
     schedule: 'Submit once a week or after a stressful event.',
     intro: 'Share your current mental wellness status with your assigned psychologist.',
     fields: [
-      { name: 'moodScore', label: 'Mood Score (1–10)', inputType: 'number', min: 1, max: 10, placeholder: 'e.g. 7', required: true },
-      { name: 'stressLevel', label: 'Stress Level', inputType: 'select', options: ['Low', 'Medium', 'High', 'Very High'], required: true },
-      { name: 'sleepHours', label: 'Sleep Hours', inputType: 'number', min: 0, max: 24, step: 0.5, placeholder: 'e.g. 7.5', required: false },
-      { name: 'focusLevel', label: 'Focus Level', inputType: 'select', options: ['Poor', 'Fair', 'Good', 'Excellent'], required: false },
-      { name: 'supportNeeds', label: 'Support Needs', inputType: 'select', options: ['None', 'Mild', 'Moderate', 'Urgent'], required: false },
+      { name: 'moodScore', label: 'Mood score', inputType: 'number', min: 1, max: 10, step: 1, placeholder: 'e.g. 7', required: true },
+      { name: 'stressScore', label: 'Stress score', inputType: 'number', min: 1, max: 10, step: 1, placeholder: 'e.g. 6', required: true },
+      { name: 'sleepHours', label: 'Sleep last night (hours)', inputType: 'number', min: 0, max: 16, step: 0.5, placeholder: 'e.g. 7.5', required: true },
+      { name: 'focusScore', label: 'Focus score', inputType: 'number', min: 1, max: 10, step: 1, placeholder: 'e.g. 7', required: true },
+      { name: 'anxietyTrigger', label: 'Main stress trigger today', inputType: 'text', placeholder: 'Describe the main trigger', required: true },
+      { name: 'supportNeeded', label: 'Support needed', inputType: 'select', options: ['No immediate support needed', 'Would like a follow-up this week', 'Need support as soon as possible'], required: true },
     ],
   },
   physical: {
+    key: 'physical',
     label: 'Physical Wellness',
-    eyebrow: 'Physical Wellness Instructor Review',
+    expertLabel: 'Physical Wellness Instructor',
     schedule: 'Submit after each workout or at least twice a week.',
     intro: 'Share your activity and recovery details with your physical wellness instructor.',
     fields: [
-      { name: 'activityType', label: 'Activity Type', inputType: 'select', options: ['Walking', 'Running', 'Yoga', 'Gym', 'Swimming', 'Cycling', 'Other'], required: true },
-      { name: 'durationMinutes', label: 'Duration (minutes)', inputType: 'number', min: 1, max: 600, placeholder: 'e.g. 30', required: true },
-      { name: 'painLevel', label: 'Pain Level (0–10)', inputType: 'number', min: 0, max: 10, placeholder: 'e.g. 2', required: false },
-      { name: 'mobilityRating', label: 'Mobility Rating', inputType: 'select', options: ['Poor', 'Fair', 'Good', 'Excellent'], required: false },
-      { name: 'recoveryStatus', label: 'Recovery Status', inputType: 'select', options: ['Poor', 'Fair', 'Good', 'Full Recovery'], required: false },
+      { name: 'activityMinutes', label: 'Active minutes today', inputType: 'number', min: 0, max: 1440, step: 1, placeholder: 'e.g. 30', required: true },
+      { name: 'stepCount', label: 'Steps today', inputType: 'number', min: 0, max: 100000, step: 1, placeholder: 'e.g. 8000', required: true },
+      { name: 'painScore', label: 'Pain or soreness score', inputType: 'number', min: 1, max: 10, step: 1, placeholder: 'e.g. 2', required: true },
+      { name: 'mobilityScore', label: 'Mobility score', inputType: 'number', min: 1, max: 10, step: 1, placeholder: 'e.g. 8', required: true },
+      { name: 'recoveryScore', label: 'Recovery score', inputType: 'number', min: 1, max: 10, step: 1, placeholder: 'e.g. 7', required: true },
+      { name: 'workoutFocus', label: 'Workout focus', inputType: 'select', options: ['Walking or cardio', 'Strength training', 'Mobility or stretching', 'Yoga or mindfulness movement', 'Recovery day'], required: true },
     ],
   },
   nutrition: {
+    key: 'nutrition',
     label: 'Diet Plan',
-    eyebrow: 'Nutritionist Review',
+    expertLabel: 'Nutritionist',
     schedule: 'Submit daily or every two days.',
     intro: 'Share your diet and hydration details with your nutritionist.',
     fields: [
-      { name: 'mealConsistency', label: 'Meal Consistency', inputType: 'select', options: ['Skipped meals', '1 meal', '2 meals', '3 meals', '3+ meals'], required: true },
-      { name: 'waterIntakeLitres', label: 'Water Intake (litres)', inputType: 'number', min: 0, max: 20, step: 0.1, placeholder: 'e.g. 2.5', required: true },
-      { name: 'energyLevel', label: 'Energy Level', inputType: 'select', options: ['Very Low', 'Low', 'Moderate', 'High', 'Very High'], required: false },
-      { name: 'dietGoalProgress', label: 'Diet Goal Progress', inputType: 'select', options: ['Off track', 'Mostly off track', 'On track', 'Exceeded goal'], required: false },
+      { name: 'mealConsistency', label: 'Meal plan consistency', inputType: 'number', min: 1, max: 10, step: 1, placeholder: 'e.g. 8', required: true },
+      { name: 'waterIntakeLiters', label: 'Water intake today', inputType: 'number', min: 0, max: 10, step: 0.1, placeholder: 'e.g. 2.5', required: true },
+      { name: 'energyScore', label: 'Energy score', inputType: 'number', min: 1, max: 10, step: 1, placeholder: 'e.g. 7', required: true },
+      { name: 'servingsCount', label: 'Fruit and vegetable servings', inputType: 'number', min: 0, max: 20, step: 1, placeholder: 'e.g. 4', required: true },
+      { name: 'nutritionGoal', label: 'Primary nutrition goal', inputType: 'select', options: ['Weight management', 'More energy during work', 'Better digestion', 'Muscle gain or recovery', 'Improve eating consistency'], required: true },
+      { name: 'dietChallenge', label: 'Biggest diet challenge today', inputType: 'text', placeholder: 'Describe the main challenge', required: true },
     ],
   },
 };
@@ -229,9 +236,9 @@ export function formatFieldValue(field, value) {
 }
 
 export function getCheckinUrgency(record) {
-  const supportNeeds = record.supportNeeds || '';
-  if (supportNeeds === 'Urgent') return { label: 'Urgent', color: '#ef4444' };
-  if (supportNeeds === 'Moderate') return { label: 'Moderate', color: '#f59e0b' };
+  const supportNeeded = record.supportNeeded || '';
+  if (supportNeeded === 'Need support as soon as possible') return { label: 'Urgent', color: '#ef4444' };
+  if (supportNeeded === 'Would like a follow-up this week') return { label: 'Follow-up', color: '#f59e0b' };
   return { label: 'Routine', color: '#10b981' };
 }
 

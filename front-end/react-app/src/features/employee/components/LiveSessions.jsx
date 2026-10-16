@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { getCurrentEmployee, getCompanyContext } from '../services/employeeAuth';
 import {
-  readLiveSessions,
   formatScheduleDate as formatDate,
   formatScheduleTime as formatTime,
 } from '../services/storageServices';
+import employeeApi from '../services/employeeApi';
+import usePersistedTab from '../../../hooks/usePersistedTab.js';
+import useAutoRefresh from '../../../hooks/useAutoRefresh.js';
 
 const SESSIONS_PER_PAGE = 9;
 
@@ -13,13 +15,19 @@ export default function LiveSessions() {
   const companyCtx = getCompanyContext(employee);
 
   const [sessions,    setSessions]    = useState([]);
-  const [activeTab,   setActiveTab]   = useState('scheduled');
+  const [activeTab,   setActiveTab]   = usePersistedTab('stackbuilders.employee.liveSessionsTab', 'scheduled', ['scheduled', 'ongoing', 'attended']);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadError,   setLoadError]   = useState('');
 
-  useEffect(() => {
-    if (!employee) return;
-    setSessions(readLiveSessions(companyCtx));
-  }, []);
+  const refreshSessions = () => {
+    if (!employee) return Promise.resolve();
+    return employeeApi.getLiveSessions(companyCtx)
+      .then((records) => { setSessions(records || []); setLoadError(''); })
+      .catch((error) => setLoadError(error.message || 'Could not load live sessions.'));
+  };
+
+  useEffect(() => { refreshSessions(); }, [employee?.id, companyCtx.companyId, companyCtx.companyName]);
+  useAutoRefresh(refreshSessions, `${employee?.id || ''}:${companyCtx.companyId || companyCtx.companyName || ''}`);
 
   const getStatusForTab = (tab) =>
     tab === 'ongoing' ? 'ongoing' : tab === 'attended' ? 'completed' : 'scheduled';
@@ -44,6 +52,7 @@ export default function LiveSessions() {
 
   return (
     <div className="sessions-page">
+      {loadError && <p className="employee-api-error" role="alert">{loadError}</p>}
       <header className="sessions-header">
         <div className="icon-box">📹</div>
         <div>
