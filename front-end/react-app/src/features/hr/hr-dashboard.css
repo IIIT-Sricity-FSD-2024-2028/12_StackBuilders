@@ -873,3 +873,14 @@
     width: 100%;
   }
 }
+.hr-logout-button {
+  padding: 7px 10px;
+  border: 1px solid #c6dfd8;
+  border-radius: 999px;
+  color: #23776c;
+  background: #effaf6;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
