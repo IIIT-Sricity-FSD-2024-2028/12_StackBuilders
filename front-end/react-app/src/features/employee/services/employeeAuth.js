@@ -5,6 +5,7 @@
  */
 
 const EMPLOYEE_SESSION_KEY = 'stackbuilders.employeeSession.v1';
+const AUTH_SESSION_KEY = 'stackbuilders.react.auth.v1';
 const EMPLOYEE_STORAGE_KEY  = 'stackbuilders.hr.employees';
 
 export function getCurrentEmployee() {
@@ -12,9 +13,39 @@ export function getCurrentEmployee() {
     const raw = sessionStorage.getItem(EMPLOYEE_SESSION_KEY)
       || localStorage.getItem(EMPLOYEE_SESSION_KEY);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const employeeSession = JSON.parse(raw);
+    const employeeId = String(employeeSession?.id || employeeSession?.employeeId || '').trim();
+    if (!employeeId || employeeSession.id) return employeeSession;
+
+    // Older login/profile flows saved only { employeeId }; resolve that legacy
+    // shape from the authenticated profile or the locally cached employee list.
+    const authRaw = sessionStorage.getItem(AUTH_SESSION_KEY)
+      || localStorage.getItem(AUTH_SESSION_KEY);
+    const authSession = authRaw ? JSON.parse(authRaw) : null;
+    const profile = authSession?.role === 'Employee' ? authSession.profile : null;
+    if (String(profile?.id || '') === employeeId) return profile;
+
+    const cachedEmployee = getAllEmployees().find((employee) => String(employee?.id || '') === employeeId);
+    return cachedEmployee || { ...employeeSession, id: employeeId };
   } catch {
     return null;
+  }
+}
+
+export function updateCurrentEmployee(updatedEmployee) {
+  if (!updatedEmployee?.id) return;
+  const serialized = JSON.stringify(updatedEmployee);
+  try {
+    sessionStorage.setItem(EMPLOYEE_SESSION_KEY, serialized);
+    localStorage.setItem(EMPLOYEE_SESSION_KEY, serialized);
+    const employees = getAllEmployees();
+    const index = employees.findIndex((employee) => employee.id === updatedEmployee.id);
+    if (index >= 0) {
+      employees[index] = { ...employees[index], ...updatedEmployee };
+      localStorage.setItem(EMPLOYEE_STORAGE_KEY, JSON.stringify(employees));
+    }
+  } catch {
+    // Keep the current view updated even when browser storage is unavailable.
   }
 }
 
