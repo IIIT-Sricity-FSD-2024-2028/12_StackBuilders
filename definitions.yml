@@ -1,134 +1,102 @@
-# Domain: Health and Wellness platforms
-# Problem Statement: Wellness Program Management Platform
-# Last Updated : 2026-02-04
+problem_statement: "Wellness Program Management Platform"
+last_updated: "2026-10-17"
 
-DomainTerm1 : Wellness Expert
-definition: 
-	-A wellness expert is a professional who provides wellness guidance, sessions, or consultations through the platform.
+actors:
+  - name: "Employee"
+    definition: "An organization member who takes part in wellness programs and uses wellness services such as check-ins, consultations, live sessions, recorded videos, challenges, and rewards."
+    aliases: ["Staff Member", "Organization Employee"]
+  - name: "Wellness Expert"
+    definition: "A qualified professional who provides wellness guidance, consultations, check-in responses, live sessions, or educational content to employees."
+    aliases: ["Health Expert", "Wellness Professional"]
+  - name: "Physical Wellness Expert"
+    definition: "A wellness professional who guides employees in physical activity, fitness, movement, recovery, and related healthy routines."
+    aliases: ["Fitness Trainer", "Wellness Trainer"]
+  - name: "Nutritionist"
+    definition: "A wellness professional who provides nutrition guidance and supports employees with food, hydration, and dietary goals."
+    aliases: ["Diet Expert", "Nutrition Specialist"]
+  - name: "Psychologist"
+    definition: "A mental-health professional who provides psychological guidance and supports employees with stress, emotions, and mental well-being."
+    aliases: ["Mental Wellness Professional", "Therapist"]
+  - name: "HR Representative"
+    definition: "A company representative who coordinates employee wellness activities, experts, challenges, and rewards."
+    aliases: ["HR", "Human Resources Representative"]
+  - name: "Administrator"
+    definition: "A person responsible for overseeing platform-wide organizations, user access, and administrative policies."
+    aliases: ["Admin", "Super User"]
+  - name: "Supervisor"
+    definition: "A person who oversees organizational participation and responds to support or operational questions related to the wellness program."
+    aliases: ["Program Supervisor"]
 
-examples: 
-	-A wellness expert conducts live wellness sessions.
-	-A wellness expert responds to employee consultations.
-aliases:
-	-Health Expert
-	-Wellness Professional
-DomainTerm2 : Physical Wellness Expert
-definition:
-	A Physical wellness Expert is a wellness professional responsible for conducting fitness or wellness sessions and guiding employees through structured activities.
-
-examples:
-	-A Physical wellness Expert manages session content on the wellness platform.
-	-A Physical wellness Expert conducts live wellness sessions for employees.
-aliases:
-	-Fitness Trainer
-	-Wellness Trainer
-
-DomainTerm3 : Nutritionist
-definition:
-	A nutritionist is a wellness expert who provides dietary guidance and nutrition-related consultations to employees.
-
-examples:
-	-A nutritionist offers diet plans through consultations.
-	-A nutritionist supports employees with nutrition-related advice.
-aliases:
-	-Diet Expert
-	-Nutrition Specialist
-
-DomainTerm4 : Psychologist
-definition:
-	A Psychologist is a mental health professional who provides psychological consultations and mental wellness support.
-
-examples:
-	-A Psychologist conducts mental health consultations for employees.
-	-A Psychologist supports stress management and mental wellbeing.
-aliases:
-	-Mental Wellness Instructor
-	-Therapist
-
-DomainTerm5 : Employee
-definition:
-    An employee is an organization member who participates in wellness programs and uses the platform to access wellness services.
-
-examples:
-    -An employee joins live wellness sessions through the platform.
-    -An employee uses consultations and video content to improve well-being.
-aliases:
-    -Staff Member
-    -Organization Employee
-
-DomainTerm6 : Wellness Program
-definition:
-	A wellness program is a structured set of activities designed to improve employees’ physical and mental well-being.
-
-examples:
-	-A wellness program includes live fitness sessions and consultations.
-	-A wellness program is managed through the wellness platform.
-aliases:
-	-Health Program
-	-Wellness Initiative
-
-DomainTerm7 : Consultation
-definition:
-	Consultation refers to a one-to-one interaction between an employee and a wellness expert for health guidance.
-
-examples: 
-	-Consultation allows employees to receive personalized advice.
-	-Consultation sessions are scheduled through the platform.
-aliases:
-	-Health Consultation
-	-Expert Session
-
-DomainTerm8 : Live Session
-definition:
-	A live session is a real-time wellness activity conducted by a wellness expert for employees.
-
-examples:
-	-Live session participation improves employee engagement.
-aliases:
-	-Live Wellness Session
-	-Interaction Session
-
-DomainTerm9 : Video Library
-definition:
-	The video library is a collection of recorded wellness content available for employees.
-
-examples:
-	-The video library contains fitness and mindfulness videos.
-	-Video library access is available to all employee accounts.
-aliases:
-	-Content Library
-	-Wellness Videos
-
-DomainTerm10 : Rating
-definition:
-	Rating refer to the process by which employees provide numerical evaluations about wellness sessions, consultations, or content on the platform.
-
-examples:
-	-Ratings help evaluate the effectiveness of live wellness sessions.
-	-Ratings allow employees to share their experience after consultations.
-aliases:
-	-User Rating
-	-Session Evaluation
-
-DomainTerm11 : Platform Settings
-definition: 
-	Platform settings define system-wide rules and options that control the overall behavior of the platform.
-
-examples:
-	-Platform settings manage feature availability across the system.
-aliases:
-	-System Settings
-	-Global Settings
-
-DomainTerm12 : Wellness Check-in
-definition:
-	A wellness check-in is a structured self-assessment or routine evaluation through which employees record and monitor their physical, nutritional, or mental wellbeing.
-
-examples:
-	-Employees submit regular wellness check-ins to track their health progress.
-	-Wellness check-in data helps experts provide tailored wellness guidance.
-aliases:
-	-Health Check-in
-	-Wellness Assessment
-	-Employee Check-in
-	
+terms:
+  - name: "Company"
+    definition: "An organization whose employees and wellness activities are associated with a shared wellness program."
+    aliases: ["Organization", "Employer"]
+  - name: "Wellness Program"
+    definition: "A coordinated set of activities and services intended to support employees' physical, mental, and nutritional well-being."
+    aliases: ["Health Program", "Wellness Initiative"]
+  - name: "Wellness Challenge"
+    definition: "A time-bound activity that encourages employees to work toward a stated wellness goal."
+    aliases: ["Challenge"]
+  - name: "Challenge Goal"
+    definition: "A measurable or clearly described outcome that participants are encouraged to achieve during a wellness challenge."
+    aliases: ["Wellness Goal"]
+  - name: "Reward"
+    definition: "An incentive offered to recognize or encourage participation in wellness activities or challenges."
+    aliases: ["Wellness Reward", "Incentive"]
+  - name: "Reward Points"
+    definition: "Points associated with an employee's participation that may be used to claim eligible rewards."
+    aliases: ["Points Balance"]
+  - name: "Subscription Plan"
+    definition: "A service arrangement that describes the wellness services and organization capacity available to a company."
+    aliases: ["Company Plan"]
+  - name: "Payment"
+    definition: "The transfer of funds associated with a company's subscription to wellness services."
+    aliases: ["Subscription Payment"]
+  - name: "Consultation"
+    definition: "A one-to-one interaction between an employee and a Wellness Expert for personalized wellness guidance."
+    aliases: ["Wellness Consultation", "Health Consultation"]
+  - name: "Consultation Request"
+    definition: "An employee's request to meet with a Wellness Expert for guidance on a wellness concern or goal."
+    aliases: ["Appointment Request"]
+  - name: "Consultation Availability"
+    definition: "A period of time that a Wellness Expert offers for employee consultations."
+    aliases: ["Availability Slot"]
+  - name: "Scheduled Consultation"
+    definition: "An accepted consultation with an agreed date, time, duration, and meeting arrangement."
+    aliases: ["Consultation Appointment"]
+  - name: "Follow-up Consultation"
+    definition: "A further consultation arranged to continue support after an earlier consultation or wellness check-in."
+    aliases: ["Follow-up Appointment"]
+  - name: "Wellness Check-in"
+    definition: "A structured self-assessment through which an employee records information about their well-being and progress."
+    aliases: ["Employee Check-in", "Wellness Assessment"]
+  - name: "Mental Wellness Check-in"
+    definition: "A self-assessment about topics such as mood, stress, sleep, focus, anxiety triggers, or requested support."
+    aliases: ["Mental Health Check-in"]
+  - name: "Physical Wellness Check-in"
+    definition: "A self-assessment about physical activity, movement, pain, recovery, mobility, or exercise goals."
+    aliases: ["Fitness Check-in"]
+  - name: "Nutrition Check-in"
+    definition: "A self-assessment about meals, hydration, energy, nutrition goals, or dietary challenges."
+    aliases: ["Diet Check-in"]
+  - name: "Check-in Response"
+    definition: "Guidance or suggestions provided by a Wellness Expert in response to an employee's wellness check-in."
+    aliases: ["Expert Response", "Wellness Guidance"]
+  - name: "Live Session"
+    definition: "A scheduled real-time wellness activity led by a Wellness Expert for participating employees."
+    aliases: ["Live Wellness Session"]
+  - name: "Recorded Wellness Video"
+    definition: "A recorded educational or instructional video that supports an employee's wellness learning or practice."
+    aliases: ["Wellness Video", "Recorded Content"]
+  - name: "Video Library"
+    definition: "A collection of recorded wellness videos organized so employees can browse and view relevant content."
+    aliases: ["Wellness Content Library", "Content Library"]
+  - name: "Rating"
+    definition: "An employee's evaluation of a wellness service, session, consultation, or piece of content."
+    aliases: ["User Rating", "Session Evaluation"]
+  - name: "Support Query"
+    definition: "A question or request for help raised by a participant or company representative about the wellness program."
+    aliases: ["User Query", "Program Support Request"]
+  - name: "Well-being"
+    definition: "A person's overall physical, mental, and social wellness as supported by healthy routines and appropriate guidance."
+    aliases: ["Wellness"]
