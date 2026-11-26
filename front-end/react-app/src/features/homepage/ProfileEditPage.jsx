@@ -5,6 +5,15 @@ import "./profile-edit-page.css";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/, "");
 const AUTH_SESSION_KEY = "stackbuilders.react.auth.v1";
+const INDIAN_PHONE_PATTERN = "(?:\\+?91[\\s()-]*)?[6-9](?:[\\s()-]*[0-9]){9}";
+
+function normalizeIndianPhoneNumber(value) {
+  const phone = String(value ?? "").trim();
+  if (!phone || !/^\+?[\d\s()-]+$/.test(phone)) return null;
+  const digits = phone.replace(/\D/g, "");
+  const number = digits.length === 10 ? digits : digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : "";
+  return /^[6-9]\d{9}$/.test(number) ? `+91 ${number.slice(0, 5)} ${number.slice(5)}` : null;
+}
 
 function readErrorMessage(value) {
   if (typeof value === "string") return value.trim();
@@ -15,7 +24,7 @@ function readErrorMessage(value) {
 
 const ROLE_CONFIG = {
   Employee: { endpoint: "/employees", home: "/employee", returnPrefixes: ["/employee", "/consultation", "/wellness-checkins", "/live-sessions", "/video-library", "/mental-wellness", "/physical-wellness", "/diet-plan"], fields: ["name", "age", "phoneNumber", "gender", "heightCm", "weightKg"] },
-  "Wellness Expert": { endpoint: "/experts", home: "/expert", returnPrefixes: ["/expert"], fields: ["name", "phoneNumber", "specialization", "experience"] },
+  "Wellness Expert": { endpoint: "/experts", home: "/expert", returnPrefixes: ["/expert"], fields: ["name", "phoneNumber", "experience"] },
   HR: { endpoint: "/hr-profiles", home: "/hr", returnPrefixes: ["/hr"], fields: ["name", "phoneNumber", "location"] },
 };
 
@@ -26,7 +35,6 @@ const FIELD_LABELS = {
   gender: "Gender",
   heightCm: "Height (cm)",
   weightKg: "Weight (kg)",
-  specialization: "Specialization",
   experience: "Experience",
   location: "Location",
 };
@@ -72,6 +80,15 @@ function ProfileEditPage() {
     setStatus("");
 
     const updates = Object.fromEntries(config.fields.map((field) => [field, String(values[field] ?? "").trim()]));
+    if (updates.phoneNumber) {
+      const normalizedPhone = normalizeIndianPhoneNumber(updates.phoneNumber);
+      if (!normalizedPhone) {
+        setError("Enter a valid Indian mobile number with 10 digits starting from 6–9, optionally prefixed by +91.");
+        setSaving(false);
+        return;
+      }
+      updates.phoneNumber = normalizedPhone;
+    }
     if (password.next || password.confirm || password.current) {
       if (password.current !== String(profile.password || "")) {
         setError("Your current password is incorrect.");
@@ -149,13 +166,22 @@ function ProfileEditPage() {
               <option value="">Select gender</option>
               <option value="M">Male (M)</option>
               <option value="F">Female (F)</option>
-            </select> : <input
+            </select> : field === "phoneNumber" ? <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              maxLength="18"
+              pattern={INDIAN_PHONE_PATTERN}
+              title="Enter a 10-digit Indian mobile number starting with 6–9, optionally prefixed by +91."
+              value={values[field]}
+              onChange={(event) => updateField(field, event.target.value)}
+            /> : <input
               type={field === "age" || field === "heightCm" || field === "weightKg" ? "number" : "text"}
               min={field === "age" ? 18 : field === "heightCm" ? 80 : field === "weightKg" ? 20 : undefined}
               max={field === "age" ? 99 : field === "heightCm" ? 250 : field === "weightKg" ? 300 : undefined}
               value={values[field]}
               onChange={(event) => updateField(field, event.target.value)}
-              required={field === "name" || field === "specialization" || field === "experience"}
+              required={field === "name" || field === "experience"}
             />}</label>)}
           </div>
           <details className="profile-edit-security"><summary>Change password</summary><div className="profile-edit-fields"><label>Current password<input type="password" autoComplete="current-password" value={password.current} onChange={(event) => setPassword((current) => ({ ...current, current: event.target.value }))} /></label><label>New password<input type="password" minLength={6} autoComplete="new-password" value={password.next} onChange={(event) => setPassword((current) => ({ ...current, next: event.target.value }))} /></label><label>Confirm new password<input type="password" minLength={6} autoComplete="new-password" value={password.confirm} onChange={(event) => setPassword((current) => ({ ...current, confirm: event.target.value }))} /></label></div></details>

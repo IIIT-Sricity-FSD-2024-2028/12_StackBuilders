@@ -1,12 +1,19 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
   NotFoundException,
 } from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
 import { InMemoryDataService } from '../common/data/in-memory-data.service';
 import {
   cleanText,
   createPrefixedRecordId,
+  isValidEmailAddress,
+  normalizeEmail,
   normalizeLookupValue,
 } from '../common/utils/record.utils';
 import { EmployeesService } from '../employees/employees.service';
@@ -14,6 +21,7 @@ import { ExpertsService } from '../experts/experts.service';
 import { BookConsultationSlotDto } from './dto/book-consultation-slot.dto';
 import { CreateConsultationRequestDto } from './dto/create-consultation-request.dto';
 import { CreateFollowUpConsultationDto } from './dto/create-follow-up-consultation.dto';
+import { RequestConsultationRescheduleDto } from './dto/request-consultation-reschedule.dto';
 import { UpdateConsultationDto } from './dto/update-consultation.dto';
 import { ConsultationFollowUpResultEntity } from './entities/consultation-follow-up-result.entity';
 import { ConsultationEntity } from './entities/consultation.entity';
@@ -24,13 +32,355 @@ const FALLBACK_CATEGORY_MAP: Record<string, string> = {
   'Dr. Emily Chen': 'Mental Health Support',
 };
 
+const SCHEDULED_NOTIFICATION_INTERVAL_MS = 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const HOUR_MS = 60 * 60 * 1000;
+
 @Injectable()
-export class ConsultationsService {
+export class ConsultationsService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(ConsultationsService.name);
+  private scheduledNotificationTimer?: NodeJS.Timeout;
+  private processingScheduledNotifications = false;
+
   constructor(
     private readonly data: InMemoryDataService,
     private readonly employeesService: EmployeesService,
     private readonly expertsService: ExpertsService,
+    private readonly authService: AuthService,
   ) {}
+
+  onModuleInit(): void {
+    this.runScheduledNotificationCheck();
+    this.scheduledNotificationTimer = setInterval(
+      () => this.runScheduledNotificationCheck(),
+      SCHEDULED_NOTIFICATION_INTERVAL_MS,
+    );
+    this.scheduledNotificationTimer.unref();
+  }
+
+  onModuleDestroy(): void {
+    if (this.scheduledNotificationTimer) {
+      clearInterval(this.scheduledNotificationTimer);
+    }
+  }
+
+  private runScheduledNotificationCheck(): void {
+    void this.processScheduledNotifications().catch((error: unknown) => {
+      this.logger.error(
+        'Could not process scheduled consultation notifications.',
+        error instanceof Error ? error.stack : undefined,
+      );
+    });
+  }
+
+  private async processScheduledNotifications(): Promise<void> {
+    if (this.processingScheduledNotifications) return;
+    this.processingScheduledNotifications = true;
+
+    try {
+      const now = Date.now();
+      for (const consultation of this.data.consultations) {
+        const interval = this.getScheduleInterval(
+          consultation.sessionDate,
+          consultation.sessionTime,
+          consultation.sessionDuration,
+        );
+        if (!interval) continue;
+
+        const status = normalizeLookupValue(consultation.status);
+        if (interval.end <= now && ['accepted', 'completed'].includes(status)) {
+          consultation.status = 'completed';
+          if (!consultation.feedbackRequestSentAt) {
+            await this.notifyFeedbackRequested(consultation);
+            consultation.feedbackRequestSentAt = new Date(now).toISOString();
+          }
+          continue;
+        }
+
+        if (status !== 'accepted' || interval.start <= now) continue;
+        const timeUntilStart = interval.start - now;
+
+        if (timeUntilStart <= HOUR_MS && !consultation.reminder1hSentAt) {
+          await this.notifySessionReminder(consultation, 'one hour');
+          consultation.reminder1hSentAt = new Date(now).toISOString();
+        } else if (timeUntilStart <= DAY_MS && !consultation.reminder24hSentAt) {
+          await this.notifySessionReminder(consultation, '24 hours');
+          consultation.reminder24hSentAt = new Date(now).toISOString();
+        }
+      }
+    } finally {
+      this.processingScheduledNotifications = false;
+    }
+  }
+
+  private async notifyConsultationRequested(
+    consultation: ConsultationEntity,
+  ): Promise<void> {
+    await this.sendConsultationNotice(consultation, (participant) =>
+      participant.role === 'employee'
+        ? {
+            subject: 'Consultation request received - Stack Builders',
+            message: `Your consultation request with ${consultation.expertName} has been received and is waiting for review.`,
+          }
+        : {
+            subject: 'New consultation request - Stack Builders',
+            message: `A consultation request from ${consultation.employeeName} is waiting for your review.`,
+          },
+    );
+  }
+
+  private async notifyBookingConfirmed(
+    consultation: ConsultationEntity,
+  ): Promise<void> {
+    await this.sendConsultationNotice(
+      consultation,
+      (participant) => ({
+        subject:
+          participant.role === 'employee'
+            ? 'Your consultation booking is confirmed - Stack Builders'
+            : 'A consultation has been booked with you - Stack Builders',
+        message:
+          participant.role === 'employee'
+            ? `Your consultation with ${consultation.expertName} is confirmed.`
+            : `A consultation with ${consultation.employeeName} has been booked and confirmed.`,
+      }),
+      true,
+    );
+  }
+
+  private async notifyConsultationStatus(
+    consultation: ConsultationEntity,
+    status: string,
+  ): Promise<void> {
+    const normalizedStatus = normalizeLookupValue(status);
+    const accepted = normalizedStatus === 'accepted';
+    const rejected = normalizedStatus === 'rejected';
+    const cancelled = ['cancelled', 'canceled'].includes(normalizedStatus);
+    if (!accepted && !rejected && !cancelled) return;
+
+    await this.sendConsultationNotice(
+      consultation,
+      (participant) => ({
+        subject: accepted
+          ? 'Consultation request accepted - Stack Builders'
+          : rejected
+            ? 'Consultation request update - Stack Builders'
+            : 'Consultation cancelled - Stack Builders',
+        message: accepted
+          ? participant.role === 'employee'
+            ? `Your consultation request with ${consultation.expertName} has been accepted.`
+            : `Your consultation request from ${consultation.employeeName} has been accepted.`
+          : rejected
+            ? `The consultation request ${participant.role === 'employee' ? `with ${consultation.expertName}` : `from ${consultation.employeeName}`} was not accepted.${consultation.rejectionReason ? ` Reason: ${consultation.rejectionReason}` : ''}`
+            : `The consultation ${participant.role === 'employee' ? `with ${consultation.expertName}` : `with ${consultation.employeeName}`} has been cancelled.`,
+      }),
+      true,
+    );
+  }
+
+  private async notifyConsultationSchedule(
+    consultation: ConsultationEntity,
+    isChange: boolean,
+  ): Promise<void> {
+    await this.sendConsultationNotice(
+      consultation,
+      () => ({
+        subject: isChange
+          ? 'Consultation schedule updated - Stack Builders'
+          : 'Consultation session scheduled - Stack Builders',
+        message: isChange
+          ? 'The schedule for your consultation has changed. Please use the updated details below.'
+          : 'Your consultation session has been scheduled. The session details are below.',
+      }),
+      true,
+    );
+  }
+
+  private async notifySessionReminder(
+    consultation: ConsultationEntity,
+    timeUntilStart: '24 hours' | 'one hour',
+  ): Promise<void> {
+    await this.sendConsultationNotice(
+      consultation,
+      () => ({
+        subject: 'Upcoming consultation reminder - Stack Builders',
+        message: `Your consultation session is coming up in about ${timeUntilStart}. Please review the session details below.`,
+      }),
+      true,
+    );
+  }
+
+  private async notifyFeedbackRequested(
+    consultation: ConsultationEntity,
+  ): Promise<void> {
+    await this.sendConsultationNotice(
+      consultation,
+      () => ({
+        subject: 'How was your consultation? - Stack Builders',
+        message:
+          'Your consultation session has ended. We would appreciate your feedback. Please reply to this email with any comments about your experience, and avoid including sensitive medical information.',
+      }),
+      true,
+    );
+  }
+
+  private async notifyEmployeeAvailability(
+    consultation: ConsultationEntity,
+  ): Promise<void> {
+    const employee = this.resolveEmployeeRecord(consultation);
+    const employeeEmail = normalizeEmail(employee?.email);
+    const expertMessage = [
+      `${consultation.employeeName} is unavailable for the scheduled consultation.`,
+      `Message: ${consultation.employeeAvailabilityMessage}`,
+      isValidEmailAddress(employeeEmail)
+        ? `Please contact them at ${employeeEmail} to arrange another time.`
+        : 'Please contact them to arrange another time.',
+    ].join(' ');
+    const employeeMessage = [
+      `Your message has been sent to ${consultation.expertName}.`,
+      'They will follow up with you about another session time.',
+      `Message: ${consultation.employeeAvailabilityMessage}`,
+    ].join(' ');
+    await this.sendConsultationNotice(
+      consultation,
+      (participant) => ({
+        subject: participant.role === 'expert'
+          ? 'Employee requested a different consultation time - Stack Builders'
+          : 'Your availability message was sent - Stack Builders',
+        message: participant.role === 'expert' ? expertMessage : employeeMessage,
+      }),
+      true,
+    );
+  }
+
+  private async sendConsultationNotice(
+    consultation: ConsultationEntity,
+    getMessage: (participant: { role: 'employee' | 'expert'; name: string }) => {
+      subject: string;
+      message: string;
+    },
+    includeSchedule = false,
+  ): Promise<void> {
+    const participants = this.getConsultationParticipants(consultation);
+    await Promise.all(
+      participants.map(async (participant) => {
+        const { subject, message } = getMessage(participant);
+        const scheduleText = includeSchedule
+          ? this.getConsultationScheduleText(consultation)
+          : [];
+        const scheduleHtml = includeSchedule
+          ? this.getConsultationScheduleHtml(consultation)
+          : '';
+        const text = [
+          `Hello ${participant.name},`,
+          '',
+          message,
+          ...scheduleText,
+          '',
+          'Stack Builders',
+        ].join('\n');
+        const html = [
+          `<p>Hello ${this.escapeHtml(participant.name)},</p>`,
+          `<p>${this.escapeHtml(message)}</p>`,
+          scheduleHtml,
+          '<p>Stack Builders</p>',
+        ].join('');
+
+        await this.authService.sendTransactionalEmail({
+          to: participant.email,
+          subject,
+          text,
+          html,
+        });
+      }),
+    );
+  }
+
+  private getConsultationParticipants(consultation: ConsultationEntity): Array<{
+    role: 'employee' | 'expert';
+    name: string;
+    email: string;
+  }> {
+    const employee = this.resolveEmployeeRecord(consultation);
+    const expert = this.resolveExpertRecord(consultation);
+    const recipients = new Map<
+      string,
+      { role: 'employee' | 'expert'; name: string; email: string }
+    >();
+
+    if (employee) {
+      const email = normalizeEmail(employee.email);
+      if (isValidEmailAddress(email)) {
+        recipients.set(email, {
+          role: 'employee',
+          name: cleanText(employee.name) || consultation.employeeName,
+          email,
+        });
+      }
+    }
+    if (expert) {
+      const email = normalizeEmail(expert.email);
+      if (isValidEmailAddress(email) && !recipients.has(email)) {
+        recipients.set(email, {
+          role: 'expert',
+          name: cleanText(expert.name) || consultation.expertName,
+          email,
+        });
+      }
+    }
+
+    return [...recipients.values()];
+  }
+
+  private getConsultationScheduleText(
+    consultation: ConsultationEntity,
+  ): string[] {
+    if (!consultation.sessionDate || !consultation.sessionTime) return [];
+    return [
+      '',
+      `Session: ${consultation.sessionTitle || 'Consultation'}`,
+      `Date and time: ${consultation.sessionDate} at ${consultation.sessionTime}`,
+      ...(consultation.sessionDuration
+        ? [`Duration: ${consultation.sessionDuration}`]
+        : []),
+      ...(consultation.sessionMeetingLink
+        ? [`Meeting link: ${consultation.sessionMeetingLink}`]
+        : []),
+    ];
+  }
+
+  private getConsultationScheduleHtml(
+    consultation: ConsultationEntity,
+  ): string {
+    if (!consultation.sessionDate || !consultation.sessionTime) return '';
+    return [
+      '<p><strong>Session details</strong></p><ul>',
+      `<li>Session: ${this.escapeHtml(consultation.sessionTitle || 'Consultation')}</li>`,
+      `<li>Date and time: ${this.escapeHtml(consultation.sessionDate)} at ${this.escapeHtml(consultation.sessionTime)}</li>`,
+      ...(consultation.sessionDuration
+        ? [`<li>Duration: ${this.escapeHtml(consultation.sessionDuration)}</li>`]
+        : []),
+      ...(consultation.sessionMeetingLink
+        ? [
+            `<li>Meeting link: <a href="${this.escapeHtml(consultation.sessionMeetingLink)}">Join session</a></li>`,
+          ]
+        : []),
+      '</ul>',
+    ].join('');
+  }
+
+  private escapeHtml(value: string): string {
+    return value.replace(/[&<>"']/g, (character) => {
+      const replacements: Record<string, string> = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      };
+      return replacements[character];
+    });
+  }
 
   findAll(filters?: {
     employeeId?: string;
@@ -158,6 +508,7 @@ export class ConsultationsService {
     });
 
     this.data.consultations.unshift(consultation);
+    void this.notifyConsultationRequested(consultation);
     return consultation;
   }
 
@@ -237,6 +588,7 @@ export class ConsultationsService {
     });
 
     this.data.consultations.unshift(consultation);
+    void this.notifyBookingConfirmed(consultation);
     return consultation;
   }
 
@@ -320,6 +672,7 @@ export class ConsultationsService {
     });
 
     this.data.consultations.unshift(consultation);
+    void this.notifyConsultationStatus(consultation, 'accepted');
 
     return {
       consultation,
@@ -327,8 +680,47 @@ export class ConsultationsService {
     };
   }
 
+  requestReschedule(
+    id: string,
+    requestDto: RequestConsultationRescheduleDto,
+  ): ConsultationEntity {
+    const consultation = this.findOne(id);
+    if (cleanText(requestDto.employeeId) !== cleanText(consultation.employeeId)) {
+      throw new ForbiddenException(
+        'You can only send an availability message for your own consultation.',
+      );
+    }
+    if (
+      !['accepted', 'approved'].includes(normalizeLookupValue(consultation.status)) ||
+      !consultation.sessionDate ||
+      !consultation.sessionTime
+    ) {
+      throw new BadRequestException(
+        'You can request a different time after the consultation has been scheduled.',
+      );
+    }
+
+    const message = cleanText(requestDto.message);
+    if (!message) {
+      throw new BadRequestException('Please enter a message for your expert.');
+    }
+
+    consultation.employeeAvailabilityMessage = message;
+    consultation.employeeAvailabilityRequestedAt = new Date().toISOString();
+    void this.notifyEmployeeAvailability(consultation);
+    return consultation;
+  }
+
   update(id: string, updateConsultationDto: UpdateConsultationDto): ConsultationEntity {
     const consultation = this.findOne(id);
+    const previousStatus = normalizeLookupValue(consultation.status);
+    const previousSchedule = {
+      sessionTitle: consultation.sessionTitle,
+      sessionDate: consultation.sessionDate,
+      sessionTime: consultation.sessionTime,
+      sessionDuration: consultation.sessionDuration,
+      sessionMeetingLink: consultation.sessionMeetingLink,
+    };
     const nextStatus = Object.prototype.hasOwnProperty.call(
       updateConsultationDto,
       'status',
@@ -402,12 +794,16 @@ export class ConsultationsService {
       ? cleanText(updateConsultationDto.sessionCreatedAt)
       : consultation.sessionCreatedAt;
 
-    let normalizedNextStatus = consultation.status;
+    let normalizedNextStatus = previousStatus;
     if (nextStatus) {
       normalizedNextStatus = normalizeLookupValue(nextStatus);
-      if (!['requested', 'accepted', 'rejected'].includes(normalizedNextStatus)) {
+      if (
+        !['requested', 'accepted', 'rejected', 'cancelled', 'canceled'].includes(
+          normalizedNextStatus,
+        )
+      ) {
         throw new BadRequestException(
-          'Consultation status must be requested, accepted, or rejected.',
+          'Consultation status must be requested, accepted, rejected, or cancelled.',
         );
       }
     }
@@ -422,6 +818,13 @@ export class ConsultationsService {
     ].some((fieldName) =>
       Object.prototype.hasOwnProperty.call(updateConsultationDto, fieldName),
     );
+    const scheduleChanged = includesSessionField && [
+      nextSessionTitle !== previousSchedule.sessionTitle,
+      nextSessionDate !== previousSchedule.sessionDate,
+      nextSessionTime !== previousSchedule.sessionTime,
+      nextSessionDuration !== previousSchedule.sessionDuration,
+      nextSessionMeetingLink !== previousSchedule.sessionMeetingLink,
+    ].some(Boolean);
 
     if (includesSessionField) {
       if (normalizeLookupValue(normalizedNextStatus) !== 'accepted') {
@@ -479,11 +882,38 @@ export class ConsultationsService {
         nextSessionCreatedAt || new Date().toISOString();
     }
 
+    if (scheduleChanged) {
+      consultation.reminder24hSentAt = '';
+      consultation.reminder1hSentAt = '';
+      consultation.feedbackRequestSentAt = '';
+    }
+    if (
+      nextSessionDate !== previousSchedule.sessionDate ||
+      nextSessionTime !== previousSchedule.sessionTime
+    ) {
+      consultation.employeeAvailabilityMessage = '';
+      consultation.employeeAvailabilityRequestedAt = '';
+    }
+
+    const statusChanged = previousStatus !== normalizedNextStatus;
+    if (statusChanged) {
+      void this.notifyConsultationStatus(consultation, normalizedNextStatus);
+    }
+    if (scheduleChanged && !statusChanged) {
+      const hadSchedule = Boolean(
+        previousSchedule.sessionDate && previousSchedule.sessionTime,
+      );
+      void this.notifyConsultationSchedule(consultation, hadSchedule);
+    }
+
     return consultation;
   }
 
   remove(id: string): ConsultationEntity {
     const consultation = this.findOne(id);
+    if (['requested', 'accepted'].includes(normalizeLookupValue(consultation.status))) {
+      void this.notifyConsultationStatus(consultation, 'cancelled');
+    }
     const consultationIndex = this.data.consultations.findIndex(
       (entry) => entry.id === consultation.id,
     );
@@ -571,6 +1001,8 @@ export class ConsultationsService {
       sessionTime: cleanText(record.sessionTime),
       sessionDuration: cleanText(record.sessionDuration),
       sessionMeetingLink: cleanText(record.sessionMeetingLink),
+      employeeAvailabilityMessage: cleanText(record.employeeAvailabilityMessage),
+      employeeAvailabilityRequestedAt: cleanText(record.employeeAvailabilityRequestedAt),
       sessionCreatedAt: cleanText(record.sessionCreatedAt),
       createdByExpert: Boolean(record.createdByExpert),
       sourceCheckinId: cleanText(record.sourceCheckinId),
@@ -578,6 +1010,9 @@ export class ConsultationsService {
       companyId: companyContext.companyId,
       companyName: companyContext.companyName,
       createdAt,
+      reminder24hSentAt: cleanText(record.reminder24hSentAt),
+      reminder1hSentAt: cleanText(record.reminder1hSentAt),
+      feedbackRequestSentAt: cleanText(record.feedbackRequestSentAt),
     };
   }
 

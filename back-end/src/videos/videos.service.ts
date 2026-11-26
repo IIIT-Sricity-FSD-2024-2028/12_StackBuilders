@@ -8,8 +8,11 @@ import { InMemoryDataService } from '../common/data/in-memory-data.service';
 import {
   cleanText,
   createPrefixedRecordId,
+  isValidEmailAddress,
+  normalizeEmail,
   normalizeLookupValue,
 } from '../common/utils/record.utils';
+import { AuthService } from '../auth/auth.service';
 import { unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { CompaniesService } from '../companies/companies.service';
@@ -30,6 +33,7 @@ export class VideosService {
     private readonly data: InMemoryDataService,
     private readonly companiesService: CompaniesService,
     private readonly expertsService: ExpertsService,
+    private readonly authService: AuthService,
   ) {}
 
   findAll(filters?: {
@@ -104,7 +108,97 @@ export class VideosService {
     };
 
     this.data.videos.unshift(video);
+    if (expert) {
+      void this.notifyVideoUploaded(video, expert);
+    }
     return video;
+  }
+
+  private async notifyVideoUploaded(
+    video: VideoEntity,
+    expert: NonNullable<ReturnType<VideosService['resolveExpertReference']>>,
+  ): Promise<void> {
+    const companyId = cleanText(video.companyId);
+    const companyName = normalizeLookupValue(video.companyName);
+    const companyEmployees = this.data.employees.filter((employee) => {
+      const employeeCompanyId = cleanText(employee.companyId);
+      if (companyId && employeeCompanyId) {
+        return employeeCompanyId === companyId;
+      }
+      return Boolean(
+        companyName &&
+          normalizeLookupValue(employee.companyName) === companyName,
+      );
+    });
+    const recipients = companyEmployees
+      .map((employee) => ({
+        email: normalizeEmail(employee.email),
+        name: cleanText(employee.name) || 'there',
+      }))
+      .filter((employee) => isValidEmailAddress(employee.email));
+
+    const safeTitle = this.escapeHtml(video.title);
+    const safeCategory = this.escapeHtml(video.category);
+    const safeDuration = this.escapeHtml(video.duration);
+    const safeDescription = this.escapeHtml(video.description);
+    const htmlDetails = `<p><strong>${safeTitle}</strong></p><p>Category: ${safeCategory}<br />Duration: ${safeDuration}</p><p>${safeDescription}</p>`;
+    const textDetails = [
+      `Video: ${video.title}`,
+      `Category: ${video.category}`,
+      `Duration: ${video.duration}`,
+      video.description,
+      '',
+      'Sign in to Stack Builders and open the Video Library to watch it.',
+    ].join('\n');
+
+    const notifications: Promise<void>[] = [];
+    const expertEmail = normalizeEmail(expert.email);
+    if (isValidEmailAddress(expertEmail)) {
+      notifications.push(
+        this.authService.sendTransactionalEmail({
+          to: expertEmail,
+          subject: 'Your video was uploaded - Stack Builders',
+          text: [
+            `Hello ${expert.name},`,
+            '',
+            `Your video has been uploaded to the ${video.companyName} company library.`,
+            textDetails,
+          ].join('\n'),
+          html: `<p>Hello ${this.escapeHtml(expert.name)},</p><p>Your video has been uploaded to the ${this.escapeHtml(video.companyName)} company library.</p>${htmlDetails}<p>Sign in to Stack Builders and open the Video Library to view it.</p>`,
+        }),
+      );
+    }
+
+    notifications.push(
+      ...recipients.map((recipient) =>
+        this.authService.sendTransactionalEmail({
+          to: recipient.email,
+          subject: 'New wellness video in your company library - Stack Builders',
+          text: [
+            `Hello ${recipient.name},`,
+            '',
+            `A new wellness video from ${expert.name} is available in the ${video.companyName} company library.`,
+            textDetails,
+          ].join('\n'),
+          html: `<p>Hello ${this.escapeHtml(recipient.name)},</p><p>A new wellness video from ${this.escapeHtml(expert.name)} is available in the ${this.escapeHtml(video.companyName)} company library.</p>${htmlDetails}<p>Sign in to Stack Builders and open the Video Library to watch it.</p>`,
+        }),
+      ),
+    );
+
+    await Promise.all(notifications);
+  }
+
+  private escapeHtml(value: string): string {
+    return value.replace(/[&<>"']/g, (character) => {
+      const replacements: Record<string, string> = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      };
+      return replacements[character];
+    });
   }
 
   update(id: string, updateVideoDto: UpdateVideoDto): VideoEntity {

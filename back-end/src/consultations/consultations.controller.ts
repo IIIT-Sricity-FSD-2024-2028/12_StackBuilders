@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -25,6 +26,7 @@ import { ConsultationsService } from './consultations.service';
 import { BookConsultationSlotDto } from './dto/book-consultation-slot.dto';
 import { CreateConsultationRequestDto } from './dto/create-consultation-request.dto';
 import { CreateFollowUpConsultationDto } from './dto/create-follow-up-consultation.dto';
+import { RequestConsultationRescheduleDto } from './dto/request-consultation-reschedule.dto';
 import { UpdateConsultationDto } from './dto/update-consultation.dto';
 import { ConsultationFollowUpResultEntity } from './entities/consultation-follow-up-result.entity';
 import { ConsultationLookupResultEntity } from './entities/consultation-lookup-result.entity';
@@ -152,12 +154,34 @@ export class ConsultationsController {
     return this.consultationsService.bookSlot(bookConsultationSlotDto);
   }
 
+  @Post(':id/unavailability')
+  @Roles(Role.Employee)
+  @ApiRoleHeader()
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Notify an expert that an employee is unavailable for a scheduled consultation',
+  })
+  @ApiOkResponse({ type: ConsultationEntity })
+  @ApiBadRequestResponse({
+    description: 'The consultation is not scheduled or the message is invalid.',
+  })
+  @ApiForbiddenResponse({
+    description: 'The consultation does not belong to this employee.',
+  })
+  @ApiNotFoundResponse({ description: 'Consultation not found.' })
+  requestReschedule(
+    @Param('id') id: string,
+    @Body() requestDto: RequestConsultationRescheduleDto,
+  ) {
+    return this.consultationsService.requestReschedule(id, requestDto);
+  }
+
   @Patch(':id')
   @Roles(Role.Admin, Role.WellnessExpert)
   @ApiRoleHeader()
   @ApiOperation({
     summary:
-      'Update a consultation status or add/edit accepted consultation session details',
+      'Update a consultation status, cancel it, or add/edit accepted session details',
   })
   @ApiOkResponse({ type: ConsultationEntity })
   @ApiBadRequestResponse({
@@ -175,7 +199,9 @@ export class ConsultationsController {
   @Delete(':id')
   @Roles(Role.Admin)
   @ApiRoleHeader()
-  @ApiOperation({ summary: 'Delete a consultation' })
+  @ApiOperation({
+    summary: 'Delete a consultation and notify participants if it was active',
+  })
   @ApiOkResponse({ type: ConsultationEntity })
   @ApiForbiddenResponse({ description: 'Missing or invalid role header.' })
   @ApiNotFoundResponse({ description: 'Consultation not found.' })

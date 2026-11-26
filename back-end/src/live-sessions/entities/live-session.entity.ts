@@ -48,5 +48,11 @@ export class LiveSessionEntity {
 
   @ApiProperty({ example: 'Stack Builders Pvt Ltd' })
   companyName: string;
+
+  @ApiProperty({ example: '2026-05-09T12:30:00.000Z', required: false })
+  reminder24hSentAt?: string;
+
+  @ApiProperty({ example: '2026-05-10T05:30:00.000Z', required: false })
+  reminder1hSentAt?: string;
 }
 

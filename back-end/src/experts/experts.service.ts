@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
 import { HARDCODED_SUPER_ADMIN_EMAIL } from '../common/constants/super-admin';
 import { InMemoryDataService } from '../common/data/in-memory-data.service';
 import {
@@ -26,6 +28,7 @@ export class ExpertsService {
     private readonly data: InMemoryDataService,
     private readonly companiesService: CompaniesService,
     private readonly subscriptionsService: SubscriptionsService,
+    @Optional() private readonly authService?: AuthService,
   ) {}
 
   findAll(filters?: {
@@ -127,6 +130,7 @@ export class ExpertsService {
 
   update(id: string, updateExpertDto: UpdateExpertDto): ExpertEntity {
     const currentExpert = this.findOne(id);
+    const previousEmail = currentExpert.email;
     const hasCompanyId =
       Object.prototype.hasOwnProperty.call(updateExpertDto, 'companyId');
     const hasCompanyName =
@@ -164,6 +168,7 @@ export class ExpertsService {
     )
       ? cleanText(updateExpertDto.password)
       : currentExpert.password;
+    const passwordChanged = nextPassword !== currentExpert.password;
     const nextPhoneNumber = Object.prototype.hasOwnProperty.call(
       updateExpertDto,
       'phoneNumber',
@@ -226,6 +231,13 @@ export class ExpertsService {
     currentExpert.status = nextStatus || 'Active';
     currentExpert.availableSlots = nextAvailableSlots;
     currentExpert.updatedAt = new Date().toISOString();
+
+    if (passwordChanged) {
+      void this.authService?.notifyPasswordChanged(previousEmail);
+      if (nextEmail !== previousEmail) {
+        void this.authService?.notifyPasswordChanged(nextEmail);
+      }
+    }
 
     return currentExpert;
   }

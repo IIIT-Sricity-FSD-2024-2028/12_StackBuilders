@@ -820,6 +820,29 @@ img {
   transform: translateY(-1px);
 }
 
+.signup-card__link-row--split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.signup-card__text-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2157ec;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.signup-card__text-button:hover {
+  color: #143fd3;
+  text-decoration: underline;
+}
+
 .signup-card__helper {
   margin-top: -4px;
   color: #64748b;

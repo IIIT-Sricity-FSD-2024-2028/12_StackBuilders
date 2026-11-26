@@ -4,6 +4,16 @@ import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
 import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
 import adminApi from "../adminApi.js";
 
+const INDIAN_PHONE_PATTERN = "(?:\\+?91[\\s()-]*)?[6-9](?:[\\s()-]*[0-9]){9}";
+
+function normalizeIndianPhoneNumber(value) {
+  const phone = String(value ?? "").trim();
+  if (!phone || !/^\+?[\d\s()-]+$/.test(phone)) return null;
+  const digits = phone.replace(/\D/g, "");
+  const number = digits.length === 10 ? digits : digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : "";
+  return /^[6-9]\d{9}$/.test(number) ? `+91 ${number.slice(0, 5)} ${number.slice(5)}` : null;
+}
+
 function CompanyManagement() {
   const stylesReady = usePageStylesheets("/admin-companies-legacy.css");
   const [companies, setCompanies] = useState([]);
@@ -40,16 +50,26 @@ function CompanyManagement() {
 
   async function createCompany(event) {
     event.preventDefault();
-    setSaving(true);
     setFormError("");
+    const companyPhone = normalizeIndianPhoneNumber(form.phone);
+    const hrPhoneNumber = form.hrPhoneNumber.trim() ? normalizeIndianPhoneNumber(form.hrPhoneNumber) : "";
+    if (!companyPhone) {
+      setFormError("Enter a valid Indian company mobile number with 10 digits starting from 6–9, optionally prefixed by +91.");
+      return;
+    }
+    if (form.hrPhoneNumber.trim() && !hrPhoneNumber) {
+      setFormError("Enter a valid Indian HR mobile number with 10 digits starting from 6–9, optionally prefixed by +91.");
+      return;
+    }
+    setSaving(true);
     try {
       const result = await adminApi.createCompanyWithHr({
         companyName: form.name,
-        companyPhone: form.phone,
+        companyPhone,
         companyAddress: form.address,
         companyEmail: form.email,
         hrName: form.hrName,
-        hrPhoneNumber: form.hrPhoneNumber,
+        hrPhoneNumber,
         hrEmail: form.hrEmail,
         hrPassword: form.hrPassword,
       });
@@ -163,12 +183,12 @@ function CompanyManagement() {
             <h2>Add Company and HR</h2>
             <p>Create a company workspace together with its first HR login.</p>
             <label>Company Name<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
-            <label>Phone Number<input required value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></label>
+            <label>Phone Number<input type="tel" inputMode="tel" autoComplete="tel" maxLength="18" pattern={INDIAN_PHONE_PATTERN} title="Enter a 10-digit Indian mobile number starting with 6–9, optionally prefixed by +91." required value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="+91 98765 43210" /></label>
             <label>Address<input required value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} /></label>
             <label>Company Email<input required type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
             <h3>Initial HR Account</h3>
             <label>HR Name<input required value={form.hrName} onChange={(event) => setForm({ ...form, hrName: event.target.value })} /></label>
-            <label>HR Phone (optional)<input type="tel" value={form.hrPhoneNumber} onChange={(event) => setForm({ ...form, hrPhoneNumber: event.target.value })} /></label>
+            <label>HR Phone (optional)<input type="tel" inputMode="tel" autoComplete="tel" maxLength="18" pattern={INDIAN_PHONE_PATTERN} title="Enter a 10-digit Indian mobile number starting with 6–9, optionally prefixed by +91." value={form.hrPhoneNumber} onChange={(event) => setForm({ ...form, hrPhoneNumber: event.target.value })} placeholder="+91 98765 43210" /></label>
             <label>HR Gmail<input required type="email" placeholder="hr@gmail.com" value={form.hrEmail} onChange={(event) => setForm({ ...form, hrEmail: event.target.value })} /></label>
             <label>HR Password<input required type="password" minLength="6" autoComplete="new-password" value={form.hrPassword} onChange={(event) => setForm({ ...form, hrPassword: event.target.value })} /></label>
             {formError && <p className="form-message" role="alert">{formError}</p>}

@@ -46,6 +46,14 @@ export class ConsultationEntity {
   @ApiProperty({ example: 'https://meet.example.com/session' })
   sessionMeetingLink: string;
 
+  @ApiProperty({
+    example: 'I am unavailable at this time. Could we meet tomorrow afternoon?',
+  })
+  employeeAvailabilityMessage: string;
+
+  @ApiProperty({ example: '2026-05-02T13:00:00.000Z' })
+  employeeAvailabilityRequestedAt: string;
+
   @ApiProperty({ example: '2026-05-02T13:00:00.000Z' })
   sessionCreatedAt: string;
 
@@ -66,5 +74,14 @@ export class ConsultationEntity {
 
   @ApiProperty({ example: '2026-05-02T12:30:00.000Z' })
   createdAt: string;
+
+  @ApiProperty({ example: '2026-05-03T12:30:00.000Z', required: false })
+  reminder24hSentAt?: string;
+
+  @ApiProperty({ example: '2026-05-03T17:30:00.000Z', required: false })
+  reminder1hSentAt?: string;
+
+  @ApiProperty({ example: '2026-05-03T18:45:00.000Z', required: false })
+  feedbackRequestSentAt?: string;
 }
 

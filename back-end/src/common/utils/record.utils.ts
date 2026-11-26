@@ -13,17 +13,28 @@ export function normalizeLookupValue(value: unknown): string {
 }
 
 export function formatIndianPhoneNumber(value: unknown): string | null {
-  const digitsOnly = String(value ?? '').replace(/\D/g, '');
+  const phone = String(value ?? '').trim();
+  if (!phone || !/^\+?[\d\s()-]+$/.test(phone)) return null;
 
-  if (digitsOnly.length === 10) {
-    return `+91 ${digitsOnly.slice(0, 5)} ${digitsOnly.slice(5)}`;
+  const plusIndex = phone.indexOf('+');
+  if (plusIndex > 0 || phone.indexOf('+', plusIndex + 1) !== -1) return null;
+
+  const digitsOnly = phone.replace(/\D/g, '');
+  const hasPlus = plusIndex === 0;
+  if (hasPlus && (!phone.startsWith('+91') || digitsOnly.length !== 12)) {
+    return null;
   }
 
-  if (digitsOnly.length === 12 && digitsOnly.startsWith('91')) {
-    return `+91 ${digitsOnly.slice(2, 7)} ${digitsOnly.slice(7)}`;
-  }
+  const mobileNumber =
+    digitsOnly.length === 10
+      ? digitsOnly
+      : digitsOnly.length === 12 && digitsOnly.startsWith('91')
+        ? digitsOnly.slice(2)
+        : null;
 
-  return null;
+  if (!mobileNumber || !/^[6-9]\d{9}$/.test(mobileNumber)) return null;
+
+  return `+91 ${mobileNumber.slice(0, 5)} ${mobileNumber.slice(5)}`;
 }
 
 export function isValidEmailAddress(value: unknown): boolean {

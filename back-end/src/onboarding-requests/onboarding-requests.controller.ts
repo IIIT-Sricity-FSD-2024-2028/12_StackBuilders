@@ -91,7 +91,7 @@ export class OnboardingRequestsController {
   @Delete(':id')
   @Roles(Role.Admin)
   @ApiRoleHeader()
-  @ApiOperation({ summary: 'Delete a pending company onboarding request' })
+  @ApiOperation({ summary: 'Reject a pending company request and email its contacts' })
   @ApiOkResponse({ type: OnboardingRequestEntity })
   @ApiForbiddenResponse({ description: 'Missing or invalid role header.' })
   @ApiNotFoundResponse({

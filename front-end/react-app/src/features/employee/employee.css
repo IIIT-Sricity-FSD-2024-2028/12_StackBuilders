@@ -1836,6 +1836,16 @@ body.profile-open {
   align-self: flex-start;
 }
 
+.join.reschedule-request {
+  background: #f1f5f9;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+}
+
+.join.reschedule-request:hover {
+  background: #ccfbf1;
+}
+
 /* BADGES */
 .badge {
   padding: 5px 12px;

@@ -39,6 +39,10 @@ export default function EmployeeConsultation() {
   const [formState, setFormState] = useState({ purpose: '', expertId: '', slotTime: '' });
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [unavailableTarget, setUnavailableTarget] = useState(null);
+  const [availabilityMessage, setAvailabilityMessage] = useState('');
+  const [availabilityError, setAvailabilityError] = useState('');
+  const [sendingAvailability, setSendingAvailability] = useState(false);
   const purposeRef = useRef(null);
   const selectedExpert = experts.find((expert) => expert.id === formState.expertId);
   const bookedSlotKeys = new Set(consultations
@@ -116,6 +120,41 @@ export default function EmployeeConsultation() {
     }
   }
 
+  function openAvailabilityMessage(consultation) {
+    setUnavailableTarget(consultation);
+    setAvailabilityMessage('');
+    setAvailabilityError('');
+  }
+
+  async function handleAvailabilityMessageSubmit(event) {
+    event.preventDefault();
+    if (!unavailableTarget || !employee) return;
+    const message = availabilityMessage.trim();
+    if (!message) {
+      setAvailabilityError('Please let your expert know when you may be available.');
+      return;
+    }
+
+    setSendingAvailability(true);
+    setAvailabilityError('');
+    try {
+      const updated = await employeeApi.requestConsultationReschedule(unavailableTarget.id, {
+        employeeId: employee.id,
+        message,
+      });
+      setConsultations((current) => current.map((consultation) =>
+        consultation.id === updated.id ? updated : consultation,
+      ));
+      setUnavailableTarget(null);
+      setAvailabilityMessage('');
+      loadData().catch(() => {});
+    } catch (error) {
+      setAvailabilityError(error.message || 'Your message could not be sent to the expert.');
+    } finally {
+      setSendingAvailability(false);
+    }
+  }
+
   return (
     <>
       <div className="container">
@@ -134,7 +173,7 @@ export default function EmployeeConsultation() {
                 {upcoming.length === 0 ? (
                   <div className="empty-state">No upcoming consultations.</div>
                 ) : (
-                  upcoming.map((c) => <UpcomingCard key={c.id} c={c} />)
+                  upcoming.map((c) => <UpcomingCard key={c.id} c={c} onRequestScheduleChange={openAvailabilityMessage} />)
                 )}
               </div>
             </div>
@@ -263,6 +302,50 @@ export default function EmployeeConsultation() {
           </form>
         </div>
       </div>
+
+      <div
+        className="request-modal-overlay"
+        id="availabilityMessageModalOverlay"
+        hidden={!unavailableTarget}
+        onClick={(event) => {
+          if (event.target.id === 'availabilityMessageModalOverlay' && !sendingAvailability) {
+            setUnavailableTarget(null);
+          }
+        }}
+      >
+        <div className="request-modal" role="dialog" aria-modal="true" aria-labelledby="availabilityMessageTitle">
+          <div className="request-modal-header">
+            <div>
+              <span className="request-modal-tag">SESSION AVAILABILITY</span>
+              <h2 id="availabilityMessageTitle">Ask for a different time</h2>
+              <p>Tell {unavailableTarget?.expertName || 'your expert'} that you can’t attend and suggest times that work for you.</p>
+            </div>
+            <button className="request-close-btn" type="button" disabled={sendingAvailability} onClick={() => setUnavailableTarget(null)}>
+              Close
+            </button>
+          </div>
+          <form className="request-modal-form" onSubmit={handleAvailabilityMessageSubmit}>
+            <label htmlFor="availabilityMessage">Message to your expert</label>
+            <textarea
+              id="availabilityMessage"
+              maxLength={1000}
+              required
+              value={availabilityMessage}
+              onChange={(event) => setAvailabilityMessage(event.target.value)}
+              placeholder="I’m unavailable at the scheduled time. I’m available on…"
+            />
+            {availabilityError && <p role="alert" style={{ color: '#ef4444', margin: 0 }}>{availabilityError}</p>}
+            <div className="request-modal-actions">
+              <button className="request-secondary-btn" type="button" disabled={sendingAvailability} onClick={() => setUnavailableTarget(null)}>
+                Back
+              </button>
+              <button className="request-primary-btn" type="submit" disabled={sendingAvailability}>
+                {sendingAvailability ? 'Sending…' : 'Send to expert'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </>
   );
 }
@@ -283,7 +366,7 @@ function DoctorNameWithMeta({ name, subtitle, iconVariant }) {
   );
 }
 
-function UpcomingCard({ c }) {
+function UpcomingCard({ c, onRequestScheduleChange }) {
   const date    = formatScheduleDate(c.sessionDate);
   const time    = formatScheduleTime(c.sessionTime);
   const details = (date || time)
@@ -305,6 +388,14 @@ function UpcomingCard({ c }) {
       >
         {c.sessionMeetingLink ? 'Join Session' : 'Awaiting Link'}
       </button>
+      {c.employeeAvailabilityRequestedAt && (
+        <p className="status-message requested-message" style={{ marginTop: 12 }}>
+          Your expert has been notified that you’re unavailable.
+        </p>
+      )}
+      {c.sessionDate && c.sessionTime && <button className="join reschedule-request" type="button" onClick={() => onRequestScheduleChange(c)}>
+        {c.employeeAvailabilityRequestedAt ? 'Send another message' : 'Request a different time'}
+      </button>}
     </div>
   );
 }

@@ -24,10 +24,12 @@ import { FileLoggerService } from './common/middleware/file-logger.service';
 import { UploadsModule } from './uploads/uploads.module';
 import { QueriesModule } from './queries/queries.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     InMemoryDataModule,
+    AuthModule,
     QueriesModule,
     SubscriptionsModule,
     ChallengesModule,

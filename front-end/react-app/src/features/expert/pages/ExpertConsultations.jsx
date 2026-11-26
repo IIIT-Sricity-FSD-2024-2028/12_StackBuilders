@@ -59,6 +59,10 @@ function consultationInterval(item) {
   return { start: start.valueOf(), end: start.valueOf() + duration * 60_000 };
 }
 
+function hasScheduledSession(item) {
+  return Boolean((item.sessionDate || item.date) && (item.sessionTime || item.time));
+}
+
 function dateFromDayKey(value) {
   const [year, month, day] = value.split("-").map(Number);
   return new Date(year, month - 1, day);
@@ -106,7 +110,12 @@ function ExpertConsultations({ data, onUpdate, onUpdateConsultation, onSaveAvail
     return () => window.clearInterval(timer);
   }, []);
 
-  const upcoming = useMemo(() => data.consultations.filter((item) => item.status === "accepted" && !item.completed), [data.consultations]);
+  const upcoming = useMemo(
+    () => data.consultations.filter(
+      (item) => item.status === "accepted" && !item.completed && hasScheduledSession(item),
+    ),
+    [data.consultations],
+  );
   const scheduledIntervals = useMemo(
     () => data.consultations.map(consultationInterval).filter(Boolean),
     [data.consultations],
@@ -254,7 +263,7 @@ function ExpertConsultations({ data, onUpdate, onUpdateConsultation, onSaveAvail
       <div className="upcoming-grid" id="upcomingConsultationsGrid">{pagedUpcoming.length ? pagedUpcoming.map((item) => <article className="mini-card" key={item.id}>
         <div className="mini-header"><div className="person"><div className={`avatar ${avatarClass(item.employee)}`}>{initials(item.employee)}</div><div><h3>{item.employee}</h3><span>{item.category || item.purpose}</span></div></div><span className="status green">Scheduled</span></div>
         <ul className="meta"><li>{formatDate(item.date)}</li><li>{item.time ? `${slotLabel(item.time)}${item.sessionDuration ? ` (${item.sessionDuration})` : ""}` : "Time to be scheduled"}</li><li>{item.sessionTitle || item.purpose}</li></ul>
-        <button className="primary-btn" type="button" onClick={() => { if (item.sessionMeetingLink) window.open(item.sessionMeetingLink, "_blank", "noopener,noreferrer"); else setNotice("Session details are not available yet."); }}>Open Session</button>
+        <button className="primary-btn" type="button" disabled={!item.sessionMeetingLink} onClick={() => { if (item.sessionMeetingLink) window.open(item.sessionMeetingLink, "_blank", "noopener,noreferrer"); }}>{item.sessionMeetingLink ? "Open Session" : "Awaiting Link"}</button>
       </article>) : <EmptyState>No upcoming consultations scheduled.</EmptyState>}</div>
       {upcoming.length > PAGE_SIZE && <div className="pager"><button className="pager-btn" type="button" disabled={page === 1} onClick={() => setPage((value) => value - 1)}>Previous</button><span className="pager-btn page-total">{page}</span><button className="pager-btn" type="button" disabled={page === totalPages} onClick={() => setPage((value) => value + 1)}>Next</button></div>}
     </section>
@@ -264,7 +273,27 @@ function ExpertConsultations({ data, onUpdate, onUpdateConsultation, onSaveAvail
       <table><thead><tr><th>S.No</th><th>Employee name</th><th>Purpose of request</th><th>Action</th></tr></thead><tbody>{requests.length ? requests.map((item, index) => <tr key={item.id}><td>{index + 1}</td><td><div className="table-person"><div className={`avatar small ${avatarClass(item.employee)}`}>{initials(item.employee)}</div>{item.employee}</div></td><td>{item.purpose}</td><td className="actions"><button className="badge accept" type="button" onClick={() => updateStatus(item.id, "accepted")}>Accept</button><button className="badge reject" type="button" onClick={() => updateStatus(item.id, "rejected")}>Reject</button></td></tr>) : <EmptyState colSpan={4}>No consultation requests pending.</EmptyState>}</tbody></table>
     </section>
 
-    <div className="split"><section className="panel"><SectionTitle icon="Accepted" title="Accepted Consultations" description="Requests that were approved successfully" /><div id="acceptedConsultationsList">{accepted.length ? accepted.map((item) => <article className="list-card" key={item.id}><div className="list-head"><div className="table-person"><div className={`avatar small ${avatarClass(item.employee)}`}>{initials(item.employee)}</div><div><strong>{item.employee}</strong><span>{item.purpose} · {formatDateTime(item.requestedAt)}</span></div></div><span className="status green">Accepted</span></div><button className="primary-btn full" type="button" onClick={() => setScheduleTarget(item)}>{item.sessionDate ? "Edit Session" : "Create Session"}</button></article>) : <EmptyState>No accepted consultations yet.</EmptyState>}</div></section>
+      <div className="split">
+        <section className="panel">
+          <SectionTitle icon="Accepted" title="Accepted Consultations" description="Requests that were approved successfully" />
+          <div id="acceptedConsultationsList">
+            {accepted.length ? accepted.map((item) => (
+              <article className="list-card" key={item.id}>
+                <div className="list-head">
+                  <div className="table-person">
+                    <div className={`avatar small ${avatarClass(item.employee)}`}>{initials(item.employee)}</div>
+                    <div><strong>{item.employee}</strong><span>{item.purpose} · {formatDateTime(item.requestedAt)}</span></div>
+                  </div>
+                  <span className="status green">Accepted</span>
+                </div>
+                {item.employeeAvailabilityMessage && <p style={{ margin: "14px 0", padding: 12, borderRadius: 10, background: "#fff7ed", color: "#9a3412" }}><strong>Employee requested a different time:</strong> {item.employeeAvailabilityMessage}</p>}
+                <button className="primary-btn full" type="button" onClick={() => setScheduleTarget(item)}>
+                  {item.sessionDate ? "Edit Session" : "Create Session"}
+                </button>
+              </article>
+            )) : <EmptyState>No accepted consultations yet.</EmptyState>}
+          </div>
+        </section>
       <section className="panel"><SectionTitle icon="Rejected" title="Rejected Consultations" description="Requests that were declined" danger /><div id="rejectedConsultationsList">{rejected.length ? rejected.map((item) => <article className="reject-card" key={item.id}><div className="table-person"><div className={`avatar small ${avatarClass(item.employee)}`}>{initials(item.employee)}</div><div><strong>{item.employee}</strong><span>{item.purpose}</span></div></div><span className="status red">Rejected</span></article>) : <EmptyState>No rejected consultations.</EmptyState>}</div></section></div>
 
     <section className="panel previous-consultations"><SectionTitle icon="History" title="Previous Client Consultations" description="Your completed wellness session history" /><table><thead><tr><th>Client</th><th>Purpose</th><th>Date</th><th>Rating</th></tr></thead><tbody>{history.length ? history.map((item) => <tr key={item.id}><td>{item.employee}</td><td>{item.purpose}</td><td>{formatDate(item.date)}</td><td>{item.rating ? `${item.rating}/5` : "Not captured"}</td></tr>) : <EmptyState colSpan={4}>No completed consultation history is available yet.</EmptyState>}</tbody></table></section>

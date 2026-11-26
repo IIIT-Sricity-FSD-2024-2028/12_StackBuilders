@@ -5,8 +5,8 @@ const EXPERT_SESSION_KEY = "stackbuilders.expertSession.v1";
 const HR_SESSION_KEY = "stackbuilders.hrSession.v1";
 
 const ADMIN_ACCOUNTS = [
-  { email: "ravi@gmail.com", password: "1234", name: "Super User", role: "Admin", path: "/admin" },
-  { email: "raju@gmail.com", password: "1234", name: "Supervisor", role: "Supervisor", path: "/supervisor" },
+  { email: "ravi@gmail.com" },
+  { email: "raju@gmail.com" },
 ];
 
 const LOCAL_KEYS = {
@@ -33,6 +33,39 @@ function getApiErrorMessage(value) {
     return getApiErrorMessage(value.message) || getApiErrorMessage(value.error) || getApiErrorMessage(value.detail);
   }
   return "";
+}
+
+async function postAuthRequest(path, payload) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(getApiErrorMessage(data) || "The request could not be completed.");
+  }
+  return data;
+}
+
+export async function requestPasswordReset(email) {
+  return postAuthRequest("/auth/password-recovery/request", { email: normalizeEmail(email) });
+}
+
+export async function completePasswordReset(email, code, newPassword) {
+  return postAuthRequest("/auth/password-recovery/reset", {
+    email: normalizeEmail(email),
+    code: String(code || "").trim(),
+    newPassword,
+  });
+}
+
+export async function updateDemoPassword(email, currentPassword, newPassword) {
+  return postAuthRequest("/auth/demo-password", {
+    email: normalizeEmail(email),
+    currentPassword,
+    newPassword,
+  });
 }
 
 function normalizeEmail(value) { return String(value || "").trim().toLowerCase(); }
@@ -99,11 +132,20 @@ function clearOtherSessions() {
 export async function authenticate(username, password) {
   const email = normalizeEmail(username);
   const secret = normalizeText(password);
-  const admin = ADMIN_ACCOUNTS.find((account) => account.email === email && account.password === secret);
+  const admin = ADMIN_ACCOUNTS.find((account) => account.email === email);
 
   if (admin) {
+    let result;
+    try {
+      result = await postAuthRequest("/auth/demo-login", { email, password: secret });
+    } catch (error) {
+      return {
+        ok: false,
+        error: error.message || "The backend is unavailable. Please try again when the server is running.",
+      };
+    }
     clearOtherSessions();
-    return { ok: true, session: writeSession({ id: email, name: admin.name, email, role: admin.role }, admin.role, admin.path) };
+    return { ok: true, session: writeSession(result.profile, result.role, result.path) };
   }
 
   const [employees, experts, hrProfiles] = await Promise.all([

@@ -84,6 +84,8 @@ export const employeeApi = {
     get("/consultations", { ...company, employeeId: employee?.id }),
   createConsultation: (payload) => post("/consultations", payload),
   bookConsultationSlot: (payload) => post("/consultations/book-slot", payload),
+  requestConsultationReschedule: (consultationId, payload) =>
+    post(`/consultations/${encodeURIComponent(consultationId)}/unavailability`, payload),
   claimReward: (rewardId, employeeId) =>
     post(`/rewards/${encodeURIComponent(rewardId)}/claim`, { employeeId }),
   getCheckins: (employee, company, checkinType) =>

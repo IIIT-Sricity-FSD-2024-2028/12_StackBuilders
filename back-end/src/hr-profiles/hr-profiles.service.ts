@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
 import { HARDCODED_SUPER_ADMIN_EMAIL } from '../common/constants/super-admin';
 import { InMemoryDataService } from '../common/data/in-memory-data.service';
 import {
@@ -35,6 +37,7 @@ export class HrProfilesService {
   constructor(
     private readonly data: InMemoryDataService,
     private readonly companiesService: CompaniesService,
+    @Optional() private readonly authService?: AuthService,
   ) {}
 
   findAll(filters?: {
@@ -123,6 +126,7 @@ export class HrProfilesService {
 
   update(id: string, updateHrProfileDto: UpdateHrProfileDto): HrProfileEntity {
     const currentProfile = this.findOne(id);
+    const previousEmail = currentProfile.email;
     const hasCompanyId =
       Object.prototype.hasOwnProperty.call(updateHrProfileDto, 'companyId');
     const hasCompanyName =
@@ -152,6 +156,7 @@ export class HrProfilesService {
     )
       ? cleanText(updateHrProfileDto.password)
       : currentProfile.password;
+    const passwordChanged = nextPassword !== currentProfile.password;
     const nextPhoneNumber = Object.prototype.hasOwnProperty.call(
       updateHrProfileDto,
       'phoneNumber',
@@ -238,6 +243,13 @@ export class HrProfilesService {
     currentProfile.status = nextStatus || HR_PROFILE_DEFAULTS.status;
     currentProfile.createdBySuperUser = nextCreatedBySuperUser;
     currentProfile.updatedAt = new Date().toISOString();
+
+    if (passwordChanged) {
+      void this.authService?.notifyPasswordChanged(previousEmail);
+      if (nextEmail !== previousEmail) {
+        void this.authService?.notifyPasswordChanged(nextEmail);
+      }
+    }
 
     return currentProfile;
   }

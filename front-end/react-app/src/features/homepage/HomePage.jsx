@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
-import { authenticate } from "./authService.js";
+import { authenticate, completePasswordReset, requestPasswordReset } from "./authService.js";
 
 const featureCards = [
   ["fa-regular fa-calendar-check", "Expert Consultation Scheduling", "Seamlessly schedule and manage sessions with certified wellness experts."],
@@ -21,6 +21,15 @@ function HomePage() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [recoveryStep, setRecoveryStep] = useState("login");
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [recoveryCode, setRecoveryCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [recoverySubmitting, setRecoverySubmitting] = useState(false);
+  const [recoveryError, setRecoveryError] = useState("");
+  const [recoveryMessage, setRecoveryMessage] = useState("");
+  const [loginNotice, setLoginNotice] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -91,13 +100,75 @@ function HomePage() {
     setSubmitting(false);
     if (!result.ok) return setError(result.error);
     setLoginOpen(false);
+    setLoginNotice("");
     navigate(result.session.path);
+  }
+
+  async function submitRecoveryRequest(event) {
+    event.preventDefault();
+    setRecoverySubmitting(true);
+    setRecoveryError("");
+    setRecoveryMessage("");
+    try {
+      await requestPasswordReset(recoveryEmail);
+      setRecoveryStep("code");
+      setRecoveryMessage("If an account matches that email, a 6-digit code will arrive shortly. It expires in 10 minutes. Check spam, or request another code after one minute.");
+    } catch (requestError) {
+      setRecoveryError(requestError.message || "We could not send a verification code. Please try again.");
+    } finally {
+      setRecoverySubmitting(false);
+    }
+  }
+
+  async function submitPasswordReset(event) {
+    event.preventDefault();
+    setRecoveryError("");
+    setRecoveryMessage("");
+    if (newPassword.length < 6) {
+      setRecoveryError("Your new password must be at least 6 characters long.");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setRecoveryError("The new password and confirmation do not match.");
+      return;
+    }
+
+    setRecoverySubmitting(true);
+    try {
+      await completePasswordReset(recoveryEmail, recoveryCode, newPassword);
+      setRecoveryStep("login");
+      setForm({ username: recoveryEmail, password: "" });
+      setRecoveryCode("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+      setLoginNotice("Your password has been updated. Sign in with your new password.");
+    } catch (resetError) {
+      setRecoveryError(resetError.message || "We could not reset your password. Check the code and try again.");
+    } finally {
+      setRecoverySubmitting(false);
+    }
   }
 
   function openLogin(event) {
     event?.preventDefault();
     setError("");
+    setLoginNotice("");
+    setRecoveryStep("login");
     setLoginOpen(true);
+  }
+
+  function openPasswordRecovery() {
+    setRecoveryEmail(form.username);
+    setRecoveryError("");
+    setRecoveryMessage("");
+    setLoginNotice("");
+    setRecoveryStep("email");
+  }
+
+  function returnToLogin() {
+    setRecoveryStep("login");
+    setRecoveryError("");
+    setRecoveryMessage("");
   }
 
   return (
@@ -146,7 +217,49 @@ function HomePage() {
         <div className="footer-contact-block"><h4>Contact Us</h4><div className="footer-contact-list"><a href="mailto:sudeepchandra2002@gmail.com"><i className="fa-regular fa-envelope"></i> sudeepchandra2002@gmail.com</a><a href="tel:+919703096488"><i className="fa-solid fa-phone"></i> +91 9703096488</a><a href="#location"><i className="fa-solid fa-location-dot"></i> Sri city, India</a></div></div>
       </div><div className="container footer-bottom"><p>© 2026 Stack Builders. All rights reserved.</p><a href="#privacy">Privacy Policy</a></div></footer>
 
-      <div className="signup-modal" id="signupModal" aria-hidden={!loginOpen} hidden={!loginOpen}><div className="signup-modal__backdrop" onClick={() => setLoginOpen(false)}></div><div className="signup-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="signupModalTitle"><button type="button" className="signup-modal__close" onClick={() => setLoginOpen(false)} aria-label="Close sign in dialog"><i className="fa-solid fa-xmark"></i></button><section className="signup-card"><div className="signup-card__brand"><h2>Stack Builders</h2><span className="signup-card__underline"></span></div><div className="signup-card__copy"><h3 id="signupModalTitle">Sign In to Stack Builders</h3><p>Enter your credentials to manage your wellness journey</p></div><form className="signup-card__form" onSubmit={submitLogin}><label className="signup-card__field"><span>Gmail</span><div className="signup-card__input-wrap"><i className="fa-regular fa-user"></i><input id="homepageSigninUsername" name="username" type="email" placeholder="Enter your Gmail" required value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value })} /></div></label><label className="signup-card__field"><span>Password</span><div className="signup-card__input-wrap"><i className="fa-solid fa-lock"></i><input id="homepageSigninPassword" name="password" type="password" placeholder="Enter your password" required value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></div></label><p className="signup-card__error" hidden={!error}>{error}</p><div className="signup-card__actions"><button type="submit" className="signup-card__submit" disabled={submitting}>{submitting ? "Signing In…" : "Sign In"}</button><button type="button" className="signup-card__secondary" onClick={() => setLoginOpen(false)}>Back</button></div><div className="signup-card__link-row"><a href="/company-request" className="signup-card__request-link">Request Company Approval</a></div></form></section></div></div>
+      <div className="signup-modal" id="signupModal" aria-hidden={!loginOpen} hidden={!loginOpen}>
+        <div className="signup-modal__backdrop" onClick={() => setLoginOpen(false)}></div>
+        <div className="signup-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="signupModalTitle">
+          <button type="button" className="signup-modal__close" onClick={() => setLoginOpen(false)} aria-label="Close sign in dialog"><i className="fa-solid fa-xmark"></i></button>
+          <section className="signup-card">
+            <div className="signup-card__brand"><h2>Stack Builders</h2><span className="signup-card__underline"></span></div>
+            <div className="signup-card__copy">
+              <h3 id="signupModalTitle">{recoveryStep === "login" ? "Sign In to Stack Builders" : recoveryStep === "email" ? "Reset your password" : "Verify your email"}</h3>
+              <p>{recoveryStep === "login" ? "Enter your credentials to manage your wellness journey" : recoveryStep === "email" ? "We’ll email a one-time code to the address on your account." : `Enter the code sent to ${recoveryEmail}, then choose a new password.`}</p>
+            </div>
+
+            {recoveryStep === "login" && (
+              <form className="signup-card__form" onSubmit={submitLogin}>
+                <label className="signup-card__field"><span>Gmail</span><div className="signup-card__input-wrap"><i className="fa-regular fa-user"></i><input id="homepageSigninUsername" name="username" type="email" autoComplete="username" placeholder="Enter your Gmail" required value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value })} /></div></label>
+                <label className="signup-card__field"><span>Password</span><div className="signup-card__input-wrap"><i className="fa-solid fa-lock"></i><input id="homepageSigninPassword" name="password" type="password" autoComplete="current-password" placeholder="Enter your password" required value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></div></label>
+                {loginNotice && <p className="signup-card__success" role="status">{loginNotice}</p>}
+                {error && <p className="signup-card__error" role="alert">{error}</p>}
+                <div className="signup-card__actions"><button type="submit" className="signup-card__submit" disabled={submitting}>{submitting ? "Signing In…" : "Sign In"}</button><button type="button" className="signup-card__secondary" onClick={() => setLoginOpen(false)}>Back</button></div>
+                <div className="signup-card__link-row signup-card__link-row--split"><button type="button" className="signup-card__text-button" onClick={openPasswordRecovery}>Forgot password?</button><a href="/company-request" className="signup-card__request-link">Request Company Approval</a></div>
+              </form>
+            )}
+
+            {recoveryStep === "email" && (
+              <form className="signup-card__form" onSubmit={submitRecoveryRequest}>
+                <label className="signup-card__field"><span>Email address</span><div className="signup-card__input-wrap"><i className="fa-regular fa-envelope"></i><input type="email" autoComplete="email" placeholder="Enter your account email" required value={recoveryEmail} onChange={(event) => setRecoveryEmail(event.target.value)} /></div></label>
+                {recoveryError && <p className="signup-card__error" role="alert">{recoveryError}</p>}
+                <div className="signup-card__actions"><button type="submit" className="signup-card__submit" disabled={recoverySubmitting}>{recoverySubmitting ? "Sending code…" : "Send verification code"}</button><button type="button" className="signup-card__secondary" onClick={returnToLogin}>Back to sign in</button></div>
+              </form>
+            )}
+
+            {recoveryStep === "code" && (
+              <form className="signup-card__form" onSubmit={submitPasswordReset}>
+                {recoveryMessage && <p className="signup-card__success" role="status">{recoveryMessage}</p>}
+                <label className="signup-card__field"><span>6-digit verification code</span><div className="signup-card__input-wrap"><i className="fa-solid fa-key"></i><input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} placeholder="Enter the code" required value={recoveryCode} onChange={(event) => setRecoveryCode(event.target.value.replace(/\D/g, "").slice(0, 6))} /></div></label>
+                <label className="signup-card__field"><span>New password</span><div className="signup-card__input-wrap"><i className="fa-solid fa-lock"></i><input type="password" autoComplete="new-password" minLength={6} maxLength={128} placeholder="At least 6 characters" required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></div></label>
+                <label className="signup-card__field"><span>Confirm new password</span><div className="signup-card__input-wrap"><i className="fa-solid fa-lock"></i><input type="password" autoComplete="new-password" minLength={6} maxLength={128} placeholder="Re-enter your new password" required value={confirmNewPassword} onChange={(event) => setConfirmNewPassword(event.target.value)} /></div></label>
+                {recoveryError && <p className="signup-card__error" role="alert">{recoveryError}</p>}
+                <div className="signup-card__actions"><button type="submit" className="signup-card__submit" disabled={recoverySubmitting}>{recoverySubmitting ? "Updating password…" : "Update password"}</button><button type="button" className="signup-card__secondary" onClick={returnToLogin}>Back to sign in</button></div>
+              </form>
+            )}
+          </section>
+        </div>
+      </div>
     </div>
   );
 }

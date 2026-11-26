@@ -13,10 +13,19 @@ function initials(name = "") {
   return name.split(" ").filter(Boolean).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 }
 
+function hasScheduledConsultation(consultation) {
+  return Boolean(
+    (consultation.sessionDate || consultation.date) &&
+      (consultation.sessionTime || consultation.time),
+  );
+}
+
 function ExpertDashboard({ data, onNavigate, onOpenCheckin, onPlayVideo, canReadReports = true, canReadConsultations = true, canReadClientFeatures = true }) {
   const { checkins, sessions, consultations, videos } = data;
   const upcomingSessions = sessions.filter((session) => session.status !== "completed");
-  const upcomingConsultations = consultations.filter((consultation) => consultation.status === "accepted" && !consultation.completed);
+  const upcomingConsultations = consultations.filter(
+    (consultation) => consultation.status === "accepted" && !consultation.completed && hasScheduledConsultation(consultation),
+  );
   const priorityCheckins = checkins.filter((checkin) => checkin.priority !== "stable");
 
   return (

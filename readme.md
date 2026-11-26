@@ -40,6 +40,10 @@ npm run start:dev
 
 The API runs at `http://127.0.0.1:3000`. Swagger API documentation is at `http://127.0.0.1:3000/api/docs`.
 
+### Password recovery email
+
+The forgot-password flow sends a six-digit code through SMTP. Copy `back-end/.env.example` to `back-end/.env` and set `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM` for your mail provider before starting the API. The code expires after 10 minutes, can be requested at most three times per hour per email, and allows five verification attempts. Recovery currently covers employee, wellness expert, HR, and built-in demo accounts. The same SMTP setup sends company-request receipts, reviewer alerts, approval or rejection emails, and an HR sign-in invitation. Set `ONBOARDING_REVIEW_EMAIL` to change the reviewer recipient (defaults to `raju@gmail.com`) and `FRONTEND_URL` to set the app link included in those emails (defaults to `http://127.0.0.1:5173`).
+
 Open a second terminal at the repository root to start the React app:
 
 ```bash
@@ -66,6 +70,7 @@ The homepage includes these local demo accounts:
 | Supervisor | `raju@gmail.com` | `1234` |
 
 HR, employee, and wellness expert accounts can be created through the company and user management workflows.
+Admin and supervisor passwords can be changed in **Settings → Security** or through password recovery. Those demo passwords are held in backend memory and reset to `1234` whenever the API process restarts.
 
 ## Build and test
 

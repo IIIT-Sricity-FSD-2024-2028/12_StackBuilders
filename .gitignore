@@ -8,6 +8,7 @@ desktop.ini
 .idea/
 
 back-end/node_modules/
+back-end/.env
 back-end/dist/
 back-end/.tools/
 back-end/.npm-cache/

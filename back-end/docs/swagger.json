@@ -41,6 +41,106 @@
         ]
       }
     },
+    "/auth/demo-login": {
+      "post": {
+        "operationId": "AuthController_demoLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Verify a built-in demo account login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/demo-password": {
+      "post": {
+        "operationId": "AuthController_changeDemoPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeDemoPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Change a demo admin or supervisor password",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/password-recovery/request": {
+      "post": {
+        "operationId": "AuthController_requestPasswordReset",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPasswordResetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": ""
+          }
+        },
+        "summary": "Send a password recovery code by email",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/password-recovery/reset": {
+      "post": {
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletePasswordResetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Verify a recovery code and set a new password",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/queries": {
       "get": {
         "operationId": "QueriesController_findAll",
@@ -2502,7 +2602,7 @@
             "role": []
           }
         ],
-        "summary": "Update a consultation status or add/edit accepted consultation session details",
+        "summary": "Update a consultation status, cancel it, or add/edit accepted session details",
         "tags": [
           "consultations"
         ]
@@ -2551,7 +2651,7 @@
             "role": []
           }
         ],
-        "summary": "Delete a consultation",
+        "summary": "Delete a consultation and notify participants if it was active",
         "tags": [
           "consultations"
         ]
@@ -2730,6 +2830,70 @@
           }
         ],
         "summary": "Instantly book an available slot for a consultation",
+        "tags": [
+          "consultations"
+        ]
+      }
+    },
+    "/consultations/{id}/unavailability": {
+      "post": {
+        "operationId": "ConsultationsController_requestReschedule",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "header",
+            "description": "Role used for RBAC. Allowed values: Admin, HR, Employee, Wellness Expert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestConsultationRescheduleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The consultation is not scheduled or the message is invalid."
+          },
+          "403": {
+            "description": "The consultation does not belong to this employee."
+          },
+          "404": {
+            "description": "Consultation not found."
+          }
+        },
+        "security": [
+          {
+            "role": []
+          }
+        ],
+        "summary": "Notify an expert that an employee is unavailable for a scheduled consultation",
         "tags": [
           "consultations"
         ]
@@ -3203,7 +3367,7 @@
             "role": []
           }
         ],
-        "summary": "Delete a pending company onboarding request",
+        "summary": "Reject a pending company request and email its contacts",
         "tags": [
           "company-onboarding-requests"
         ]
@@ -4118,6 +4282,22 @@
       }
     },
     "schemas": {
+      "DemoLoginDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ChangeDemoPasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RequestPasswordResetDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CompletePasswordResetDto": {
+        "type": "object",
+        "properties": {}
+      },
       "QueryDto": {
         "type": "object",
         "properties": {}
@@ -5588,6 +5768,14 @@
             "type": "string",
             "example": "https://meet.example.com/session"
           },
+          "employeeAvailabilityMessage": {
+            "type": "string",
+            "example": "I am unavailable at this time. Could we meet tomorrow afternoon?"
+          },
+          "employeeAvailabilityRequestedAt": {
+            "type": "string",
+            "example": "2026-05-02T13:00:00.000Z"
+          },
           "sessionCreatedAt": {
             "type": "string",
             "example": "2026-05-02T13:00:00.000Z"
@@ -5615,6 +5803,18 @@
           "createdAt": {
             "type": "string",
             "example": "2026-05-02T12:30:00.000Z"
+          },
+          "reminder24hSentAt": {
+            "type": "string",
+            "example": "2026-05-03T12:30:00.000Z"
+          },
+          "reminder1hSentAt": {
+            "type": "string",
+            "example": "2026-05-03T17:30:00.000Z"
+          },
+          "feedbackRequestSentAt": {
+            "type": "string",
+            "example": "2026-05-03T18:45:00.000Z"
           }
         },
         "required": [
@@ -5633,6 +5833,8 @@
           "sessionTime",
           "sessionDuration",
           "sessionMeetingLink",
+          "employeeAvailabilityMessage",
+          "employeeAvailabilityRequestedAt",
           "sessionCreatedAt",
           "createdByExpert",
           "sourceCheckinId",
@@ -5774,6 +5976,24 @@
           "slotTime"
         ]
       },
+      "RequestConsultationRescheduleDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "example": "employee-1777718400000-a1b2c3d4"
+          },
+          "message": {
+            "type": "string",
+            "example": "I am unavailable at this time. Could we meet tomorrow afternoon?",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "employeeId",
+          "message"
+        ]
+      },
       "UpdateConsultationDto": {
         "type": "object",
         "properties": {
@@ -5893,6 +6113,14 @@
           "companyName": {
             "type": "string",
             "example": "Stack Builders Pvt Ltd"
+          },
+          "reminder24hSentAt": {
+            "type": "string",
+            "example": "2026-05-09T12:30:00.000Z"
+          },
+          "reminder1hSentAt": {
+            "type": "string",
+            "example": "2026-05-10T05:30:00.000Z"
           }
         },
         "required": [
