@@ -32,7 +32,11 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 // Deliberately in-memory/per-process — this app has no shared cache layer, and
 // per-process limiting is enough for this scope.
 const WINDOW_MS = 15 * 60 * 1000;
-const MAX_REQUESTS_PER_WINDOW = process.env.NODE_ENV === 'production' ? 300 : 5000;
+const DEFAULT_MAX_REQUESTS_PER_WINDOW = process.env.NODE_ENV === 'production' ? 3000 : 5000;
+const configuredMaxRequests = Number(process.env.API_MAX_REQUESTS_PER_WINDOW);
+const MAX_REQUESTS_PER_WINDOW = Number.isSafeInteger(configuredMaxRequests) && configuredMaxRequests > 0
+  ? configuredMaxRequests
+  : DEFAULT_MAX_REQUESTS_PER_WINDOW;
 const SWEEP_INTERVAL_MS = 5 * 60 * 1000;
 
 interface Bucket {

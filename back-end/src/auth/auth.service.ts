@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   Logger,
+  OnModuleInit,
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -37,7 +38,7 @@ interface DemoAccount extends PasswordAccount {
 }
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
   private readonly logger = new Logger(AuthService.name);
   private readonly otpSecret = randomBytes(32);
   private readonly challenges = new Map<string, PasswordResetChallenge>();
@@ -64,20 +65,60 @@ export class AuthService {
 
   constructor(private readonly data: InMemoryDataService) {
     const host = process.env.SMTP_HOST?.trim();
-    const port = Number(process.env.SMTP_PORT || 587);
+    const rawPort = process.env.SMTP_PORT?.trim() || '587';
+    const port = Number(rawPort);
     const user = process.env.SMTP_USER?.trim();
     const password = process.env.SMTP_PASSWORD;
     this.mailFrom = process.env.SMTP_FROM?.trim() || user || null;
-    const hasPartialCredentials = Boolean(user) !== Boolean(password);
+    const hasSmtpSettings = Boolean(
+      host || process.env.SMTP_PORT || user || password || process.env.SMTP_FROM,
+    );
+    const configurationErrors: string[] = [];
 
-    this.mailer = host && this.mailFrom && !hasPartialCredentials
+    if (!host) configurationErrors.push('SMTP_HOST is missing');
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      configurationErrors.push('SMTP_PORT must be between 1 and 65535');
+    }
+    if (!this.mailFrom) configurationErrors.push('SMTP_FROM or SMTP_USER is missing');
+    if (Boolean(user) !== Boolean(password)) {
+      configurationErrors.push('SMTP_USER and SMTP_PASSWORD must be set together');
+    }
+
+    this.mailer = configurationErrors.length === 0
       ? nodemailer.createTransport({
-          host,
+          host: host!,
           port,
-          secure: process.env.SMTP_SECURE === 'true' || port === 465,
+          secure: process.env.SMTP_SECURE?.trim().toLowerCase() === 'true' || port === 465,
+          connectionTimeout: 10_000,
+          greetingTimeout: 10_000,
+          socketTimeout: 30_000,
           ...(user && password ? { auth: { user, pass: password } } : {}),
         })
       : null;
+
+    if (this.mailer) {
+      this.logger.log(`SMTP transport configured for ${host}:${port}; checking connection.`);
+    } else if (hasSmtpSettings) {
+      this.logger.error(`SMTP is disabled because its configuration is invalid: ${configurationErrors.join('; ')}.`);
+    } else {
+      this.logger.warn(
+        'SMTP is not configured. Copy back-end/.env.example to back-end/.env and set the provider values to enable email.',
+      );
+    }
+  }
+
+  async onModuleInit(): Promise<void> {
+    if (!this.mailer) return;
+
+    try {
+      await this.mailer.verify();
+      this.logger.log('SMTP connection verified.');
+    } catch (error) {
+      this.logger.error(
+        'SMTP connection verification failed. Check SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASSWORD, and SMTP_FROM.',
+        error instanceof Error ? error.stack : undefined,
+      );
+    }
   }
 
   async sendTransactionalEmail(
