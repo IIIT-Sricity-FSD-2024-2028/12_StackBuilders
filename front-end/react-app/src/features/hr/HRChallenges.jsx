@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
 import HRChallengeCard from "./components/HRChallengeCard.jsx";
 import HRChallengeModal from "./components/HRChallengeModal.jsx";
 import HRNavbar from "./components/HRNavbar.jsx";
 import HRRewardCard from "./components/HRRewardCard.jsx";
-import hrApi from "./hrApi.js";
+import { createHrChallenge, createHrReward, loadHrChallenges, removeHrChallenge, removeHrReward } from "./challengesSlice.js";
 import { getCurrentHrCompanyContext } from "./hrUtils.js";
 import useAutoRefresh from "../../hooks/useAutoRefresh.js";
 import { useRoleAccess } from "../shared/roleAccessContext.jsx";
@@ -15,31 +16,19 @@ function HRChallenges() {
   const canCreate = hasPermission("challenge-management-create");
   const canDelete = hasPermission("challenge-management-delete");
   const stylesReady = usePageStylesheets("/hr-challenges-legacy.css");
-  const [challenges, setChallenges] = useState([]);
-  const [rewards, setRewards] = useState([]);
+  const dispatch = useDispatch();
+  const challenges = useSelector((state) => state.hr.challenges.challenges);
+  const rewards = useSelector((state) => state.hr.challenges.rewards);
+  const loading = useSelector((state) => state.hr.challenges.loading);
+  const error = useSelector((state) => state.hr.challenges.error);
+  const saving = useSelector((state) => state.hr.challenges.saving);
   const [modal, setModal] = useState(null);
   const [challengePage, setChallengePage] = useState(0);
   const [rewardPage, setRewardPage] = useState(0);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
   const [formError, setFormError] = useState("");
   const pageSize = 3;
 
-  const loadData = useCallback(async (silent = false) => {
-    try {
-      const companyContext = getCurrentHrCompanyContext();
-      const [nextChallenges, nextRewards] = await Promise.all([
-        hrApi.getChallenges(companyContext),
-        hrApi.getRewards(companyContext),
-      ]);
-      setChallenges(nextChallenges || []);
-      setRewards(nextRewards || []);
-      setError("");
-    } catch (loadError) {
-      if (!silent)
-        setError(loadError.message || "Could not load challenges and rewards.");
-    }
-  }, []);
+  const loadData = useCallback(() => dispatch(loadHrChallenges(getCurrentHrCompanyContext())), [dispatch]);
 
   useEffect(() => {
     loadData();
@@ -62,55 +51,41 @@ function HRChallenges() {
 
   async function createRecord(data) {
     if (!canCreate) return;
-    setSaving(true);
-    setError("");
     setFormError("");
     try {
       if (modal === "challenge") {
         const company = getCurrentHrCompanyContext();
-        const created = await hrApi.createChallenge({
+        await dispatch(createHrChallenge({
           ...data,
           companyId: company.companyId,
           companyName: company.companyName,
-        });
-        setChallenges((current) => [created, ...current]);
+        })).unwrap();
         setChallengePage(0);
       } else {
         const company = getCurrentHrCompanyContext();
-        const created = await hrApi.createReward({
+        await dispatch(createHrReward({
           ...data,
           companyId: company.companyId,
           companyName: company.companyName,
           claimedCount: "0",
-        });
-        setRewards((current) => [created, ...current]);
+        })).unwrap();
         setRewardPage(0);
       }
       setModal(null);
     } catch (saveError) {
-      setFormError(
-        saveError.message ||
-          "Could not save this record. Check the form and try again.",
-      );
-    } finally {
-      setSaving(false);
+      setFormError(saveError.message || "Could not save this record. Check the form and try again.");
     }
   }
 
   async function deleteRecord(kind, id) {
     if (!canDelete) return;
-    setError("");
     try {
       if (kind === "challenge") {
-        await hrApi.deleteChallenge(id);
-        setChallenges((current) => current.filter((item) => item.id !== id));
+        await dispatch(removeHrChallenge(id)).unwrap();
       } else {
-        await hrApi.deleteReward(id);
-        setRewards((current) => current.filter((item) => item.id !== id));
+        await dispatch(removeHrReward(id)).unwrap();
       }
-    } catch (deleteError) {
-      setError(deleteError.message || "Could not delete this record.");
-    }
+    } catch { /* The feature slice stores the request error. */ }
   }
 
   if (!stylesReady) return <RouteLoadingScreen />;
