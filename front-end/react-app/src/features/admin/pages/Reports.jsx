@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
 import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
 import { SupervisorBarChart, SupervisorDonutChart, SupervisorLineChart } from "../../supervisor/components/SupervisorCharts.jsx";
-import adminApi from "../adminApi.js";
+import { loadAdminReports } from "../reportsSlice.js";
 
 function monthlyCounts(records) {
   const now = new Date();
@@ -19,41 +20,9 @@ function monthlyCounts(records) {
 
 function Reports() {
   const stylesReady = usePageStylesheets("/admin-analytics-legacy.css");
-  const [report, setReport] = useState(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  const loadReport = useCallback(async (silent = false) => {
-    try {
-      const [companies, consultations, sessions, videos, employees, experts, hrProfiles, challenges, rewards] = await Promise.all([
-        adminApi.getCompanies(), adminApi.getConsultations(), adminApi.getLiveSessions(), adminApi.getVideos(),
-        adminApi.getUsers(), adminApi.getExperts(), adminApi.getHrProfiles(), adminApi.getChallenges(), adminApi.getRewards(),
-      ]);
-      const users = [...(employees || []), ...(experts || []), ...(hrProfiles || [])];
-      const companyRecords = companies || [];
-      const consultationRecords = consultations || [];
-      const sessionRecords = sessions || [];
-      const videoRecords = videos || [];
-      const challengeRecords = challenges || [];
-      const rewardRecords = rewards || [];
-      setReport({
-        monthlyUsers: monthlyCounts(users),
-        roleDistribution: [(employees || []).length, (hrProfiles || []).length, (experts || []).length],
-        weeklyActivity: [consultationRecords.length, sessionRecords.length, videoRecords.length, challengeRecords.length, rewardRecords.length],
-        stats: [
-          { label: "Total Companies", value: companyRecords.length, detail: "Managed company workspaces" },
-          { label: "Consultations", value: consultationRecords.length, detail: "Recorded employee requests" },
-          { label: "Scheduled Live Sessions", value: sessionRecords.length, detail: "Expert-led company sessions" },
-          { label: "Video Library Items", value: videoRecords.length, detail: "Wellness videos in the library" },
-        ],
-      });
-      setError("");
-    } catch (loadError) {
-      if (!silent) setError(loadError.message || "Could not load report data.");
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, []);
+  const dispatch = useDispatch();
+  const { report, error, loading } = useSelector((state) => state.admin.reports);
+  const loadReport = useCallback(() => dispatch(loadAdminReports()), [dispatch]);
 
   useEffect(() => { loadReport(); }, [loadReport]);
   useAutoRefresh(() => loadReport(true), "admin-reports");

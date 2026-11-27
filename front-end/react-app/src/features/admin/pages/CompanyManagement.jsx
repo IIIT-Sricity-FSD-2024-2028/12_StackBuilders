@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
 import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
-import adminApi from "../adminApi.js";
+import { addAdminUser, loadAdminUsers, removeAdminUsersForCompany } from "../usersSlice.js";
+import { createAdminCompany, loadAdminCompanies, replaceAdminCompanies, removeAdminCompany } from "../companyManagementSlice.js";
 
 const INDIAN_PHONE_PATTERN = "(?:\\+?91[\\s()-]*)?[6-9](?:[\\s()-]*[0-9]){9}";
 
@@ -16,34 +18,23 @@ function normalizeIndianPhoneNumber(value) {
 
 function CompanyManagement() {
   const stylesReady = usePageStylesheets("/admin-companies-legacy.css");
-  const [companies, setCompanies] = useState([]);
-  const [users, setUsers] = useState([]);
+  const dispatch = useDispatch();
+  const companies = useSelector((state) => state.admin.companyManagement.items);
+  const users = useSelector((state) => state.admin.users.items);
+  const loading = useSelector((state) => state.admin.companyManagement.loading);
+  const saving = useSelector((state) => state.admin.companyManagement.saving);
+  const removing = useSelector((state) => state.admin.companyManagement.removing);
+  const featureError = useSelector((state) => state.admin.companyManagement.error);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [companyToRemove, setCompanyToRemove] = useState(null);
   const [form, setForm] = useState({ name: "", phone: "", address: "", email: "", hrName: "", hrPhoneNumber: "", hrEmail: "", hrPassword: "" });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [removing, setRemoving] = useState(false);
   const [error, setError] = useState("");
   const [formError, setFormError] = useState("");
 
-  const loadCompanies = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
-    try {
-      const [records, employees, experts, hrProfiles] = await Promise.all([adminApi.getCompanies(), adminApi.getUsers(), adminApi.getExperts(), adminApi.getHrProfiles()]);
-      setCompanies(records || []);
-      setUsers([
-        ...(employees || []).map((user) => ({ ...user, role: "Employee" })),
-        ...(experts || []).map((user) => ({ ...user, role: "Wellness Expert" })),
-        ...(hrProfiles || []).map((user) => ({ ...user, role: "HR" })),
-      ]);
-      setError("");
-    } catch (loadError) {
-      if (!silent) setError(loadError.message || "Could not load companies.");
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, []);
+  const loadCompanies = useCallback(() => {
+    void dispatch(loadAdminCompanies());
+    void dispatch(loadAdminUsers());
+  }, [dispatch]);
 
   useEffect(() => { loadCompanies(); }, [loadCompanies]);
   useAutoRefresh(() => loadCompanies(true), "admin-companies");
@@ -61,9 +52,8 @@ function CompanyManagement() {
       setFormError("Enter a valid Indian HR mobile number with 10 digits starting from 6–9, optionally prefixed by +91.");
       return;
     }
-    setSaving(true);
     try {
-      const result = await adminApi.createCompanyWithHr({
+      const result = await dispatch(createAdminCompany({
         companyName: form.name,
         companyPhone,
         companyAddress: form.address,
@@ -72,15 +62,12 @@ function CompanyManagement() {
         hrPhoneNumber,
         hrEmail: form.hrEmail,
         hrPassword: form.hrPassword,
-      });
-      setCompanies((current) => [result.company, ...current]);
-      setUsers((current) => [{ ...result.hrProfile, role: "HR" }, ...current]);
+      })).unwrap();
+      if (result.hrProfile) dispatch(addAdminUser({ ...result.hrProfile, role: "HR", source: "hr", company: result.hrProfile.companyName || result.company?.name || "—" }));
       setForm({ name: "", phone: "", address: "", email: "", hrName: "", hrPhoneNumber: "", hrEmail: "", hrPassword: "" });
       setIsModalOpen(false);
     } catch (saveError) {
       setFormError(saveError.message || "Could not create the company and HR account.");
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -92,19 +79,17 @@ function CompanyManagement() {
   async function confirmCompanyRemoval() {
     if (!companyToRemove?.id || removing) return;
     const company = companyToRemove;
-    setRemoving(true);
     setError("");
     try {
-      await adminApi.deleteCompany(company.id);
-      setCompanies((current) => current.filter((entry) => entry.id !== company.id));
-      setUsers((current) => current.filter((user) => !belongsToCompany(user, company)));
+      await dispatch(removeAdminCompany(company.id)).unwrap();
+      dispatch(removeAdminUsersForCompany(company));
       setCompanyToRemove(null);
     } catch (removeError) {
       try {
-        const latestCompanies = await adminApi.getCompanies();
+        const latestCompanies = await dispatch(loadAdminCompanies()).unwrap();
         if (!latestCompanies.some((entry) => entry.id === company.id)) {
-          setCompanies(latestCompanies);
-          setUsers((current) => current.filter((user) => !belongsToCompany(user, company)));
+          dispatch(replaceAdminCompanies(latestCompanies));
+          dispatch(removeAdminUsersForCompany(company));
           setCompanyToRemove(null);
           return;
         }
@@ -114,8 +99,6 @@ function CompanyManagement() {
       setError(removeError.message && removeError.message !== "[object Object]"
         ? removeError.message
         : "Could not confirm company removal. Refresh the directory before retrying.");
-    } finally {
-      setRemoving(false);
     }
   }
 
@@ -171,7 +154,7 @@ function CompanyManagement() {
               )}
             </tbody>
           </table>
-          <p className="footer-text" id="companyTableFooter">{error || `Showing ${companies.length} entries`}</p>
+          <p className="footer-text" id="companyTableFooter">{error || featureError || `Showing ${companies.length} entries`}</p>
         </div>
       </main>
 
