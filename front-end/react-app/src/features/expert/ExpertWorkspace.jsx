@@ -1,10 +1,15 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import ExpertIcon from "./components/ExpertIcon.jsx";
 import ExpertNavigation from "./components/ExpertNavigation.jsx";
-import { loadExpertWorkspaceData, saveExpertWorkspaceData } from "./expertData.js";
-import { getAuthSession, logout } from "../homepage/authService.js";
-import expertApi from "./expertApi.js";
+import { saveExpertWorkspaceData } from "./expertData.js";
+import { signOut } from "../shared/authSlice.js";
+import { loadExpertDashboard } from "./dashboardSlice.js";
+import { updateExpertConsultation, createExpertFollowUp, saveExpertAvailability } from "./consultationsSlice.js";
+import { createExpertLiveSession, updateExpertLiveSession } from "./liveSessionsSlice.js";
+import { sendExpertCheckinResponse } from "./checkinsSlice.js";
+import { createExpertVideo, registerExpertVideoFiles, removeExpertVideo } from "./videosSlice.js";
 import ExpertDashboard from "./pages/ExpertDashboard.jsx";
 import ExpertConsultations from "./pages/ExpertConsultations.jsx";
 import ExpertLiveSessions from "./pages/ExpertLiveSessions.jsx";
@@ -112,20 +117,30 @@ function ExpertWorkspace() {
 
 function ExpertWorkspaceContent() {
   const { hasPermission } = useRoleAccess();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [data, setData] = useState(loadExpertWorkspaceData);
   const [activeView, setActiveView] = usePersistedTab("stackbuilders.expert.activeView", "dashboard", ["dashboard", "consultations", "checkins", "sessions", "videos"]);
   const [profileOpen, setProfileOpen] = useState(false);
   const [queryOpen, setQueryOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const expertProfile = getAuthSession()?.profile;
+  const expertProfile = useSelector((state) => state.auth.session?.profile || null);
+  const consultationState = useSelector((state) => state.expert.consultations);
+  const sessions = useSelector((state) => state.expert.liveSessions.items);
+  const checkins = useSelector((state) => state.expert.checkins.items);
+  const videos = useSelector((state) => state.expert.videos.items);
+  const data = useMemo(() => ({
+    expert: { ...expertProfile, ...consultationState.profile, track: consultationState.profile.specialization || consultationState.profile.track || expertProfile?.specialization },
+    availability: consultationState.availability,
+    consultations: consultationState.items,
+    sessions,
+    checkins,
+    videos,
+  }), [expertProfile, consultationState, sessions, checkins, videos]);
   const canReadConsultations = hasPermission("user-management-read");
   const canReadClientFeatures = hasPermission("client-management-read");
   const availableViews = ["dashboard", ...(canReadConsultations ? ["consultations", "checkins"] : []), ...(canReadClientFeatures ? ["sessions", "videos"] : [])];
   const currentView = availableViews.includes(activeView) ? activeView : "dashboard";
-  const navigateToView = (view) => {
-    if (availableViews.includes(view)) setActiveView(view);
-  };
+  const navigateToView = (view) => { if (availableViews.includes(view)) setActiveView(view); };
   const expertSpecialization = expertProfile?.specialization || data.expert?.specialization || data.expert?.track;
   const expertName = expertProfile?.name || expertProfile?.fullName || data.expert?.name;
   const welcomeName = formatExpertWelcomeName(expertName);
@@ -138,6 +153,7 @@ function ExpertWorkspaceContent() {
   useEffect(() => {
     if (activeView !== currentView) setActiveView(currentView);
   }, [activeView, currentView, setActiveView]);
+
   const pageStylesheets = legacyDashboard || legacyCheckins
     ? ["/expert-dashboard-legacy.css", "/expert-dashboard-nav-legacy.css", ...(legacyCheckins ? ["/expert-checkins-legacy.css"] : [])]
     : legacyConsultations
@@ -149,225 +165,35 @@ function ExpertWorkspaceContent() {
           : [];
   const stylesReady = usePageStylesheets(pageStylesheets);
 
-  useAutoRefresh(async () => {
+  const refresh = useCallback(async () => {
     if (!expertProfile?.id) return;
-    const safely = (request) => request.catch(() => null);
-    const [consultations, profile, videos, checkinData, sessions] = await Promise.all([
-      safely(expertApi.getConsultations(expertProfile)),
-      safely(expertApi.getExpert(expertProfile.id)),
-      safely(expertApi.getVideos(expertProfile)),
-      Promise.all([expertApi.getCheckins(expertProfile), expertApi.getCheckinResponses(expertProfile)]).catch(() => null),
-      safely(expertApi.getLiveSessions(expertProfile)),
-    ]);
-    setData((current) => ({
-      ...current,
-      ...(Array.isArray(consultations) ? { consultations: mapExpertConsultations(consultations) } : {}),
-      ...(profile ? {
-        availability: Array.isArray(profile.availableSlots) ? profile.availableSlots : [],
-        expert: { ...current.expert, ...profile, track: profile.specialization || current.expert.track },
-      } : {}),
-      ...(Array.isArray(videos) ? { videos } : {}),
-      ...(Array.isArray(checkinData?.[0]) && Array.isArray(checkinData?.[1])
-        ? { checkins: mapExpertCheckins(checkinData[0], checkinData[1], expertProfile.specialization) }
-        : {}),
-      ...(Array.isArray(sessions) ? { sessions } : {}),
-    }));
-  }, `${expertProfile?.id || ""}:${expertProfile?.companyId || expertProfile?.companyName || ""}:${expertProfile?.specialization || ""}`);
+    try { await dispatch(loadExpertDashboard(expertProfile)).unwrap(); } catch { /* Feature slices retain their own errors and cached data. */ }
+  }, [dispatch, expertProfile?.id, expertProfile?.companyId, expertProfile?.companyName, expertProfile?.specialization]);
 
-  useEffect(() => {
-    saveExpertWorkspaceData(data);
-  }, [data]);
+  useEffect(() => { void refresh(); }, [refresh]);
+  useAutoRefresh(refresh, (expertProfile?.id || "") + ":" + (expertProfile?.companyId || expertProfile?.companyName || "") + ":" + (expertProfile?.specialization || ""));
+  useEffect(() => { saveExpertWorkspaceData(data); }, [data]);
 
-  useEffect(() => {
-    if (!expertProfile?.id) return undefined;
-    let cancelled = false;
-    expertApi.getConsultations(expertProfile).then((records) => {
-      if (cancelled || !Array.isArray(records)) return;
-      setData((current) => ({ ...current, consultations: mapExpertConsultations(records) }));
-    }).catch((error) => {
-      console.error("Unable to load expert consultations from the backend.", error);
-    });
-    return () => { cancelled = true; };
-  }, [expertProfile?.id, expertProfile?.companyId, expertProfile?.companyName]);
-
-  useEffect(() => {
-    if (!expertProfile?.id) return undefined;
-    let cancelled = false;
-    expertApi.getExpert(expertProfile.id).then((profile) => {
-      if (cancelled || !profile) return;
-      setData((current) => ({
-        ...current,
-        availability: Array.isArray(profile.availableSlots) ? profile.availableSlots : [],
-        expert: { ...current.expert, ...profile, track: profile.specialization || current.expert.track },
-      }));
-    }).catch((error) => {
-      console.error("Unable to load expert availability from the backend.", error);
-    });
-    return () => { cancelled = true; };
-  }, [expertProfile?.id]);
-
-  useEffect(() => {
-    if (!expertProfile?.id) return undefined;
-    let cancelled = false;
-    expertApi.getVideos(expertProfile).then((records) => {
-      if (cancelled || !Array.isArray(records)) return;
-      setData((current) => ({ ...current, videos: records }));
-    }).catch((error) => {
-      console.error("Unable to load expert videos from the backend.", error);
-    });
-    return () => { cancelled = true; };
-  }, [expertProfile?.id, expertProfile?.companyId, expertProfile?.companyName]);
-
-  useEffect(() => {
-    if (!expertProfile?.id) return undefined;
-    let cancelled = false;
-    Promise.all([expertApi.getCheckins(expertProfile), expertApi.getCheckinResponses(expertProfile)]).then(([checkins, responses]) => {
-      if (cancelled || !Array.isArray(checkins) || !Array.isArray(responses)) return;
-      setData((current) => ({ ...current, checkins: mapExpertCheckins(checkins, responses, expertProfile.specialization) }));
-    }).catch((error) => {
-      console.error("Unable to load expert check-ins from the backend.", error);
-    });
-    return () => { cancelled = true; };
-  }, [expertProfile?.id, expertProfile?.companyId, expertProfile?.companyName, expertProfile?.specialization]);
-
-  useEffect(() => {
-    if (!expertProfile?.id) return undefined;
-    let cancelled = false;
-    expertApi.getLiveSessions(expertProfile).then((records) => {
-      if (cancelled || !Array.isArray(records)) return;
-      setData((current) => ({ ...current, sessions: records }));
-    }).catch((error) => {
-      console.error("Unable to load expert live sessions from the backend.", error);
-    });
-    return () => { cancelled = true; };
-  }, [expertProfile?.id, expertProfile?.companyId, expertProfile?.companyName]);
-
-  async function createLiveSession(session) {
-    const created = await expertApi.createLiveSession({
-      title: session.title,
-      category: session.category,
-      sessionType: session.sessionType,
-      date: session.date,
-      startTime: session.startTime,
-      duration: session.duration,
-      maxParticipants: String(session.maxParticipants),
-      meetingLink: session.meetingLink,
-      description: session.description,
-      expertId: expertProfile?.id,
-      hostName: expertProfile?.name,
-      companyId: expertProfile?.companyId,
-      companyName: expertProfile?.companyName,
-    });
-    setData((current) => ({ ...current, sessions: [created, ...current.sessions] }));
-    return created;
-  }
-
-  async function updateLiveSession(id, session) {
-    const updated = await expertApi.updateLiveSession(id, {
-      title: session.title,
-      category: session.category,
-      sessionType: session.sessionType,
-      date: session.date,
-      startTime: session.startTime,
-      duration: session.duration,
-      maxParticipants: String(session.maxParticipants),
-      meetingLink: session.meetingLink,
-      description: session.description,
-    });
-    setData((current) => ({
-      ...current,
-      sessions: current.sessions.map((record) => record.id === id ? updated : record),
-    }));
-    return updated;
-  }
-
-  async function saveAvailability(availableSlots) {
-    const updated = await expertApi.updateExpert(expertProfile.id, { availableSlots });
-    setData((current) => ({
-      ...current,
-      availability: Array.isArray(updated.availableSlots) ? updated.availableSlots : availableSlots,
-      expert: { ...current.expert, ...updated },
-    }));
-    return updated;
-  }
-
-  async function sendCheckinResponse(checkin, message) {
-    const response = await expertApi.createCheckinResponse({
-      checkinId: checkin.id,
-      checkinType: checkin.checkinType,
-      employeeId: checkin.employeeId,
-      employeeName: checkin.employeeName || checkin.employee,
-      expertId: expertProfile?.id,
-      expertName: expertProfile?.name,
-      companyId: checkin.companyId || expertProfile?.companyId,
-      companyName: checkin.companyName || expertProfile?.companyName,
-      message,
-    });
-    setData((current) => ({ ...current, checkins: current.checkins.map((record) => record.id === checkin.id
-      ? { ...record, responses: [...(record.responses || []), { text: response.message, createdAt: response.createdAt, expertId: response.expertId, expertName: response.expertName }], followUpStatus: "Suggestion sent" }
-      : record) }));
-    return response;
-  }
+  const createLiveSession = (session) => dispatch(createExpertLiveSession({ session, expert: expertProfile })).unwrap();
+  const updateLiveSession = (id, session) => dispatch(updateExpertLiveSession({ id, session })).unwrap();
+  const saveAvailability = (availableSlots) => dispatch(saveExpertAvailability({ expertId: expertProfile?.id, availableSlots })).unwrap();
+  const sendCheckinResponse = (checkin, message) => dispatch(sendExpertCheckinResponse({ checkin, message, expert: expertProfile })).unwrap();
+  const createFollowUpConsultation = (checkin) => dispatch(createExpertFollowUp({ checkin, expert: expertProfile })).unwrap();
+  const updateConsultation = (id, changes) => dispatch(updateExpertConsultation({ id, changes })).unwrap();
 
   async function createVideo(video) {
-    const thumbnailFile = video.thumbnailSource === "upload"
-      ? video.thumbnailFile || (video.videoSource === "upload" ? video.generatedThumbnailFile : null)
-      : video.thumbnailLink.trim()
-        ? null
-        : video.videoSource === "upload" ? video.generatedThumbnailFile : null;
-    const created = await expertApi.createVideo({
-      title: video.title,
-      category: video.category,
-      duration: video.duration,
-      videoLink: video.videoSource === "upload" ? "" : video.videoLink,
-      thumbnailLink: video.thumbnailSource === "link" ? video.thumbnailLink : "",
-      description: video.description,
-      creatorExpertId: expertProfile?.id,
-      creatorExpertName: expertProfile?.name,
-      companyId: expertProfile?.companyId,
-      companyName: expertProfile?.companyName,
-    }, { videoFile: video.videoSource === "upload" ? video.videoFile : null, thumbnailFile });
-    setData((current) => ({ ...current, videos: [...current.videos, created] }));
-    return created;
+    const { videoFile, thumbnailFile, generatedThumbnailFile, ...serializableVideo } = video;
+    const filesToken = registerExpertVideoFiles({ videoFile, thumbnailFile, generatedThumbnailFile });
+    return dispatch(createExpertVideo({ video: serializableVideo, expert: expertProfile, filesToken })).unwrap();
   }
 
-  async function deleteVideo(videoId) {
-    await expertApi.deleteVideo(videoId, expertProfile?.id);
-    setData((current) => ({ ...current, videos: current.videos.filter((video) => video.id !== videoId) }));
-  }
-
-  async function updateConsultation(id, changes) {
-    const updated = await expertApi.updateConsultation(id, changes);
-    setData((current) => ({
-      ...current,
-      consultations: current.consultations.map((record) => record.id === id
-        ? { ...record, ...updated, employee: updated.employeeName || record.employee, requestedAt: updated.requestedOn || record.requestedAt, date: updated.sessionDate || record.date, time: updated.sessionTime || record.time, completed: String(updated.status || "").toLowerCase() === "completed" }
-        : record),
-    }));
-    return updated;
-  }
-
-  async function createFollowUpConsultation(checkin) {
-    const result = await expertApi.createFollowUpConsultation({
-      employeeId: checkin.employeeId,
-      employeeName: checkin.employeeName || checkin.employee,
-      expertId: expertProfile?.id,
-      expertName: expertProfile?.name,
-      purpose: `Follow-up for ${checkin.checkinType} wellness check-in: ${checkin.reason}`,
-      sourceCheckinId: checkin.id,
-      followUpPriority: checkin.priority,
-    });
-    const record = result.consultation;
-    const mapped = { ...record, employee: record.employeeName || "Employee", requestedAt: record.requestedOn || record.createdAt, completed: String(record.status || "").toLowerCase() === "completed" };
-    setData((current) => ({ ...current, consultations: [mapped, ...current.consultations.filter((item) => item.id !== mapped.id)] }));
-    return result;
-  }
+  const deleteVideo = (videoId) => dispatch(removeExpertVideo({ id: videoId, expertId: expertProfile?.id })).unwrap();
+  const updateExpertData = () => {};
 
   function handleLogout() {
-    logout();
+    void dispatch(signOut());
     navigate("/");
   }
-
   if (legacyDashboard || legacyConsultations || legacySessions || legacyCheckins || legacyVideos) {
     if (!stylesReady) return <RouteLoadingScreen />;
     return (
@@ -388,12 +214,12 @@ function ExpertWorkspaceContent() {
           {legacyDashboard
             ? <ExpertDashboard data={data} canReadReports={hasPermission("reports-read")} canReadConsultations={canReadConsultations} canReadClientFeatures={canReadClientFeatures} onNavigate={navigateToView} onOpenCheckin={() => navigateToView("checkins")} onPlayVideo={setSelectedVideo} />
             : legacyConsultations
-              ? <ExpertConsultations data={data} canUpdate={hasPermission("user-management-update")} onUpdate={(changes) => setData((current) => ({ ...current, ...changes }))} onUpdateConsultation={updateConsultation} onSaveAvailability={saveAvailability} />
+              ? <ExpertConsultations data={data} canUpdate={hasPermission("user-management-update")} onUpdate={updateExpertData} onUpdateConsultation={updateConsultation} onSaveAvailability={saveAvailability} />
               : legacySessions
-                ? <ExpertLiveSessions data={data} canCreate={hasPermission("client-management-create")} canUpdate={hasPermission("client-management-update")} onUpdate={(changes) => setData((current) => ({ ...current, ...changes }))} onCreateSession={createLiveSession} onUpdateSession={updateLiveSession} />
+                ? <ExpertLiveSessions data={data} canCreate={hasPermission("client-management-create")} canUpdate={hasPermission("client-management-update")} onUpdate={updateExpertData} onCreateSession={createLiveSession} onUpdateSession={updateLiveSession} />
                 : legacyCheckins
-                  ? <ExpertCheckins data={data} canUpdate={hasPermission("user-management-update")} canCreateFollowUp={hasPermission("user-management-create")} onUpdate={(changes) => setData((current) => ({ ...current, ...changes }))} onSendSuggestion={sendCheckinResponse} onCreateFollowUp={createFollowUpConsultation} onNavigate={navigateToView} />
-                  : <ExpertVideoLibrary data={data} expertId={expertProfile?.id} canCreate={hasPermission("client-management-create")} canDelete={hasPermission("client-management-delete")} specialization={expertSpecialization} onUpdate={(changes) => setData((current) => ({ ...current, ...changes }))} onCreateVideo={createVideo} onDeleteVideo={deleteVideo} />}
+                  ? <ExpertCheckins data={data} canUpdate={hasPermission("user-management-update")} canCreateFollowUp={hasPermission("user-management-create")} onUpdate={updateExpertData} onSendSuggestion={sendCheckinResponse} onCreateFollowUp={createFollowUpConsultation} onNavigate={navigateToView} />
+                  : <ExpertVideoLibrary data={data} expertId={expertProfile?.id} canCreate={hasPermission("client-management-create")} canDelete={hasPermission("client-management-delete")} specialization={expertSpecialization} onUpdate={updateExpertData} onCreateVideo={createVideo} onDeleteVideo={deleteVideo} />}
         </main>
         <footer className="footer"><div className="footer-links"><a href="/#about" target="_blank" rel="noopener noreferrer">About us</a><a className="contact-us-trigger" href="#contact" onClick={(event) => { event.preventDefault(); setQueryOpen(true); }}>Contact us</a></div><p>© 2026 Stack Builders. Built with wellness in mind.</p></footer>
         <QueryModal open={queryOpen} onClose={() => setQueryOpen(false)} user={expertProfile || data.expert} userType="Wellness Expert" />
@@ -410,7 +236,7 @@ function ExpertWorkspaceContent() {
         <ExpertNavigation activeView={currentView} availableViews={availableViews} onNavigate={navigateToView} />
         <div className="expert-nav-right"><span>Welcome back, {welcomeName}!</span><QueryNotifications user={expertProfile || data.expert} userType="Wellness Expert" /><button className="dashboard-profile-trigger" type="button" aria-label="Open profile" onClick={() => setProfileOpen(true)}><ExpertIcon name="user" size={18} /></button><button type="button" onClick={handleLogout}>Logout</button></div>
       </nav>
-      <main className="expert-content">{currentView === "checkins" ? <ExpertCheckins data={data} canUpdate={hasPermission("user-management-update")} canCreateFollowUp={hasPermission("user-management-create")} onUpdate={(changes) => setData((current) => ({ ...current, ...changes }))} onSendSuggestion={sendCheckinResponse} onCreateFollowUp={createFollowUpConsultation} /> : currentView === "sessions" ? <ExpertLiveSessions data={data} canCreate={hasPermission("client-management-create")} canUpdate={hasPermission("client-management-update")} onUpdate={(changes) => setData((current) => ({ ...current, ...changes }))} onCreateSession={createLiveSession} onUpdateSession={updateLiveSession} /> : currentView === "consultations" ? <ExpertConsultations data={data} canUpdate={hasPermission("user-management-update")} onUpdate={(changes) => setData((current) => ({ ...current, ...changes }))} onUpdateConsultation={updateConsultation} onSaveAvailability={saveAvailability} /> : <ExpertVideoLibrary data={data} expertId={expertProfile?.id} canCreate={hasPermission("client-management-create")} canDelete={hasPermission("client-management-delete")} specialization={expertSpecialization} onUpdate={(changes) => setData((current) => ({ ...current, ...changes }))} onCreateVideo={createVideo} onDeleteVideo={deleteVideo} />}</main>
+      <main className="expert-content">{currentView === "checkins" ? <ExpertCheckins data={data} canUpdate={hasPermission("user-management-update")} canCreateFollowUp={hasPermission("user-management-create")} onUpdate={updateExpertData} onSendSuggestion={sendCheckinResponse} onCreateFollowUp={createFollowUpConsultation} /> : currentView === "sessions" ? <ExpertLiveSessions data={data} canCreate={hasPermission("client-management-create")} canUpdate={hasPermission("client-management-update")} onUpdate={updateExpertData} onCreateSession={createLiveSession} onUpdateSession={updateLiveSession} /> : currentView === "consultations" ? <ExpertConsultations data={data} canUpdate={hasPermission("user-management-update")} onUpdate={updateExpertData} onUpdateConsultation={updateConsultation} onSaveAvailability={saveAvailability} /> : <ExpertVideoLibrary data={data} expertId={expertProfile?.id} canCreate={hasPermission("client-management-create")} canDelete={hasPermission("client-management-delete")} specialization={expertSpecialization} onUpdate={updateExpertData} onCreateVideo={createVideo} onDeleteVideo={deleteVideo} />}</main>
       <footer className="expert-footer"><div className="expert-footer-links"><a href="/#about" target="_blank" rel="noopener noreferrer">About us</a><a className="contact-us-trigger" href="#contact" onClick={(event) => { event.preventDefault(); setQueryOpen(true); }}>Contact us</a></div><p>© 2026 Stack Builders. Built with wellness in mind.</p></footer>
       <QueryModal open={queryOpen} onClose={() => setQueryOpen(false)} user={expertProfile || data.expert} userType="Wellness Expert" />
       <DashboardProfileOverlay role="wellness" open={profileOpen} onClose={() => setProfileOpen(false)} />
