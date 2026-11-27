@@ -29,6 +29,31 @@ const patch = (path, json) => request(path, { method: "PATCH", json });
 const remove = (path) => request(path, { method: "DELETE" });
 
 const supervisorApi = {
+  getCompanies: () => get("/companies"),
+  getEmployees: () => get("/employees"),
+  getExperts: () => get("/experts"),
+  getHrProfiles: () => get("/hr-profiles"),
+  getRequests: () => get("/company-onboarding-requests"),
+  getQueries: () => get("/queries"),
+  getSubscriptions: () => get("/subscriptions"),
+  getPayments: () => get("/subscriptions/payments"),
+  getConsultations: () => get("/consultations"),
+  getLiveSessions: () => get("/live-sessions"),
+  getVideos: () => get("/videos"),
+  getChallenges: () => get("/challenges"),
+  getRewards: () => get("/rewards"),
+  async loadUsers() {
+    const [employees, experts, hrProfiles] = await Promise.all([get("/employees"), get("/experts"), get("/hr-profiles")]);
+    return { employees, experts, hrProfiles };
+  },
+  async loadRevenue() {
+    const [subscriptions, payments] = await Promise.all([get("/subscriptions"), get("/subscriptions/payments")]);
+    return { subscriptions, payments };
+  },
+  async loadActivity() {
+    const [consultations, liveSessions, videos, challenges, rewards] = await Promise.all([get("/consultations"), get("/live-sessions"), get("/videos"), get("/challenges"), get("/rewards")]);
+    return { consultations, liveSessions, videos, challenges, rewards };
+  },
   async loadWorkspace() {
     const [companies, employees, experts, hrProfiles, requests, queries, subscriptions, payments, consultations, liveSessions, videos, challenges, rewards] = await Promise.all([
       get("/companies"), get("/employees"), get("/experts"), get("/hr-profiles"), get("/company-onboarding-requests"), get("/queries"), get("/subscriptions"), get("/subscriptions/payments"), get("/consultations"), get("/live-sessions"), get("/videos"), get("/challenges"), get("/rewards"),

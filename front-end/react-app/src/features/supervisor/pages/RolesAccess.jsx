@@ -1,86 +1,51 @@
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
 import usePersistedTab from "../../../hooks/usePersistedTab.js";
 import {
-  makeDefaultRolePermissions,
   ROLE_ACCESS_ACTIONS,
   ROLE_ACCESS_RESOURCES,
   ROLE_ACCESS_ROLES,
 } from "../../shared/roleAccessConfig.js";
-import { cacheRolePermissions } from "../../shared/roleAccessContext.jsx";
+import { fetchRolePermissions, resetRolePermissions, saveRolePermissions } from "../../shared/roleAccessSlice.js";
 import SupervisorIcon from "../components/SupervisorIcon.jsx";
-import supervisorApi from "../supervisorApi.js";
 
 const roleLabels = ROLE_ACCESS_ROLES.map(({ label }) => label);
 
 function RolesAccess() {
+  const dispatch = useDispatch();
   const [activeRole, setActiveRole] = usePersistedTab("stackbuilders.supervisor.rolesAccessTab", "HR", roleLabels);
-  const [permissions, setPermissions] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
   const [notice, setNotice] = useState("Changes save automatically");
-  const [reloadCount, setReloadCount] = useState(0);
 
   const activeRoleConfig = ROLE_ACCESS_ROLES.find(({ label }) => label === activeRole) || ROLE_ACCESS_ROLES[0];
   const resources = ROLE_ACCESS_RESOURCES[activeRoleConfig.group];
+  const roleState = useSelector((state) => state.roleAccess.groups[activeRoleConfig.group]);
+  const permissions = roleState?.permissions || {};
+  const loading = !roleState || roleState.status === "loading";
+  const saving = roleState?.status === "saving";
+  const error = roleState?.error || "";
 
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError("");
     setNotice("Loading permissions…");
-
-    supervisorApi.getPermissions(activeRoleConfig.group)
-      .then((result) => {
-        if (!active) return;
-        setPermissions(cacheRolePermissions(activeRoleConfig.group, result?.permissions || makeDefaultRolePermissions()));
-        setNotice("Changes save automatically");
-      })
-      .catch((loadError) => {
-        if (!active) return;
-        setError(loadError.message || "Permissions could not be loaded.");
-        setNotice("Permissions could not be loaded");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [activeRoleConfig.group, reloadCount]);
+    dispatch(fetchRolePermissions({ group: activeRoleConfig.group, role: "Supervisor" }))
+      .unwrap().then(() => setNotice("Changes save automatically"))
+      .catch(() => setNotice("Permissions could not be loaded"));
+  }, [dispatch, activeRoleConfig.group]);
 
   useAutoRefresh(async () => {
     if (saving || loading) return;
-    try {
-      const result = await supervisorApi.getPermissions(activeRoleConfig.group);
-      setPermissions(cacheRolePermissions(activeRoleConfig.group, result?.permissions || makeDefaultRolePermissions()));
-      setError("");
-    } catch (refreshError) {
-      setError(refreshError.message || "Permissions could not be refreshed.");
-    }
+    await dispatch(fetchRolePermissions({ group: activeRoleConfig.group, role: "Supervisor" })).unwrap();
   }, saving || loading ? "" : `supervisor-permissions:${activeRoleConfig.group}`);
 
   async function savePermissions(nextPermissions) {
     if (saving || loading || error) return;
 
-    const previousPermissions = permissions;
-    setSaving(true);
-    setError("");
     setNotice("Saving changes…");
-    setPermissions(nextPermissions);
-
     try {
-      const result = await supervisorApi.updatePermissions(activeRoleConfig.group, nextPermissions);
-      setPermissions(cacheRolePermissions(activeRoleConfig.group, result?.permissions || nextPermissions));
+      await dispatch(saveRolePermissions({ group: activeRoleConfig.group, role: "Supervisor", permissions: nextPermissions })).unwrap();
       setNotice("Changes saved to the backend");
-    } catch (saveError) {
-      setPermissions(previousPermissions);
+    } catch {
       setNotice("Changes were not saved");
-      setError(saveError.message || "Permission changes could not be saved.");
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -92,18 +57,12 @@ function RolesAccess() {
   async function resetPermissions() {
     if (saving || loading || error) return;
 
-    setSaving(true);
-    setError("");
     setNotice("Restoring defaults…");
     try {
-      const result = await supervisorApi.resetPermissions(activeRoleConfig.group);
-      setPermissions(cacheRolePermissions(activeRoleConfig.group, result?.permissions || makeDefaultRolePermissions()));
+      await dispatch(resetRolePermissions({ group: activeRoleConfig.group, role: "Supervisor" })).unwrap();
       setNotice("Defaults restored from the backend");
-    } catch (resetError) {
+    } catch {
       setNotice("Defaults could not be restored");
-      setError(resetError.message || "Permissions could not be reset.");
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -191,7 +150,7 @@ function RolesAccess() {
               onClick={resetPermissions}
               type="button"
             >Reset to default</button>
-            {error && <button className="supervisor-outline-button" disabled={loading || saving} onClick={() => setReloadCount((count) => count + 1)} type="button">Retry</button>}
+            {error && <button className="supervisor-outline-button" disabled={loading || saving} onClick={() => dispatch(fetchRolePermissions({ group: activeRoleConfig.group, role: "Supervisor" }))} type="button">Retry</button>}
           </div>
         </section>
       </div>

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAuthSession, logout, updateDemoPassword } from "../../homepage/authService.js";
+import { useDispatch, useSelector } from "react-redux";
+import { signOut } from "../../shared/authSlice.js";
+import { saveSupervisorProfile, updateSupervisorPassword } from "../settingsSlice.js";
 import SupervisorIcon from "../components/SupervisorIcon.jsx";
 import usePersistedTab from "../../../hooks/usePersistedTab.js";
 
@@ -15,37 +17,20 @@ function normalizeIndianPhoneNumber(value) {
   return /^[6-9]\d{9}$/.test(number) ? `+91 ${number.slice(0, 5)} ${number.slice(5)}` : null;
 }
 
-function readSetting(key, fallback) {
-  try {
-    const value = JSON.parse(localStorage.getItem(key) || "null");
-    if (Array.isArray(fallback)) return Array.isArray(value) ? value : fallback;
-    return value && typeof value === "object" && !Array.isArray(value) ? { ...fallback, ...value } : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 function Settings() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [activeTab, setActiveTab] = usePersistedTab("stackbuilders.supervisor.settingsTab", "profile", tabs.map(([id]) => id));
-  const session = getAuthSession();
-  const [profile, setProfile] = useState(() => ({ name: session?.profile?.name || "", age: "", gender: "", email: session?.profile?.email || session?.username || "", phone: "", ...readSetting("stack-builders-supervisor-profile", {}) }));
+  const session = useSelector((state) => state.auth.session);
+  const savedProfile = useSelector((state) => state.supervisor.settings.profile);
+  const passwordSaving = useSelector((state) => state.supervisor.settings.passwordSaving);
+  const [profile, setProfile] = useState(() => ({ name: session?.profile?.name || "", age: "", gender: "", email: session?.profile?.email || session?.username || "", phone: "", ...savedProfile }));
   const [status, setStatus] = useState("");
   const [security, setSecurity] = useState({ current: "", next: "", confirm: "" });
-  const [passwordSaving, setPasswordSaving] = useState(false);
 
   function selectTab(tab) {
     setStatus("");
     setActiveTab(tab);
-  }
-
-  function saveSetting(key, value, label) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-      setStatus(label);
-    } catch {
-      setStatus("Changes could not be saved in this browser.");
-    }
   }
 
   function updateProfile(event) {
@@ -57,27 +42,25 @@ function Settings() {
     if (profile.phone.trim() && !normalizedPhone) return setStatus("Enter a valid Indian mobile number with 10 digits starting from 6–9, optionally prefixed by +91.");
     const normalized = { ...profile, name: profile.name.trim(), email: profile.email.trim().toLowerCase(), phone: normalizedPhone };
     setProfile(normalized);
-    saveSetting("stack-builders-supervisor-profile", normalized, "Profile changes saved in Settings.");
+    void dispatch(saveSupervisorProfile(normalized));
+    setStatus("Profile changes saved in Settings.");
   }
 
   async function updatePassword() {
     if (!security.current || !security.next || !security.confirm) return setStatus("Complete all password fields.");
     if (security.next.length < 6) return setStatus("The new password must be at least 6 characters.");
     if (security.next !== security.confirm) return setStatus("The new password and confirmation do not match.");
-    setPasswordSaving(true);
     try {
-      const result = await updateDemoPassword(session?.profile?.email || session?.username, security.current, security.next);
+      const result = await dispatch(updateSupervisorPassword({ email: session?.profile?.email || session?.username, currentPassword: security.current, newPassword: security.next })).unwrap();
       setSecurity({ current: "", next: "", confirm: "" });
       setStatus(result.message);
     } catch (error) {
       setStatus(error.message || "Password could not be updated.");
-    } finally {
-      setPasswordSaving(false);
     }
   }
 
   function handleLogout() {
-    logout();
+    void dispatch(signOut());
     navigate("/");
   }
 
