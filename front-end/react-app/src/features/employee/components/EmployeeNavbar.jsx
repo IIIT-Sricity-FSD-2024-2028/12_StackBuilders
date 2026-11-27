@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import { getCurrentEmployee, getEmployeeFirstName } from '../services/employeeAuth';
+import { useSelector } from 'react-redux';
+import { getEmployeeFirstName } from '../services/employeeAuth';
 import QueryNotifications from '../../../components/QueryNotifications.jsx';
 import { useRoleAccess } from '../../shared/roleAccessContext.jsx';
 /**
@@ -7,7 +8,7 @@ import { useRoleAccess } from '../../shared/roleAccessContext.jsx';
  *   <nav class="navbar dashboard-nav"> ... </nav>
  */
 export default function Navbar({ onProfileClick }) {
-  const employee = getCurrentEmployee();
+  const employee = useSelector((state) => state.auth.session?.profile || null);
   const firstName = getEmployeeFirstName(employee);
   const { hasPermission } = useRoleAccess();
 

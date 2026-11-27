@@ -1,29 +1,28 @@
 import { useState, useEffect } from 'react';
-import { getCurrentEmployee, getCompanyContext } from '../services/employeeAuth';
+import { useDispatch, useSelector } from 'react-redux';
+import { getCompanyContext } from '../services/employeeAuth';
 import {
   formatScheduleDate as formatDate,
   formatScheduleTime as formatTime,
 } from '../services/storageServices';
-import employeeApi from '../services/employeeApi';
 import usePersistedTab from '../../../hooks/usePersistedTab.js';
 import useAutoRefresh from '../../../hooks/useAutoRefresh.js';
+import { loadEmployeeLiveSessions } from '../liveSessionsSlice.js';
 
 const SESSIONS_PER_PAGE = 9;
 
 export default function LiveSessions() {
-  const employee   = getCurrentEmployee();
+  const dispatch = useDispatch();
+  const employee   = useSelector((state) => state.auth.session?.profile || null);
   const companyCtx = getCompanyContext(employee);
-
-  const [sessions,    setSessions]    = useState([]);
+  const sessions = useSelector((state) => state.employee.liveSessions.items);
+  const loadError = useSelector((state) => state.employee.liveSessions.error);
   const [activeTab,   setActiveTab]   = usePersistedTab('stackbuilders.employee.liveSessionsTab', 'scheduled', ['scheduled', 'ongoing', 'attended']);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loadError,   setLoadError]   = useState('');
 
   const refreshSessions = () => {
     if (!employee) return Promise.resolve();
-    return employeeApi.getLiveSessions(companyCtx)
-      .then((records) => { setSessions(records || []); setLoadError(''); })
-      .catch((error) => setLoadError(error.message || 'Could not load live sessions.'));
+    return dispatch(loadEmployeeLiveSessions(companyCtx)).unwrap();
   };
 
   useEffect(() => { refreshSessions(); }, [employee?.id, companyCtx.companyId, companyCtx.companyName]);

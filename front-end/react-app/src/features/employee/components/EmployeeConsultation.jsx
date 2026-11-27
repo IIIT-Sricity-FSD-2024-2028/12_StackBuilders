@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
-import { getCurrentEmployee, getCompanyContext } from '../services/employeeAuth';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getCompanyContext } from '../services/employeeAuth';
 import {
   formatScheduleDate,
   formatScheduleTime,
   splitRequestedOn,
 } from '../services/storageServices';
-import employeeApi from '../services/employeeApi';
 import useAutoRefresh from '../../../hooks/useAutoRefresh.js';
 import { useRoleAccess } from '../../shared/roleAccessContext.jsx';
+import { loadEmployeeConsultations, requestEmployeeReschedule, submitEmployeeConsultation } from '../consultationsSlice.js';
 
 const TERMINAL_CONSULTATION_STATUSES = new Set(['completed', 'rejected', 'cancelled', 'canceled']);
 
@@ -28,21 +29,22 @@ function consultationSlotKey(consultation) {
 export default function EmployeeConsultation() {
   const { hasPermission } = useRoleAccess();
   const canCreateConsultations = hasPermission('user-management-create');
-  const employee = getCurrentEmployee();
+  const dispatch = useDispatch();
+  const employee = useSelector((state) => state.auth.session?.profile || null);
   const companyCtx = getCompanyContext(employee);
-
-  const [consultations, setConsultations] = useState([]);
-  const [experts, setExperts] = useState([]);
+  const consultations = useSelector((state) => state.employee.consultations.items);
+  const experts = useSelector((state) => state.employee.consultations.experts);
+  const submitting = useSelector((state) => state.employee.consultations.submitting);
+  const sendingAvailability = useSelector((state) => state.employee.consultations.rescheduling);
+  const loadError = useSelector((state) => state.employee.consultations.error);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [formState, setFormState] = useState({ purpose: '', expertId: '', slotTime: '' });
   const [formError, setFormError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const [unavailableTarget, setUnavailableTarget] = useState(null);
   const [availabilityMessage, setAvailabilityMessage] = useState('');
   const [availabilityError, setAvailabilityError] = useState('');
-  const [sendingAvailability, setSendingAvailability] = useState(false);
   const purposeRef = useRef(null);
   const selectedExpert = experts.find((expert) => expert.id === formState.expertId);
   const bookedSlotKeys = new Set(consultations
@@ -54,14 +56,7 @@ export default function EmployeeConsultation() {
     .sort((left, right) => new Date(left) - new Date(right));
   const bookableSlots = futureSlots.filter((slot) => !bookedSlotKeys.has(slotKeyFromDate(slot)));
 
-  async function loadData() {
-    const [consultationList, expertList] = await Promise.all([
-      employeeApi.getConsultations(employee, companyCtx),
-      employeeApi.getExperts(companyCtx),
-    ]);
-    setConsultations(consultationList || []);
-    setExperts(expertList || []);
-  }
+  const loadData = useCallback(() => dispatch(loadEmployeeConsultations({ employee, company: companyCtx })), [dispatch, employee?.id, companyCtx.companyId, companyCtx.companyName]);
 
   useEffect(() => {
     if (!employee) return;
@@ -104,19 +99,12 @@ export default function EmployeeConsultation() {
       purpose:     formState.purpose,
     };
 
-    setSubmitting(true);
     try {
-      if (formState.slotTime) {
-        await employeeApi.bookConsultationSlot({ ...record, slotTime: formState.slotTime });
-      } else {
-        await employeeApi.createConsultation(record);
-      }
+      await dispatch(submitEmployeeConsultation({ payload: record, slotTime: formState.slotTime })).unwrap();
       setModalOpen(false);
-      await loadData();
+      await loadData().unwrap();
     } catch (error) {
       setFormError(error.message || 'Could not submit the consultation request.');
-    } finally {
-      setSubmitting(false);
     }
   }
 
@@ -135,29 +123,24 @@ export default function EmployeeConsultation() {
       return;
     }
 
-    setSendingAvailability(true);
     setAvailabilityError('');
     try {
-      const updated = await employeeApi.requestConsultationReschedule(unavailableTarget.id, {
+      await dispatch(requestEmployeeReschedule({ id: unavailableTarget.id, payload: {
         employeeId: employee.id,
         message,
-      });
-      setConsultations((current) => current.map((consultation) =>
-        consultation.id === updated.id ? updated : consultation,
-      ));
+      } })).unwrap();
       setUnavailableTarget(null);
       setAvailabilityMessage('');
-      loadData().catch(() => {});
+      void loadData();
     } catch (error) {
       setAvailabilityError(error.message || 'Your message could not be sent to the expert.');
-    } finally {
-      setSendingAvailability(false);
     }
   }
 
   return (
     <>
       <div className="container">
+        {loadError && <p className="employee-api-error" role="alert">{loadError}</p>}
         <div className="consultation-header">
           <h1>Consultation Dashboard</h1>
           {canCreateConsultations && <button className="btn" id="requestConsultationBtn" onClick={openModal}>

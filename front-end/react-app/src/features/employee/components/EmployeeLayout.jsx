@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Outlet } from 'react-router-dom';
 import EmployeeNavbar from './EmployeeNavbar.jsx';
 import ProfileDrawer from './ProfileDrawer.jsx';
 import RouteLoadingScreen from '../../../components/RouteLoadingScreen.jsx';
 import QueryModal from '../../../components/QueryModal.jsx';
 import usePageStylesheets from '../../../hooks/usePageStylesheets.js';
-import { getCurrentEmployee } from '../services/employeeAuth.js';
 import { RolePermissionsProvider } from '../../shared/roleAccessContext.jsx';
 
 /**
@@ -16,7 +16,7 @@ export default function EmployeeLayout() {
   const stylesReady = usePageStylesheets('/employee-legacy.css');
   const [profileOpen, setProfileOpen] = useState(false);
   const [queryOpen, setQueryOpen] = useState(false);
-  const employee = getCurrentEmployee();
+  const employee = useSelector((state) => state.auth.session?.profile || null);
 
   useEffect(() => {
     document.body.classList.add('employee-route');
