@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
-import { submitCompanyRequest } from "./authService.js";
+import { clearCompanyRequestStatus, requestCompanyApproval } from "../shared/companyRequestSlice.js";
 
 const initialForm = { companyName: "", companyPhone: "", companyAddress: "", companyEmail: "", hrName: "", hrPhoneNumber: "", hrEmail: "", hrPassword: "" };
 const INDIAN_PHONE_PATTERN = "(?:\\+?91[\\s()-]*)?[6-9](?:[\\s()-]*[0-9]){9}";
@@ -21,10 +22,10 @@ function isValidIndianPhoneNumber(value) {
 
 function CompanyRequestPage() {
   const stylesReady = usePageStylesheets("/signup-legacy.css");
+  const dispatch = useDispatch();
+  const { submitting, submitted, error: requestError } = useSelector((state) => state.companyRequest);
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
   function update(key, value) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -33,7 +34,7 @@ function CompanyRequestPage() {
   async function submit(event) {
     event.preventDefault();
     setError("");
-    setSuccess("");
+    dispatch(clearCompanyRequestStatus());
 
     const validationError = validateCompanyRequest(form);
     if (validationError) {
@@ -46,20 +47,10 @@ function CompanyRequestPage() {
       companyPhone: normalizeIndianPhoneNumber(form.companyPhone),
       hrPhoneNumber: form.hrPhoneNumber.trim() ? normalizeIndianPhoneNumber(form.hrPhoneNumber) : "",
     };
-    setSubmitting(true);
     try {
-      const result = await submitCompanyRequest(payload);
-      if (!result.ok) {
-        setError(result.error || "The request could not be submitted. Please check the details and try again.");
-        return;
-      }
+      await dispatch(requestCompanyApproval(payload)).unwrap();
       setForm(initialForm);
-      setSuccess("Your request was submitted. An administrator can approve it before the HR account signs in.");
-    } catch {
-      setError("The request could not be submitted. Please check the details and try again.");
-    } finally {
-      setSubmitting(false);
-    }
+    } catch { /* The shared onboarding feature stores the request error. */ }
   }
 
   if (!stylesReady) return <RouteLoadingScreen />;
@@ -83,7 +74,7 @@ function CompanyRequestPage() {
             <label className="field field--full"><span>HR Password</span><div className="input-wrap"><i className="fa-solid fa-lock"></i><input name="hrPassword" type="password" placeholder="Set the HR password" minLength="6" required value={form.hrPassword} onChange={(event) => update("hrPassword", event.target.value)} /></div></label>
           </div></div>
           <p className="auth-helper">After admin approval, use the HR Gmail and password above to sign in to the HR dashboard.</p>
-          <p className="auth-error" role="alert" aria-live="polite" hidden={!error}>{error}</p><p className="auth-success" role="status" aria-live="polite" hidden={!success}>{success}</p>
+          <p className="auth-error" role="alert" aria-live="polite" hidden={!(error || requestError)}>{error || requestError}</p><p className="auth-success" role="status" aria-live="polite" hidden={!submitted}>{submitted ? "Your request was submitted. An administrator can approve it before the HR account signs in." : ""}</p>
           <div className="action-row"><button type="submit" className="submit-btn" disabled={submitting}>{submitting ? "Submitting…" : "Submit Request"}</button><Link to="/" className="back-btn">Back to Sign In</Link></div>
         </form>
       </section>

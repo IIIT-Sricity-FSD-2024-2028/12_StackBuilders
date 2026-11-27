@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
-import { authenticate, completePasswordReset, requestPasswordReset } from "./authService.js";
+import { clearAuthRecoveryError, completeAuthPasswordReset, requestAuthPasswordReset, signIn } from "../shared/authSlice.js";
 
 const featureCards = [
   ["fa-regular fa-calendar-check", "Expert Consultation Scheduling", "Seamlessly schedule and manage sessions with certified wellness experts."],
@@ -15,8 +16,11 @@ const featureCards = [
 
 function HomePage() {
   const stylesReady = usePageStylesheets("/homepage-legacy.css");
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const recoverySubmitting = useSelector((state) => ["requesting", "resetting"].includes(state.auth.recoveryStatus));
+  const recoveryApiError = useSelector((state) => state.auth.recoveryError);
   const [loginOpen, setLoginOpen] = useState(false);
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
@@ -26,7 +30,6 @@ function HomePage() {
   const [recoveryCode, setRecoveryCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [recoverySubmitting, setRecoverySubmitting] = useState(false);
   const [recoveryError, setRecoveryError] = useState("");
   const [recoveryMessage, setRecoveryMessage] = useState("");
   const [loginNotice, setLoginNotice] = useState("");
@@ -96,28 +99,28 @@ function HomePage() {
     event.preventDefault();
     setSubmitting(true);
     setError("");
-    const result = await authenticate(form.username, form.password);
-    setSubmitting(false);
-    if (!result.ok) return setError(result.error);
-    setLoginOpen(false);
-    setLoginNotice("");
-    navigate(result.session.path);
+    try {
+      const session = await dispatch(signIn({ username: form.username, password: form.password })).unwrap();
+      setLoginOpen(false);
+      setLoginNotice("");
+      navigate(session.path);
+    } catch (loginError) {
+      setError(loginError || "Sign in failed.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function submitRecoveryRequest(event) {
     event.preventDefault();
-    setRecoverySubmitting(true);
     setRecoveryError("");
     setRecoveryMessage("");
+    dispatch(clearAuthRecoveryError());
     try {
-      await requestPasswordReset(recoveryEmail);
+      await dispatch(requestAuthPasswordReset(recoveryEmail)).unwrap();
       setRecoveryStep("code");
       setRecoveryMessage("If an account matches that email, a 6-digit code will arrive shortly. It expires in 10 minutes. Check spam, or request another code after one minute.");
-    } catch (requestError) {
-      setRecoveryError(requestError.message || "We could not send a verification code. Please try again.");
-    } finally {
-      setRecoverySubmitting(false);
-    }
+    } catch { /* The shared auth slice stores the recovery error. */ }
   }
 
   async function submitPasswordReset(event) {
@@ -133,20 +136,16 @@ function HomePage() {
       return;
     }
 
-    setRecoverySubmitting(true);
+    dispatch(clearAuthRecoveryError());
     try {
-      await completePasswordReset(recoveryEmail, recoveryCode, newPassword);
+      await dispatch(completeAuthPasswordReset({ email: recoveryEmail, code: recoveryCode, password: newPassword })).unwrap();
       setRecoveryStep("login");
       setForm({ username: recoveryEmail, password: "" });
       setRecoveryCode("");
       setNewPassword("");
       setConfirmNewPassword("");
       setLoginNotice("Your password has been updated. Sign in with your new password.");
-    } catch (resetError) {
-      setRecoveryError(resetError.message || "We could not reset your password. Check the code and try again.");
-    } finally {
-      setRecoverySubmitting(false);
-    }
+    } catch { /* The shared auth slice stores the recovery error. */ }
   }
 
   function openLogin(event) {
@@ -160,6 +159,7 @@ function HomePage() {
   function openPasswordRecovery() {
     setRecoveryEmail(form.username);
     setRecoveryError("");
+    dispatch(clearAuthRecoveryError());
     setRecoveryMessage("");
     setLoginNotice("");
     setRecoveryStep("email");
@@ -242,7 +242,7 @@ function HomePage() {
             {recoveryStep === "email" && (
               <form className="signup-card__form" onSubmit={submitRecoveryRequest}>
                 <label className="signup-card__field"><span>Email address</span><div className="signup-card__input-wrap"><i className="fa-regular fa-envelope"></i><input type="email" autoComplete="email" placeholder="Enter your account email" required value={recoveryEmail} onChange={(event) => setRecoveryEmail(event.target.value)} /></div></label>
-                {recoveryError && <p className="signup-card__error" role="alert">{recoveryError}</p>}
+                {(recoveryError || recoveryApiError) && <p className="signup-card__error" role="alert">{recoveryError || recoveryApiError}</p>}
                 <div className="signup-card__actions"><button type="submit" className="signup-card__submit" disabled={recoverySubmitting}>{recoverySubmitting ? "Sending code…" : "Send verification code"}</button><button type="button" className="signup-card__secondary" onClick={returnToLogin}>Back to sign in</button></div>
               </form>
             )}
@@ -253,7 +253,7 @@ function HomePage() {
                 <label className="signup-card__field"><span>6-digit verification code</span><div className="signup-card__input-wrap"><i className="fa-solid fa-key"></i><input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} placeholder="Enter the code" required value={recoveryCode} onChange={(event) => setRecoveryCode(event.target.value.replace(/\D/g, "").slice(0, 6))} /></div></label>
                 <label className="signup-card__field"><span>New password</span><div className="signup-card__input-wrap"><i className="fa-solid fa-lock"></i><input type="password" autoComplete="new-password" minLength={6} maxLength={128} placeholder="At least 6 characters" required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></div></label>
                 <label className="signup-card__field"><span>Confirm new password</span><div className="signup-card__input-wrap"><i className="fa-solid fa-lock"></i><input type="password" autoComplete="new-password" minLength={6} maxLength={128} placeholder="Re-enter your new password" required value={confirmNewPassword} onChange={(event) => setConfirmNewPassword(event.target.value)} /></div></label>
-                {recoveryError && <p className="signup-card__error" role="alert">{recoveryError}</p>}
+                {(recoveryError || recoveryApiError) && <p className="signup-card__error" role="alert">{recoveryError || recoveryApiError}</p>}
                 <div className="signup-card__actions"><button type="submit" className="signup-card__submit" disabled={recoverySubmitting}>{recoverySubmitting ? "Updating password…" : "Update password"}</button><button type="button" className="signup-card__secondary" onClick={returnToLogin}>Back to sign in</button></div>
               </form>
             )}
