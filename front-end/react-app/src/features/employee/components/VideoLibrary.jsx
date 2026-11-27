@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { getCurrentEmployee, getCompanyContext } from '../services/employeeAuth';
-import employeeApi from '../services/employeeApi';
+import { useDispatch, useSelector } from 'react-redux';
+import { getCompanyContext } from '../services/employeeAuth';
 import VideoCardMedia from '../../shared/VideoCardMedia.jsx';
 import VideoPlayerModal from '../../shared/VideoPlayerModal.jsx';
 import useAutoRefresh from '../../../hooks/useAutoRefresh.js';
+import { loadEmployeeVideos } from '../videosSlice.js';
 
 const CATEGORY_MAP = {
   health: {
@@ -107,19 +108,17 @@ function VideoCategory({ id, config, videos, onPlayVideo }) {
 }
 
 export default function VideoLibrary() {
-  const employee   = getCurrentEmployee();
+  const dispatch = useDispatch();
+  const employee   = useSelector((state) => state.auth.session?.profile || null);
   const companyCtx = getCompanyContext(employee);
-
-  const [videos,      setVideos]      = useState([]);
+  const videos = useSelector((state) => state.employee.videos.items);
+  const loadError = useSelector((state) => state.employee.videos.error);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loadError,   setLoadError]   = useState('');
   const [selectedVideo, setSelectedVideo] = useState(null);
 
   const refreshVideos = () => {
     if (!employee) return Promise.resolve();
-    return employeeApi.getVideos(companyCtx)
-      .then((records) => { setVideos(records || []); setLoadError(''); })
-      .catch((error) => setLoadError(error.message || 'Could not load the video library.'));
+    return dispatch(loadEmployeeVideos(companyCtx)).unwrap();
   };
 
   useEffect(() => { refreshVideos(); }, [employee?.id, companyCtx.companyId, companyCtx.companyName]);

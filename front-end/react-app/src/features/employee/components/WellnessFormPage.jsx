@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getCurrentEmployee, getCompanyContext } from '../services/employeeAuth';
+import { useDispatch, useSelector } from 'react-redux';
+import { getCompanyContext } from '../services/employeeAuth';
 import {
   getTrackConfig,
   formatDateTime,
   formatFieldValue,
   getCheckinUrgency,
 } from '../services/storageServices';
-import employeeApi from '../services/employeeApi';
 import useAutoRefresh from '../../../hooks/useAutoRefresh.js';
 import { useRoleAccess } from '../../shared/roleAccessContext.jsx';
+import { loadEmployeeCheckins, submitEmployeeCheckin } from '../wellnessCheckinsSlice.js';
 
 function getResponseHistory(responses, checkinId) {
   return responses
@@ -25,20 +26,21 @@ export default function WellnessFormPage({ trackKey }) {
   const { hasPermission } = useRoleAccess();
   const canSubmitCheckins = hasPermission('client-management-create');
   const navigate   = useNavigate();
-  const employee   = getCurrentEmployee();
+  const dispatch = useDispatch();
+  const employee   = useSelector((state) => state.auth.session?.profile || null);
   const companyCtx = getCompanyContext(employee);
+  const records = useSelector((state) => state.employee.wellnessCheckins.items);
+  const responses = useSelector((state) => state.employee.wellnessCheckins.responses);
+  const featureError = useSelector((state) => state.employee.wellnessCheckins.error);
 
-  const [config,        setConfig]        = useState(null);
-  const [history,       setHistory]       = useState([]);
-  const [responses,      setResponses]      = useState([]);
+  const config = getTrackConfig(trackKey);
+  const history = records.filter((record) => record.checkinType === trackKey);
   const [formData,      setFormData]      = useState({});
   const [statusMessage, setStatusMessage] = useState(null);
 
   useEffect(() => {
     if (!employee) return;
-    const cfg = getTrackConfig(trackKey);
-    setConfig(cfg);
-    loadHistory(cfg).catch((error) => setStatusMessage(error.message || 'Could not load check-in history.'));
+    loadHistory(config).catch((error) => setStatusMessage(error.message || 'Could not load check-in history.'));
 
     document.body.dataset.checkinType = trackKey;
     document.body.classList.add('form-only-page');
@@ -48,15 +50,7 @@ export default function WellnessFormPage({ trackKey }) {
     };
   }, [trackKey, employee?.id, companyCtx.companyId, companyCtx.companyName]);
 
-  async function loadHistory(cfg) {
-    if (!cfg) return;
-    const [records, responseRecords] = await Promise.all([
-      employeeApi.getCheckins(employee, companyCtx, cfg.key),
-      employeeApi.getCheckinResponses(companyCtx, undefined, employee?.id),
-    ]);
-    setHistory(records || []);
-    setResponses(responseRecords || []);
-  }
+  const loadHistory = useCallback((cfg) => cfg ? dispatch(loadEmployeeCheckins({ employee, company: companyCtx, checkinType: cfg.key })) : Promise.resolve(), [dispatch, employee?.id, companyCtx.companyId, companyCtx.companyName]);
 
   useAutoRefresh(() => loadHistory(config), `${employee?.id || ''}:${trackKey}:${companyCtx.companyId || companyCtx.companyName || ''}`);
 
@@ -77,13 +71,13 @@ export default function WellnessFormPage({ trackKey }) {
     };
 
     try {
-      await employeeApi.createCheckin(record);
+      await dispatch(submitEmployeeCheckin(record)).unwrap();
       setStatusMessage('Check-in submitted successfully!');
       setFormData({});
-      await loadHistory(config);
+      await loadHistory(config).unwrap();
       setTimeout(() => setStatusMessage(null), 4000);
     } catch (error) {
-      setStatusMessage(error.message || 'Could not submit this check-in.');
+      setStatusMessage(error.message || featureError || 'Could not submit this check-in.');
     }
   }
 

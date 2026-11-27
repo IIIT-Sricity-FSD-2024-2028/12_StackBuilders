@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { getCurrentEmployee, getCompanyContext } from '../services/employeeAuth';
+import { getCompanyContext } from '../services/employeeAuth';
 import {
   getTrackConfig,
   formatDateTime,
   formatFieldValue,
   getCheckinUrgency,
 } from '../services/storageServices';
-import employeeApi from '../services/employeeApi';
 import useAutoRefresh from '../../../hooks/useAutoRefresh.js';
+import { loadEmployeeCheckins } from '../wellnessCheckinsSlice.js';
 
 const TRACKS = ['mental', 'physical', 'nutrition'];
 
@@ -19,32 +20,24 @@ function getResponseHistory(responses, checkinId) {
 }
 
 export default function WellnessCheckins() {
-  const employee = getCurrentEmployee();
+  const dispatch = useDispatch();
+  const employee = useSelector((state) => state.auth.session?.profile || null);
   const companyCtx = getCompanyContext(employee);
-  const [trackData, setTrackData] = useState({});
-  const [recentCheckins, setRecentCheckins] = useState([]);
-  const [responses, setResponses] = useState([]);
-  const [loadError, setLoadError] = useState('');
+  const records = useSelector((state) => state.employee.wellnessCheckins.items);
+  const responses = useSelector((state) => state.employee.wellnessCheckins.responses);
+  const loadError = useSelector((state) => state.employee.wellnessCheckins.error);
+  const trackData = useMemo(() => Object.fromEntries(TRACKS.map((key) => {
+    const entries = records.filter((record) => record.checkinType === key);
+    return [key, { entries, latest: entries[0] || null }];
+  })), [records]);
+  const recentCheckins = records.slice(0, 6);
 
   useEffect(() => {
     if (!employee) return;
-    loadData().catch((error) => setLoadError(error.message || 'Could not load wellness check-ins.'));
+    void loadData();
   }, [employee?.id, companyCtx.companyId, companyCtx.companyName]);
 
-  async function loadData() {
-    const [records, responseRecords] = await Promise.all([
-      employeeApi.getCheckins(employee, companyCtx),
-      employeeApi.getCheckinResponses(companyCtx, undefined, employee?.id),
-    ]);
-    const data = {};
-    TRACKS.forEach((key) => {
-      const entries = (records || []).filter((record) => record.checkinType === key);
-      data[key] = { entries, latest: entries[0] || null };
-    });
-    setTrackData(data);
-    setRecentCheckins((records || []).slice(0, 6));
-    setResponses(responseRecords || []);
-  }
+  const loadData = useCallback(() => dispatch(loadEmployeeCheckins({ employee, company: companyCtx })), [dispatch, employee?.id, companyCtx.companyId, companyCtx.companyName]);
 
   useAutoRefresh(loadData, `${employee?.id || ''}:${companyCtx.companyId || companyCtx.companyName || ''}`);
 
