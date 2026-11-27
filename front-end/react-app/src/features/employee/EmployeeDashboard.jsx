@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentEmployee, getCompanyContext, updateCurrentEmployee } from './services/employeeAuth';
+import { getCompanyContext } from './services/employeeAuth';
 import { getDailyTip } from './services/storageServices';
-import employeeApi from './services/employeeApi';
+import { loadEmployeeDashboard } from './dashboardSlice.js';
+import { claimEmployeeReward } from './challengesSlice.js';
 import VideoThumbnail from '../shared/VideoThumbnail.jsx';
 import VideoPlayerModal from '../shared/VideoPlayerModal.jsx';
 import useAutoRefresh from '../../hooks/useAutoRefresh.js';
@@ -18,46 +20,33 @@ export default function EmployeeDashboard() {
   const canReadChallenges = hasPermission('challenge-management-read');
   const canUpdateChallenges = hasPermission('challenge-management-update');
   const navigate = useNavigate();
-  const [employee, setEmployee] = useState(getCurrentEmployee);
+  const dispatch = useDispatch();
+  const employee = useSelector((state) => state.auth.session?.profile || null);
   const companyCtx = getCompanyContext(employee);
-
-  const [challenges, setChallenges] = useState([]);
+  const challenges = useSelector((state) => state.employee.challenges.challenges);
+  const rewards = useSelector((state) => state.employee.challenges.rewards);
+  const liveSessions = useSelector((state) => state.employee.liveSessions.items);
+  const videos = useSelector((state) => state.employee.videos.items);
+  const dashboardVideos = videos.slice(0, 3);
+  const experts = useSelector((state) => state.employee.experts.items);
+  const loadError = useSelector((state) => state.employee.dashboard.error);
   const [selectedChallengeId, setSelectedChallengeId] = useState(null);
-  const [rewards, setRewards] = useState([]);
   const [rewardPage, setRewardPage] = useState(0);
-  const [liveSessions, setLiveSessions] = useState([]);
-  const [videos, setVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [experts, setExperts] = useState([]);
   const [claimingRewardId, setClaimingRewardId] = useState(null);
   const [rewardMessage, setRewardMessage] = useState('');
-  const [loadError, setLoadError] = useState('');
   const dailyTip = getDailyTip();
 
   const loadDashboard = useCallback(async () => {
     if (!employee) return;
-    setLoadError('');
-    try {
-      const [ch, rewardList, sessionList, videoList, expertList] = await Promise.all([
-        employeeApi.getChallenges(companyCtx),
-        employeeApi.getRewards(companyCtx),
-        employeeApi.getLiveSessions(companyCtx),
-        employeeApi.getVideos(companyCtx),
-        employeeApi.getExperts(companyCtx).catch(() => []),
-      ]);
-      setChallenges(ch || []);
-      setSelectedChallengeId((current) => ch?.some((challenge) => challenge.id === current) ? current : ch?.[0]?.id || null);
-      setRewards(rewardList || []);
-      setLiveSessions(sessionList || []);
-      setVideos((videoList || []).slice(0, 3));
-      setExperts(Array.isArray(expertList) ? expertList : []);
-    } catch (error) {
-      setLoadError(error.message || 'Could not load the employee dashboard.');
-    }
-  }, [employee?.id, companyCtx.companyId, companyCtx.companyName]);
+    await dispatch(loadEmployeeDashboard(companyCtx));
+  }, [dispatch, employee?.id, companyCtx.companyId, companyCtx.companyName]);
 
   useEffect(() => { loadDashboard(); }, [loadDashboard]);
   useAutoRefresh(loadDashboard, `${employee?.id || ''}:${companyCtx.companyId || companyCtx.companyName || ''}`);
+  useEffect(() => {
+    setSelectedChallengeId((current) => challenges.some((challenge) => challenge.id === current) ? current : challenges[0]?.id || null);
+  }, [challenges]);
 
   const selectedChallenge = challenges.find(c => c.id === selectedChallengeId) || challenges[0] || null;
   const pagedRewards = rewards.slice(rewardPage * REWARDS_PER_PAGE, (rewardPage + 1) * REWARDS_PER_PAGE);
@@ -73,14 +62,7 @@ export default function EmployeeDashboard() {
     setRewardMessage('');
     setClaimingRewardId(reward.id);
     try {
-      const result = await employeeApi.claimReward(reward.id, employee.id);
-      if (result?.employee) {
-        updateCurrentEmployee(result.employee);
-        setEmployee(result.employee);
-      }
-      if (result?.reward) {
-        setRewards((current) => current.map((item) => item.id === result.reward.id ? result.reward : item));
-      }
+      await dispatch(claimEmployeeReward({ rewardId: reward.id, employeeId: employee.id })).unwrap();
       setRewardMessage('Reward claimed successfully.');
     } catch (error) {
       setRewardMessage(error.message || 'The reward could not be claimed right now.');
@@ -304,7 +286,7 @@ export default function EmployeeDashboard() {
         <div className="video-grid" id="employeeDashboardVideoGrid">
           {!videos.length
             ? <p className="small-text">No videos available yet.</p>
-            : videos.map((v, i) => {
+            : dashboardVideos.map((v, i) => {
               const content = <><div className="video-image">
                 <VideoThumbnail video={v} alt={v.title || 'Wellness video'} />
                 <div className="play-btn"><i className="fa-solid fa-play" /></div>
