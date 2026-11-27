@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 
-const DEFAULT_REFRESH_INTERVAL = 15_000;
+// The dashboards poll several endpoints per refresh. A one-minute cadence
+// keeps normal use well below the API's per-IP request limit.
+const DEFAULT_REFRESH_INTERVAL = 60_000;
 
 export default function useAutoRefresh(refresh, scopeKey = "", intervalMs = DEFAULT_REFRESH_INTERVAL) {
   const refreshRef = useRef(refresh);
