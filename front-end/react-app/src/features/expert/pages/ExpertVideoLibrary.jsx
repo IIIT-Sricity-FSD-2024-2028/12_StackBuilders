@@ -320,7 +320,7 @@ function ExpertVideoLibrary({ data, expertId, specialization, onUpdate, onCreate
     <VideoPlayerModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />
 
     {modalOpen && (
-      <div className="video-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setModalOpen(false); }}>
+      <div className="video-modal-overlay" role="presentation">
         <div className="video-modal" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
           <div className="video-modal-header">
             <div>
