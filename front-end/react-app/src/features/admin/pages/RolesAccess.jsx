@@ -1,76 +1,48 @@
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
 import usePersistedTab from "../../../hooks/usePersistedTab.js";
-import { cacheRolePermissions } from "../../shared/roleAccessContext.jsx";
+import { fetchRolePermissions, resetRolePermissions, saveRolePermissions } from "../../shared/roleAccessSlice.js";
 import {
-  makeDefaultRolePermissions,
   ROLE_ACCESS_ACTIONS,
   ROLE_ACCESS_RESOURCES,
   ROLE_ACCESS_ROLES,
 } from "../../shared/roleAccessConfig.js";
-import adminApi from "../adminApi.js";
 
 const roleLabels = ROLE_ACCESS_ROLES.map(({ label }) => label);
 
 function RolesAccess() {
   const stylesReady = usePageStylesheets("/admin-roles-legacy.css");
+  const dispatch = useDispatch();
   const [selectedRole, setSelectedRole] = usePersistedTab("stackbuilders.admin.rolesAccessTab", "HR", roleLabels);
-  const [permissions, setPermissions] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
   const [notice, setNotice] = useState("Changes save automatically");
-  const [reloadCount, setReloadCount] = useState(0);
 
   const selectedRoleConfig = ROLE_ACCESS_ROLES.find(({ label }) => label === selectedRole) || ROLE_ACCESS_ROLES[0];
   const resources = ROLE_ACCESS_RESOURCES[selectedRoleConfig.group];
+  const roleState = useSelector((state) => state.roleAccess.groups[selectedRoleConfig.group]);
+  const permissions = roleState?.permissions || {};
+  const loading = !roleState || roleState.status === "loading";
+  const saving = roleState?.status === "saving";
+  const error = roleState?.error || "";
 
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError("");
     setNotice("Loading permissions…");
-
-    adminApi.getPermissions(selectedRoleConfig.group)
-      .then((result) => {
-        if (!active) return;
-        setPermissions(cacheRolePermissions(selectedRoleConfig.group, result?.permissions || makeDefaultRolePermissions()));
-        setNotice("Changes save automatically");
-      })
-      .catch((loadError) => {
-        if (!active) return;
-        setError(loadError.message || "Could not load permissions.");
-        setNotice("Permissions could not be loaded");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [selectedRoleConfig.group, reloadCount]);
+    dispatch(fetchRolePermissions({ group: selectedRoleConfig.group, role: "Admin" }))
+      .unwrap().then(() => setNotice("Changes save automatically"))
+      .catch(() => setNotice("Permissions could not be loaded"));
+  }, [dispatch, selectedRoleConfig.group]);
 
   async function savePermissions(nextPermissions) {
     if (saving || loading || error) return;
 
-    const previousPermissions = permissions;
-    setSaving(true);
-    setError("");
     setNotice("Saving changes…");
-    setPermissions(nextPermissions);
 
     try {
-      const result = await adminApi.updatePermissions(selectedRoleConfig.group, nextPermissions);
-      setPermissions(cacheRolePermissions(selectedRoleConfig.group, result?.permissions || nextPermissions));
+      await dispatch(saveRolePermissions({ group: selectedRoleConfig.group, role: "Admin", permissions: nextPermissions })).unwrap();
       setNotice("Changes saved to the backend");
-    } catch (saveError) {
-      setPermissions(previousPermissions);
+    } catch {
       setNotice("Changes were not saved");
-      setError(saveError.message || "Permission changes could not be saved.");
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -82,18 +54,12 @@ function RolesAccess() {
   async function resetPermissions() {
     if (saving || loading || error) return;
 
-    setSaving(true);
-    setError("");
     setNotice("Restoring defaults…");
     try {
-      const result = await adminApi.resetPermissions(selectedRoleConfig.group);
-      setPermissions(cacheRolePermissions(selectedRoleConfig.group, result?.permissions || makeDefaultRolePermissions()));
+      await dispatch(resetRolePermissions({ group: selectedRoleConfig.group, role: "Admin" })).unwrap();
       setNotice("Defaults restored from the backend");
-    } catch (resetError) {
+    } catch {
       setNotice("Defaults could not be restored");
-      setError(resetError.message || "Permissions could not be reset.");
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -137,7 +103,7 @@ function RolesAccess() {
           {error && (
             <div role="alert">
               <p className="permission-status">{error}</p>
-              <button className="reset" type="button" onClick={() => setReloadCount((count) => count + 1)}>Retry</button>
+              <button className="reset" type="button" onClick={() => dispatch(fetchRolePermissions({ group: selectedRoleConfig.group, role: "Admin" }))}>Retry</button>
             </div>
           )}
           {loading ? <p className="permission-status" role="status">Loading permissions…</p> : !error && (
