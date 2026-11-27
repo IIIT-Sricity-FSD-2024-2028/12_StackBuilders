@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
 import HRNavbar from "./components/HRNavbar.jsx";
-import hrApi from "./hrApi.js";
+import { loadHrPricing } from "./pricingSlice.js";
 import { getCurrentHrCompanyContext } from "./hrUtils.js";
 import useAutoRefresh from "../../hooks/useAutoRefresh.js";
 
@@ -49,28 +50,16 @@ function HRPricing() {
     "/hr-dashboard-legacy.css",
     "/hr-pricing-legacy.css",
   ]);
-  const [currentPlan, setCurrentPlan] = useState("");
+  const dispatch = useDispatch();
+  const company = getCurrentHrCompanyContext();
+  const currentPlan = useSelector((state) => {
+    const companyName = company.companyName.toLowerCase();
+    const subscription = state.hr.subscriptions.items.find((item) => String(item.status || "").trim().toLowerCase() === "active" && ((company.companyId && String(item.companyId || "").trim() === company.companyId) || String(item.companyName || "").trim().toLowerCase() === companyName));
+    return subscription?.planId || "";
+  });
 
   const loadCurrentPlan = () => {
-    const company = getCurrentHrCompanyContext();
-    const companyName = company.companyName.toLowerCase();
-    return hrApi
-      .getSubscriptions()
-      .then((subscriptions) => {
-        const subscription = (subscriptions || []).find(
-          (item) =>
-            String(item.status || "")
-              .trim()
-              .toLowerCase() === "active" &&
-            ((company.companyId &&
-              String(item.companyId || "").trim() === company.companyId) ||
-              String(item.companyName || "")
-                .trim()
-                .toLowerCase() === companyName),
-        );
-        setCurrentPlan(subscription?.planId || "");
-      })
-      .catch(() => {});
+    return dispatch(loadHrPricing()).catch(() => {});
   };
 
   useEffect(() => {

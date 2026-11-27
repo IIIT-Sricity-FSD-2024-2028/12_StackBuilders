@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
 import HRNavbar from "./components/HRNavbar.jsx";
-import hrApi from "./hrApi.js";
+import { submitHrPayment } from "./paymentsSlice.js";
 import { getCurrentHrCompanyContext } from "./hrUtils.js";
 
 const plans = {
@@ -31,8 +32,10 @@ function HRPayment() {
   const planId = params.get("plan") || "starter";
   const plan = useMemo(() => plans[planId], [planId]);
   const company = getCurrentHrCompanyContext();
+  const dispatch = useDispatch();
+  const processing = useSelector((state) => state.hr.payments.processing);
+  const paymentError = useSelector((state) => state.hr.payments.error);
   const [cardName, setCardName] = useState(company.hrName);
-  const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
@@ -60,52 +63,15 @@ function HRPayment() {
       setError("Your HR account is not linked to a company.");
       return;
     }
-    setProcessing(true);
     setError("");
     try {
-      const [subscriptions, payments] = await Promise.all([
-        hrApi.getSubscriptions(),
-        hrApi.getPayments(),
-      ]);
-      const now = Date.now();
-      const subscription = {
-        id: `SUB-${now}`,
-        companyId: company.companyId,
-        companyName: company.companyName,
-        planId,
-        planName: plan.name,
-        price: plan.price,
-        employeeLimit: plan.employeeLimit,
-        expertLimit: plan.expertLimit,
-        status: "active",
-        subscribedAt: now,
-      };
-      const nextSubscriptions = (subscriptions || [])
-        .filter((item) => !isSameCompany(item, company))
-        .concat(subscription);
-      const payment = {
-        id: `PAY-${now}`,
-        companyId: company.companyId,
-        companyName: company.companyName,
-        planId,
-        planName: plan.name,
-        amount: plan.price,
-        status: "completed",
-        paidAt: now,
-      };
-      const nextPayments = [...(payments || []), payment];
-      await Promise.all([
-        hrApi.saveSubscriptions(nextSubscriptions),
-        hrApi.savePayments(nextPayments),
-      ]);
+      await dispatch(submitHrPayment({ company, planId, plan })).unwrap();
       setSuccess(true);
     } catch (paymentError) {
       setError(
         paymentError.message ||
           "An error occurred during payment processing. Please try again.",
       );
-    } finally {
-      setProcessing(false);
     }
   }
 
@@ -129,7 +95,7 @@ function HRPayment() {
               </div>
               <div className="plan-total">₹{plan.price}</div>
             </div>
-            {error && <p className="payment-error">{error}</p>}
+            {(error || paymentError) && <p className="payment-error">{error || paymentError}</p>}
             <div className="form-group">
               <label>Company</label>
               <input
