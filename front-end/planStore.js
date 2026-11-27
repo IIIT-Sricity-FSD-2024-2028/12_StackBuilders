@@ -4,6 +4,9 @@
   const COMPANY_STORAGE_KEY = "stack-builders-companies";
   const EMPLOYEE_STORAGE_KEY = "stackbuilders.hr.employees";
   const EXPERT_STORAGE_KEY = "stackbuilders.hr.experts";
+  // Payment history belongs to the in-memory API and must not survive a page
+  // reload or repopulate the API after its process has restarted.
+  var currentPayments = [];
 
   // Every HR plan includes the complete feature set. Plans differ only by capacity.
   const ALL_FEATURES = [
@@ -66,16 +69,11 @@
   }
 
   function readPayments() {
-    try {
-      var raw = localStorage.getItem(PAYMENT_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) { return []; }
+    return currentPayments.slice();
   }
 
   function writePayments(payments) {
-    try {
-      localStorage.setItem(PAYMENT_STORAGE_KEY, JSON.stringify(payments));
-    } catch (e) {}
+    currentPayments = Array.isArray(payments) ? payments.slice() : [];
     if (window.appApiClient?.request) {
       return window.appApiClient.request("/subscriptions/payments/bulk", {
         method: "PUT",
@@ -103,6 +101,10 @@
   async function subscribe(companyName, planId) {
     var plan = PLANS[planId];
     if (!plan) return { ok: false, error: "Invalid plan." };
+
+    // Always start from the server's current history. This prevents a page
+    // that stayed open across a server restart from restoring old payments.
+    await syncWithBackend();
 
     var subs = readSubscriptions();
     // Remove existing subscription for this company
@@ -229,6 +231,9 @@
 
   // --- SYNC WITH BACKEND ---
   async function syncWithBackend() {
+    // Discard this page's previous snapshot before reading the server.
+    currentPayments = [];
+    try { localStorage.removeItem(PAYMENT_STORAGE_KEY); } catch (e) {}
     if (!window.appApiClient?.request) return;
     try {
       var backendSubs = await window.appApiClient.request("/subscriptions");
@@ -241,7 +246,7 @@
     try {
       var backendPayments = await window.appApiClient.request("/subscriptions/payments");
       if (Array.isArray(backendPayments)) {
-        localStorage.setItem(PAYMENT_STORAGE_KEY, JSON.stringify(backendPayments));
+        currentPayments = backendPayments.slice();
       }
     } catch (e) {
       console.error("Failed to sync payments from backend:", e);
@@ -262,12 +267,12 @@
     readPayments: readPayments
   };
 
-  // Auto-sync on page load — clear stale localStorage first, then pull from backend
+  // Auto-sync on page load; remove payment data left by older app versions.
   window.addEventListener("DOMContentLoaded", async function() {
+    try { localStorage.removeItem(PAYMENT_STORAGE_KEY); } catch (e) {}
     if (window.appApiClient?.request) {
       // Clear stale data immediately so no page reads old values
       localStorage.removeItem(PLAN_STORAGE_KEY);
-      localStorage.removeItem(PAYMENT_STORAGE_KEY);
       await syncWithBackend();
     }
   });

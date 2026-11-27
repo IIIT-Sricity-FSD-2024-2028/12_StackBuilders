@@ -9,9 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.15.0",
     "@vitejs/plugin-react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "react-redux": "^9.3.1",
     "react-router-dom": "latest",
     "vite": "latest",
     "xlsx": "^0.18.5"

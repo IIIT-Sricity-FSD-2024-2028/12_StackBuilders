@@ -40,9 +40,11 @@ npm run start:dev
 
 The API runs at `http://127.0.0.1:3000`. Swagger API documentation is at `http://127.0.0.1:3000/api/docs`.
 
+API throttling allows 3,000 requests per IP in each 15-minute window in production (5,000 otherwise). Set `API_MAX_REQUESTS_PER_WINDOW` to override the limit. Dashboard background refresh runs once per minute to keep normal polling within the quota.
+
 ### Password recovery email
 
-The forgot-password flow sends a six-digit code through SMTP. Copy `back-end/.env.example` to `back-end/.env` and set `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM` for your mail provider before starting the API. The code expires after 10 minutes, can be requested at most three times per hour per email, and allows five verification attempts. Recovery currently covers employee, wellness expert, HR, and built-in demo accounts. The same SMTP setup sends company-request receipts, reviewer alerts, approval or rejection emails, and an HR sign-in invitation. Set `ONBOARDING_REVIEW_EMAIL` to change the reviewer recipient (defaults to `raju@gmail.com`) and `FRONTEND_URL` to set the app link included in those emails (defaults to `http://127.0.0.1:5173`).
+The forgot-password flow sends a six-digit code through SMTP. Copy `back-end/.env.example` to `back-end/.env` and replace the SMTP placeholders with settings from your mail provider before starting the API. `SMTP_USER` and `SMTP_PASSWORD` must either both be set or both be omitted when your provider allows unauthenticated SMTP. On startup, the API verifies the SMTP connection and logs a clear warning or error if email is disabled or the connection fails; it never logs the SMTP password. The code expires after 10 minutes, can be requested at most three times per hour per email, and allows five verification attempts. Recovery currently covers employee, wellness expert, HR, and built-in demo accounts. The same SMTP setup sends company-request receipts, reviewer alerts, approval or rejection emails, and an HR sign-in invitation. Set `ONBOARDING_REVIEW_EMAIL` to change the reviewer recipient (defaults to `raju@gmail.com`) and `FRONTEND_URL` to set the app link included in those emails (defaults to `http://127.0.0.1:5173`).
 
 Open a second terminal at the repository root to start the React app:
 
