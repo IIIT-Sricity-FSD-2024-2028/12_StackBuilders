@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
 import HRNavbar from "./components/HRNavbar.jsx";
-import hrApi from "./hrApi.js";
+import { loadHrVideos } from "./videosSlice.js";
 import { getCurrentHrCompanyContext } from "./hrUtils.js";
 import VideoCardMedia from "../shared/VideoCardMedia.jsx";
 import VideoPlayerModal from "../shared/VideoPlayerModal.jsx";
@@ -40,32 +41,22 @@ const categories = [
 
 function HRVideoLibrary() {
   const stylesReady = usePageStylesheets("/hr-video-library-legacy.css");
-  const [videos, setVideos] = useState([]);
+  const dispatch = useDispatch();
+  const videos = useSelector((state) => state.hr.videos.items);
+  const loading = useSelector((state) => state.hr.videos.loading);
+  const error = useSelector((state) => state.hr.videos.error);
   const [search, setSearch] = useState("");
   const [positions, setPositions] = useState({
     health: 0,
     mind: 0,
     physical: 0,
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [cardsPerView, setCardsPerView] = useState(getCardsPerView());
   const [cardSteps, setCardSteps] = useState({});
   const categoryRefs = useRef({});
 
-  const loadVideos = useCallback(async (silent = false) => {
-    try {
-      const nextVideos = await hrApi.getVideos(getCurrentHrCompanyContext());
-      setVideos(nextVideos || []);
-      setError("");
-    } catch (loadError) {
-      if (!silent)
-        setError(loadError.message || "Could not load the video library.");
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, []);
+  const loadVideos = useCallback(() => dispatch(loadHrVideos(getCurrentHrCompanyContext())), [dispatch]);
 
   useEffect(() => {
     const onResize = () => setCardsPerView(getCardsPerView());
@@ -76,7 +67,7 @@ function HRVideoLibrary() {
     };
   }, [loadVideos]);
 
-  useAutoRefresh(() => loadVideos(true), "hr-videos");
+  useAutoRefresh(loadVideos, "hr-videos");
 
   const filteredVideos = useMemo(() => {
     const query = search.trim().toLowerCase();
