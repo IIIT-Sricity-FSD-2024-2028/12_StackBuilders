@@ -1,30 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import { getAuthSession, logout, verifyServerAccount } from "./authService.js";
+import { useDispatch, useSelector } from "react-redux";
+import { validateSession } from "../shared/authSlice.js";
 
 function ProtectedRoute({ roles, children }) {
-  const session = getAuthSession();
-  const [accountState, setAccountState] = useState("checking");
+  const dispatch = useDispatch();
+  const { session, status } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    let cancelled = false;
-    setAccountState("checking");
-    verifyServerAccount(session).then((exists) => {
-      if (cancelled) return;
-      if (exists === false) {
-        logout();
-        setAccountState("missing");
-      } else {
-        setAccountState("valid");
-      }
-    });
-    return () => { cancelled = true; };
-  }, [session?.role, session?.profile?.id, session?.profile?.email, session?.username]);
+    if (session) void dispatch(validateSession());
+  }, [dispatch, session?.role, session?.profile?.id, session?.profile?.email, session?.username]);
 
   if (!session) return <Navigate to="/" replace />;
   if (roles?.length && !roles.includes(session.role)) return <Navigate to={session.path || "/"} replace />;
-  if (accountState === "checking") return <main aria-busy="true" aria-label="Checking account" />;
-  if (accountState === "missing") return <Navigate to="/" replace />;
+  if (status === "checking") return <main aria-busy="true" aria-label="Checking account" />;
   return children;
 }
 

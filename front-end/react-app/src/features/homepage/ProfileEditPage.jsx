@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { getAuthSession } from "./authService.js";
+import { useDispatch, useSelector } from "react-redux";
+import { clearProfileError, updateSignedInProfile } from "../shared/authSlice.js";
 import "./profile-edit-page.css";
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/, "");
-const AUTH_SESSION_KEY = "stackbuilders.react.auth.v1";
 const INDIAN_PHONE_PATTERN = "(?:\\+?91[\\s()-]*)?[6-9](?:[\\s()-]*[0-9]){9}";
 
 function normalizeIndianPhoneNumber(value) {
@@ -13,13 +12,6 @@ function normalizeIndianPhoneNumber(value) {
   const digits = phone.replace(/\D/g, "");
   const number = digits.length === 10 ? digits : digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : "";
   return /^[6-9]\d{9}$/.test(number) ? `+91 ${number.slice(0, 5)} ${number.slice(5)}` : null;
-}
-
-function readErrorMessage(value) {
-  if (typeof value === "string") return value.trim();
-  if (Array.isArray(value)) return value.map(readErrorMessage).filter(Boolean).join(" ");
-  if (!value || typeof value !== "object") return "";
-  return readErrorMessage(value.message) || readErrorMessage(value.error) || readErrorMessage(value.details);
 }
 
 const ROLE_CONFIG = {
@@ -49,7 +41,10 @@ function normalizeGender(value) {
 function ProfileEditPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const session = getAuthSession();
+  const dispatch = useDispatch();
+  const session = useSelector((state) => state.auth.session);
+  const saving = useSelector((state) => state.auth.profileSaving);
+  const profileError = useSelector((state) => state.auth.profileError);
   const config = ROLE_CONFIG[session?.role];
   const profile = session?.profile || {};
   const returnTo = useMemo(() => {
@@ -59,7 +54,6 @@ function ProfileEditPage() {
   }, [config, searchParams]);
   const [values, setValues] = useState(() => Object.fromEntries((config?.fields || []).map((field) => [field, field === "gender" ? normalizeGender(profile[field]) : profile[field] ?? ""])));
   const [password, setPassword] = useState({ current: "", next: "", confirm: "" });
-  const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
 
@@ -71,20 +65,20 @@ function ProfileEditPage() {
     setValues((current) => ({ ...current, [field]: value }));
     setStatus("");
     setError("");
+    dispatch(clearProfileError());
   }
 
   async function submit(event) {
     event.preventDefault();
-    setSaving(true);
     setError("");
     setStatus("");
+    dispatch(clearProfileError());
 
     const updates = Object.fromEntries(config.fields.map((field) => [field, String(values[field] ?? "").trim()]));
     if (updates.phoneNumber) {
       const normalizedPhone = normalizeIndianPhoneNumber(updates.phoneNumber);
       if (!normalizedPhone) {
         setError("Enter a valid Indian mobile number with 10 digits starting from 6–9, optionally prefixed by +91.");
-        setSaving(false);
         return;
       }
       updates.phoneNumber = normalizedPhone;
@@ -92,59 +86,25 @@ function ProfileEditPage() {
     if (password.next || password.confirm || password.current) {
       if (password.current !== String(profile.password || "")) {
         setError("Your current password is incorrect.");
-        setSaving(false);
         return;
       }
       if (password.next.length < 6) {
         setError("The new password must be at least 6 characters.");
-        setSaving(false);
         return;
       }
       if (password.next !== password.confirm) {
         setError("The new password and confirmation do not match.");
-        setSaving(false);
         return;
       }
       updates.password = password.next;
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}${config.endpoint}/${encodeURIComponent(profile.id)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", role: session.role },
-        body: JSON.stringify(updates),
-      });
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) {
-        throw new Error(readErrorMessage(payload) || "Your profile could not be saved.");
-      }
-
-      const nextSession = { ...session, profile: payload, username: payload.email || session.username };
-      try {
-        sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(nextSession));
-        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(nextSession));
-        if (session.role === "Employee") {
-          const employeeSession = JSON.stringify(payload);
-          sessionStorage.setItem("stackbuilders.employeeSession.v1", employeeSession);
-          localStorage.setItem("stackbuilders.employeeSession.v1", employeeSession);
-        }
-        if (session.role === "Wellness Expert") {
-          sessionStorage.setItem("stackbuilders.expertSession.v1", JSON.stringify({ expertId: payload.id }));
-        }
-        if (session.role === "HR") {
-          sessionStorage.setItem("stackbuilders.hrSession.v1", JSON.stringify({ hrId: payload.id, source: "homepage" }));
-        }
-      } catch {
-        // The server update is authoritative; keep the success even if browser storage is blocked.
-      }
+      await dispatch(updateSignedInProfile(updates)).unwrap();
 
       setPassword({ current: "", next: "", confirm: "" });
       setStatus("Profile updated successfully.");
-    } catch (saveError) {
-      setError(saveError.message || "Your profile could not be saved.");
-    } finally {
-      setSaving(false);
-    }
+    } catch { /* The shared auth slice exposes the profile update error. */ }
   }
 
   return (
@@ -185,7 +145,7 @@ function ProfileEditPage() {
             />}</label>)}
           </div>
           <details className="profile-edit-security"><summary>Change password</summary><div className="profile-edit-fields"><label>Current password<input type="password" autoComplete="current-password" value={password.current} onChange={(event) => setPassword((current) => ({ ...current, current: event.target.value }))} /></label><label>New password<input type="password" minLength={6} autoComplete="new-password" value={password.next} onChange={(event) => setPassword((current) => ({ ...current, next: event.target.value }))} /></label><label>Confirm new password<input type="password" minLength={6} autoComplete="new-password" value={password.confirm} onChange={(event) => setPassword((current) => ({ ...current, confirm: event.target.value }))} /></label></div></details>
-          {error && <p className="profile-edit-message is-error" role="alert">{error}</p>}
+          {(error || profileError) && <p className="profile-edit-message is-error" role="alert">{error || profileError}</p>}
           {status && <p className="profile-edit-message" role="status">{status}</p>}
           <div className="profile-edit-actions"><button className="profile-edit-secondary" type="button" disabled={saving} onClick={() => navigate(returnTo)}>Cancel</button><button className="profile-edit-primary" type="submit" disabled={saving}>{saving ? "Saving…" : "Save changes"}</button></div>
         </form>
