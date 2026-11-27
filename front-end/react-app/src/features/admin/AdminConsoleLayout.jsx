@@ -1,8 +1,9 @@
 import { useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
-import { logout } from "../homepage/authService.js";
+import { signOut } from "../shared/authSlice.js";
 
 const navigationItems = [
   ["chart-pie", "Dashboard", "/admin"],
@@ -17,6 +18,7 @@ const navigationItems = [
 function AdminConsoleLayout() {
   const stylesReady = usePageStylesheets("/admin-layout-legacy.css");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     document.body.classList.add("app-body");
@@ -26,7 +28,7 @@ function AdminConsoleLayout() {
   }, []);
 
   function handleLogout() {
-    logout();
+    void dispatch(signOut());
     navigate("/");
   }
 

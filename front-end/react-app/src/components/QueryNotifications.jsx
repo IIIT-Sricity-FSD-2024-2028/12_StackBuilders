@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import queryApi from "../features/shared/queryApi.js";
+import { useDispatch, useSelector } from "react-redux";
+import { getQueryUserKey, loadUserQueries, markUserQueryRead } from "../features/shared/querySlice.js";
 import "./QueryNotifications.css";
 
 function formatDate(value) {
@@ -10,25 +11,21 @@ function formatDate(value) {
 }
 
 export default function QueryNotifications({ user, userType }) {
+  const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
-  const [queries, setQueries] = useState([]);
-  const [error, setError] = useState("");
-  const [markingId, setMarkingId] = useState(null);
+  const key = getQueryUserKey(user, userType);
+  const queries = useSelector((state) => state.queries.byUser[key] || []);
+  const error = useSelector((state) => state.queries.error);
+  const marking = useSelector((state) => state.queries.marking);
+  const markingId = Object.keys(marking).find((id) => marking[id]) || null;
 
   const refresh = useCallback(async () => {
     if (!user?.id && !user?.employeeId && !user?.expertId && !user?.hrId && !user?.email && !user?.username) {
       setQueries([]);
       return;
     }
-    try {
-      const records = await queryApi.getForUser(user, userType);
-      setQueries(records.filter((query) => String(query.status || "").toLowerCase() === "replied" && String(query.reply || "").trim())
-        .sort((left, right) => getTime(right.repliedAt || right.createdAt) - getTime(left.repliedAt || left.createdAt)));
-      setError("");
-    } catch (loadError) {
-      setError(loadError.message || "Could not load notifications.");
-    }
-  }, [user?.id, user?.employeeId, user?.expertId, user?.hrId, user?.email, user?.username, userType]);
+    return dispatch(loadUserQueries({ user, userType }));
+  }, [dispatch, user?.id, user?.employeeId, user?.expertId, user?.hrId, user?.email, user?.username, userType]);
 
   useEffect(() => {
     refresh();
@@ -45,20 +42,13 @@ export default function QueryNotifications({ user, userType }) {
     };
   }, [refresh]);
 
-  const unreadCount = queries.filter((query) => query.readBySender !== true).length;
+  const visibleQueries = queries.filter((query) => String(query.status || "").toLowerCase() === "replied" && String(query.reply || "").trim())
+    .sort((left, right) => getTime(right.repliedAt || right.createdAt) - getTime(left.repliedAt || left.createdAt));
+  const unreadCount = visibleQueries.filter((query) => query.readBySender !== true).length;
 
   async function markAsRead(query) {
     if (query.readBySender === true || markingId) return;
-    setMarkingId(query.id);
-    setError("");
-    try {
-      await queryApi.markRead(query.id, userType);
-      setQueries((current) => current.map((item) => item.id === query.id ? { ...item, readBySender: true } : item));
-    } catch (markError) {
-      setError(markError.message || "Could not mark this reply as read.");
-    } finally {
-      setMarkingId(null);
-    }
+    await dispatch(markUserQueryRead({ id: query.id, user, userType }));
   }
 
   return (
@@ -77,8 +67,8 @@ export default function QueryNotifications({ user, userType }) {
       {open && <section className="query-notifications-panel" id="query-notifications-panel" aria-label="Notifications">
         <header className="query-notifications-heading"><strong>Notifications</strong><span>{unreadCount ? `${unreadCount} unread` : "Replies from support"}</span></header>
         {error && <p className="query-notifications-error" role="alert">{error}</p>}
-        {queries.length === 0 ? <p className="query-notifications-empty">No supervisor replies yet.</p> : <div className="query-notifications-list">
-          {queries.map((query) => <article className={`query-notification${query.readBySender === true ? " is-read" : " is-unread"}`} key={query.id}>
+        {visibleQueries.length === 0 ? <p className="query-notifications-empty">No supervisor replies yet.</p> : <div className="query-notifications-list">
+          {visibleQueries.map((query) => <article className={`query-notification${query.readBySender === true ? " is-read" : " is-unread"}`} key={query.id}>
             <div className="query-notification-title"><strong>Supervisor replied</strong><time>{formatDate(query.repliedAt || query.createdAt)}</time></div>
             <p className="query-notification-question">Your query: {query.description || "Support request"}</p>
             <p className="query-notification-reply">{query.reply}</p>

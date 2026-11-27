@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import queryApi from "../features/shared/queryApi.js";
+import { useDispatch, useSelector } from "react-redux";
+import { clearQueryError, submitUserQuery } from "../features/shared/querySlice.js";
 
 export default function QueryModal({ open, onClose, user, userType }) {
+  const dispatch = useDispatch();
+  const submitting = useSelector((state) => state.queries.submitting);
+  const requestError = useSelector((state) => state.queries.error);
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -30,11 +33,11 @@ export default function QueryModal({ open, onClose, user, userType }) {
       return;
     }
 
-    setSubmitting(true);
     setError("");
     setStatus("");
+    dispatch(clearQueryError());
     try {
-      await queryApi.create({
+      await dispatch(submitUserQuery({
         userId: user?.id || user?.email,
         userEmail: user?.email || user?.username,
         userName: user?.name || user?.email || user?.username || "User",
@@ -45,14 +48,10 @@ export default function QueryModal({ open, onClose, user, userType }) {
         status: "Open",
         reply: "",
         readBySender: false,
-      });
+      })).unwrap();
       setDescription("");
       setStatus("Query submitted successfully. We will get back to you soon.");
-    } catch (submitError) {
-      setError(submitError.message || "The query could not be submitted. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
+    } catch { /* The shared query feature stores the request error. */ }
   }
 
   return (
@@ -86,7 +85,7 @@ export default function QueryModal({ open, onClose, user, userType }) {
             autoFocus
             disabled={submitting}
           />
-          {error && <p className="query-modal-message is-error" role="alert">{error}</p>}
+          {(error || requestError) && <p className="query-modal-message is-error" role="alert">{error || requestError}</p>}
           {status && <p className="query-modal-message is-success" role="status">{status}</p>}
           <div className="query-modal-actions">
             <button className="query-modal-secondary" type="button" onClick={onClose} disabled={submitting}>Cancel</button>
