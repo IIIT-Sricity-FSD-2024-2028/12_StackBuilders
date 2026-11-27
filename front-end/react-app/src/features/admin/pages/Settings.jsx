@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
-import { getAuthSession, logout, updateDemoPassword } from "../../homepage/authService.js";
+import { saveAdminProfile, updateAdminPassword } from "../settingsSlice.js";
+import { signOut } from "../../shared/authSlice.js";
 import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
 import usePersistedTab from "../../../hooks/usePersistedTab.js";
 
@@ -16,24 +18,17 @@ function normalizeIndianPhoneNumber(value) {
   return /^[6-9]\d{9}$/.test(number) ? `+91 ${number.slice(0, 5)} ${number.slice(5)}` : null;
 }
 
-function readSetting(key, fallback) {
-  try {
-    const value = JSON.parse(localStorage.getItem(key) || "null");
-    return value && typeof value === "object" ? { ...fallback, ...value } : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 function Settings() {
   const stylesReady = usePageStylesheets("/admin-settings-legacy.css");
   const navigate = useNavigate();
-  const session = getAuthSession();
+  const dispatch = useDispatch();
+  const session = useSelector((state) => state.auth.session);
+  const savedProfile = useSelector((state) => state.admin.settings.profile);
+  const passwordSaving = useSelector((state) => state.admin.settings.passwordSaving);
   const [activeTab, setActiveTab] = usePersistedTab("stackbuilders.admin.settingsTab", "profile", tabs);
-  const [profile, setProfile] = useState(() => ({ name: session?.profile?.name || "", age: "", gender: "", email: session?.profile?.email || session?.email || "", phone: "", ...readSetting("stack-builders-profile-settings", {}) }));
+  const [profile, setProfile] = useState(() => ({ name: session?.profile?.name || "", age: "", gender: "", email: session?.profile?.email || session?.email || "", phone: "", ...savedProfile }));
   const [status, setStatus] = useState("");
   const [security, setSecurity] = useState({ current: "", next: "", confirm: "" });
-  const [passwordSaving, setPasswordSaving] = useState(false);
 
   function selectTab(tab) {
     setStatus("");
@@ -56,7 +51,7 @@ function Settings() {
     if (profile.phone.trim() && !formattedPhone) return setStatus("Enter a valid Indian mobile number with 10 digits starting from 6–9, optionally prefixed by +91.");
     try {
       const normalized = { ...profile, name: profile.name.trim(), email: profile.email.trim().toLowerCase(), phone: formattedPhone };
-      localStorage.setItem("stack-builders-profile-settings", JSON.stringify(normalized));
+      void dispatch(saveAdminProfile(normalized));
       setProfile(normalized);
       setStatus("Profile changes saved in Settings.");
     } catch {
@@ -68,20 +63,17 @@ function Settings() {
     if (!security.current || !security.next || !security.confirm) return setStatus("Complete all password fields.");
     if (security.next.length < 6) return setStatus("The new password must be at least 6 characters.");
     if (security.next !== security.confirm) return setStatus("The new password and confirmation do not match.");
-    setPasswordSaving(true);
     try {
-      const result = await updateDemoPassword(session?.profile?.email || session?.username, security.current, security.next);
+      const result = await dispatch(updateAdminPassword({ email: session?.profile?.email || session?.username, currentPassword: security.current, newPassword: security.next })).unwrap();
       setSecurity({ current: "", next: "", confirm: "" });
       setStatus(result.message);
     } catch (error) {
       setStatus(error.message || "Password could not be updated.");
-    } finally {
-      setPasswordSaving(false);
     }
   }
 
   function handleLogout() {
-    logout();
+    void dispatch(signOut());
     navigate("/");
   }
 

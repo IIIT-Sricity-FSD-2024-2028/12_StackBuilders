@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
 import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
-import adminApi from "../adminApi.js";
+import { createAdminUser, loadAdminUsers, removeAdminUser } from "../usersSlice.js";
+import { loadAdminCompanies } from "../companyManagementSlice.js";
 import "../admin-user-management.css";
 
 const INDIAN_PHONE_PATTERN = "(?:\\+?91[\\s()-]*)?[6-9](?:[\\s()-]*[0-9]){9}";
@@ -25,10 +27,13 @@ const roleConfig = {
 
 function UserManagement() {
   const stylesReady = usePageStylesheets("/admin-users-legacy.css");
-  const [users, setUsers] = useState([]);
-  const [companies, setCompanies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const dispatch = useDispatch();
+  const users = useSelector((state) => state.admin.users.items);
+  const companies = useSelector((state) => state.admin.companyManagement.items);
+  const loading = useSelector((state) => state.admin.users.loading || state.admin.companyManagement.loading);
+  const error = useSelector((state) => state.admin.users.error || state.admin.companyManagement.error);
+  const creating = useSelector((state) => state.admin.users.creating);
+  const deletingId = useSelector((state) => state.admin.users.deletingId);
   const [formError, setFormError] = useState("");
   const [formMessage, setFormMessage] = useState("");
   const [form, setForm] = useState(emptyForm);
@@ -36,22 +41,9 @@ function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  async function loadUsers(silent = false) {
-    if (!silent) setLoading(true);
-    try {
-      const [employees, experts, hrProfiles, companyList] = await Promise.all([adminApi.getUsers(), adminApi.getExperts(), adminApi.getHrProfiles(), adminApi.getCompanies()]);
-      setUsers([
-        ...(employees || []).map((user) => ({ ...user, role: "Employee", source: "employee", company: user.companyName || "—" })),
-        ...(hrProfiles || []).map((user) => ({ ...user, role: "HR", source: "hr", company: user.companyName || "—" })),
-        ...(experts || []).map((user) => ({ ...user, role: "Wellness Expert", source: "expert", company: user.companyName || "—" })),
-      ]);
-      setCompanies(companyList || []);
-      setError("");
-    } catch (loadError) {
-      if (!silent) setError(loadError.message || "Could not load users.");
-    } finally {
-      if (!silent) setLoading(false);
-    }
+  function loadUsers() {
+    void dispatch(loadAdminUsers());
+    void dispatch(loadAdminCompanies());
   }
 
   useEffect(() => {
@@ -73,6 +65,7 @@ function UserManagement() {
 
   async function submitForm(event) {
     event.preventDefault();
+    if (creating) return;
     setFormError("");
     setFormMessage("");
     const company = companies.find((item) => item.id === form.companyId);
@@ -82,11 +75,12 @@ function UserManagement() {
     const phoneNumber = form.phoneNumber.trim() ? normalizeIndianPhoneNumber(form.phoneNumber) : "";
     if (form.phoneNumber.trim() && !phoneNumber) return setFormError("Enter a valid Indian mobile number with 10 digits starting from 6–9, optionally prefixed by +91.");
     try {
-      if (form.role === "employee") await adminApi.createEmployee({ name: form.name, email: form.email, password: form.password, department: form.department, companyId: company.id, companyName: company.name, phoneNumber, status: "Active" });
-      else if (form.role === "expert") await adminApi.createExpert({ name: form.name, email: form.email, password: form.password, specialization: form.specialization, experience: form.experience, companyId: company.id, companyName: company.name, phoneNumber, status: "Active" });
-      else await adminApi.createHrProfile({ name: form.name, email: form.email, password: form.password, companyId: company.id, companyName: company.name, phoneNumber, department: "HR", designation: "HR Admin", status: "Active", createdBySuperUser: true });
+      const common = { name: form.name, email: form.email, password: form.password, companyId: company.id, companyName: company.name, phoneNumber, status: "Active" };
+      const payload = form.role === "employee" ? { ...common, department: form.department }
+        : form.role === "expert" ? { ...common, specialization: form.specialization, experience: form.experience }
+          : { ...common, department: "HR", designation: "HR Admin", createdBySuperUser: true };
+      await dispatch(createAdminUser({ role: form.role, ...payload })).unwrap();
       setFormMessage("User added successfully.");
-      await loadUsers();
       window.setTimeout(() => setIsModalOpen(false), 450);
     } catch (submitError) {
       setFormError(submitError.message || "The user could not be created.");
@@ -94,15 +88,10 @@ function UserManagement() {
   }
 
   async function removeUser(user) {
-    if (!user.id) return;
+    if (!user.id || deletingId === user.id) return;
     try {
-      if (user.source === "employee") await adminApi.deleteEmployee(user.id);
-      else if (user.source === "expert") await adminApi.deleteExpert(user.id);
-      else await adminApi.deleteHrProfile(user.id);
-      await loadUsers();
-    } catch (removeError) {
-      setError(removeError.message || "The user could not be removed.");
-    }
+      await dispatch(removeAdminUser({ id: user.id, source: user.source })).unwrap();
+    } catch { /* The rejected thunk exposes the message through this feature's state. */ }
   }
 
   const config = roleConfig[form.role];
