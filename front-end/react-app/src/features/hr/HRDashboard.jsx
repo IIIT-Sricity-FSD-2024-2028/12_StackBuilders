@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import HRChallengeOverview from "./components/HRChallengeOverview.jsx";
 import HREmployeeManagement from "./components/HREmployeeManagement.jsx";
 import HRExpertManagement from "./components/HRExpertManagement.jsx";
@@ -8,7 +9,10 @@ import HRStatCard from "./components/HRStatCard.jsx";
 import DashboardProfileOverlay from "../../components/DashboardProfileOverlay.jsx";
 import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
-import hrApi from "./hrApi.js";
+import { loadHrDashboard } from "./dashboardSlice.js";
+import { createHrEmployee, removeHrEmployee } from "./employeesSlice.js";
+import { createHrExpert, removeHrExpert } from "./expertsSlice.js";
+import { checkHrCapacity } from "./subscriptionsSlice.js";
 import useAutoRefresh from "../../hooks/useAutoRefresh.js";
 import { useRoleAccess } from "../shared/roleAccessContext.jsx";
 import {
@@ -29,17 +33,19 @@ function HRDashboard() {
   const canDeleteUsers = hasPermission("user-management-delete");
   const canReadChallenges = hasPermission("challenge-management-read");
   const stylesReady = usePageStylesheets("/hr-dashboard-legacy.css");
-  const [employees, setEmployees] = useState([]);
-  const [experts, setExperts] = useState([]);
-  const [challenges, setChallenges] = useState([]);
-  const [liveSessions, setLiveSessions] = useState([]);
-  const [rewards, setRewards] = useState([]);
+  const dispatch = useDispatch();
+  const employees = useSelector((state) => state.hr.employees.items);
+  const experts = useSelector((state) => state.hr.experts.items);
+  const challenges = useSelector((state) => state.hr.challenges.challenges);
+  const liveSessions = useSelector((state) => state.hr.liveSessions.items);
+  const rewards = useSelector((state) => state.hr.challenges.rewards);
+  const loading = useSelector((state) => state.hr.dashboard.loading);
+  const dashboardError = useSelector((state) => state.hr.dashboard.error);
+  const saving = useSelector((state) => state.hr.employees.saving || state.hr.experts.saving || state.hr.subscriptions.capacityChecking);
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [expertSearch, setExpertSearch] = useState("");
   const [selectedChallengeId, setSelectedChallengeId] = useState("");
   const [activeModal, setActiveModal] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState("");
   const [employeeImportFeedback, setEmployeeImportFeedback] = useState(null);
   const [expertImportFeedback, setExpertImportFeedback] = useState(null);
@@ -47,46 +53,15 @@ function HRDashboard() {
   const [formError, setFormError] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const loadDashboard = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
-    setError("");
-    try {
-      const companyContext = getCurrentHrCompanyContext();
-      const [
-        nextEmployees,
-        nextExperts,
-        nextChallenges,
-        nextLiveSessions,
-        nextRewards,
-      ] = await Promise.all([
-        hrApi.getEmployees(companyContext),
-        hrApi.getExperts(companyContext),
-        hrApi.getChallenges(companyContext),
-        hrApi.getLiveSessions(companyContext),
-        hrApi.getRewards(companyContext),
-      ]);
-      setEmployees(nextEmployees || []);
-      setExperts(nextExperts || []);
-      setChallenges(nextChallenges || []);
-      setLiveSessions(nextLiveSessions || []);
-      setRewards(nextRewards || []);
-      setSelectedChallengeId((current) =>
-        nextChallenges?.some((challenge) => challenge.id === current)
-          ? current
-          : nextChallenges?.[0]?.id || "",
-      );
-    } catch (loadError) {
-      if (!silent)
-        setError(loadError.message || "Could not load HR dashboard data.");
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, []);
+  const loadDashboard = useCallback(() => dispatch(loadHrDashboard(getCurrentHrCompanyContext())), [dispatch]);
 
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
-  useAutoRefresh(() => loadDashboard(true), "hr-dashboard");
+  useAutoRefresh(loadDashboard, "hr-dashboard");
+  useEffect(() => {
+    setSelectedChallengeId((current) => challenges.some((challenge) => challenge.id === current) ? current : challenges[0]?.id || "");
+  }, [challenges]);
 
   const selectedChallenge =
     challenges.find((challenge) => challenge.id === selectedChallengeId) ||
@@ -114,7 +89,6 @@ function HRDashboard() {
     event.preventDefault();
     if (!canCreateUsers) return;
     const formData = new FormData(event.currentTarget);
-    setSaving(true);
     setError("");
     setFormError("");
     try {
@@ -123,13 +97,9 @@ function HRDashboard() {
         throw new Error(
           "Your HR account is not linked to a company. Ask an administrator to assign one before adding employees.",
         );
-      const capacity = await getCompanyCapacity(
-        "employee",
-        company,
-        employees.length,
-      );
+      const capacity = await dispatch(checkHrCapacity({ kind: "employee", company, currentCount: employees.length })).unwrap();
       if (!capacity.allowed) throw new Error(capacity.reason);
-      const employee = await hrApi.createEmployee({
+      await dispatch(createHrEmployee({
         name: formData.get("name").trim(),
         department: formData.get("department"),
         email: formData.get("email").trim(),
@@ -137,13 +107,10 @@ function HRDashboard() {
         status: "Active",
         companyId: company.companyId,
         companyName: company.companyName,
-      });
-      setEmployees((current) => [employee, ...current]);
+      })).unwrap();
       setActiveModal(null);
     } catch (saveError) {
       setFormError(saveError.message || "Unable to add the employee.");
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -151,7 +118,6 @@ function HRDashboard() {
     event.preventDefault();
     if (!canCreateUsers) return;
     const formData = new FormData(event.currentTarget);
-    setSaving(true);
     setError("");
     setFormError("");
     try {
@@ -160,13 +126,9 @@ function HRDashboard() {
         throw new Error(
           "Your HR account is not linked to a company. Ask an administrator to assign one before adding wellness experts.",
         );
-      const capacity = await getCompanyCapacity(
-        "expert",
-        company,
-        experts.length,
-      );
+      const capacity = await dispatch(checkHrCapacity({ kind: "expert", company, currentCount: experts.length })).unwrap();
       if (!capacity.allowed) throw new Error(capacity.reason);
-      const expert = await hrApi.createExpert({
+      await dispatch(createHrExpert({
         name: formData.get("name").trim(),
         specialization: formData.get("specialization"),
         experience: formData.get("experience").trim(),
@@ -175,13 +137,10 @@ function HRDashboard() {
         status: "Active",
         companyId: company.companyId,
         companyName: company.companyName,
-      });
-      setExperts((current) => [expert, ...current]);
+      })).unwrap();
       setActiveModal(null);
     } catch (saveError) {
       setFormError(saveError.message || "Unable to add the wellness expert.");
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -213,17 +172,12 @@ function HRDashboard() {
     );
     try {
       const rows = await readSpreadsheetRows(file);
-      const capacity = await getCompanyCapacity(
-        kind,
-        company,
-        kind === "employee" ? employees.length : experts.length,
-      );
+      const capacity = await dispatch(checkHrCapacity({ kind, company, currentCount: kind === "employee" ? employees.length : experts.length })).unwrap();
       if (!capacity.allowed) throw new Error(capacity.reason);
 
       let importedCount = 0;
       let skippedCount = 0;
       const failures = [];
-      const createdRecords = [];
 
       for (const [index, row] of rows.entries()) {
         const record =
@@ -280,21 +234,9 @@ function HRDashboard() {
         }
 
         try {
-          const created =
-            kind === "employee"
-              ? await hrApi.createEmployee({
-                  ...record,
-                  status: record.status || "Active",
-                  companyId: company.companyId,
-                  companyName: company.companyName,
-                })
-              : await hrApi.createExpert({
-                  ...record,
-                  status: record.status || "Active",
-                  companyId: company.companyId,
-                  companyName: company.companyName,
-                });
-          createdRecords.push(created);
+          const payload = { ...record, status: record.status || "Active", companyId: company.companyId, companyName: company.companyName };
+          if (kind === "employee") await dispatch(createHrEmployee(payload)).unwrap();
+          else await dispatch(createHrExpert(payload)).unwrap();
           importedCount += 1;
         } catch (createError) {
           failures.push(
@@ -302,10 +244,6 @@ function HRDashboard() {
           );
         }
       }
-
-      if (kind === "employee")
-        setEmployees((current) => [...createdRecords, ...current]);
-      else setExperts((current) => [...createdRecords, ...current]);
 
       const summary = [
         `${importedCount} ${kind === "employee" ? "employee" : "wellness expert"}${importedCount === 1 ? "" : "s"} imported successfully.`,
@@ -351,12 +289,9 @@ function HRDashboard() {
     if (!canDeleteUsers) return;
     setError("");
     try {
-      await hrApi.deleteEmployee(employeeId);
-      setEmployees((current) =>
-        current.filter((employee) => employee.id !== employeeId),
-      );
+      await dispatch(removeHrEmployee(employeeId)).unwrap();
     } catch (deleteError) {
-      setError(deleteError.message);
+      setError(deleteError.message || "Could not remove employee.");
     }
   }
 
@@ -364,10 +299,7 @@ function HRDashboard() {
     if (!canDeleteUsers) return;
     setError("");
     try {
-      await hrApi.deleteExpert(expertId);
-      setExperts((current) =>
-        current.filter((expert) => expert.id !== expertId),
-      );
+      await dispatch(removeHrExpert(expertId)).unwrap();
     } catch (deleteError) {
       setError(deleteError.message);
     }
@@ -389,9 +321,9 @@ function HRDashboard() {
         </section>
       )}
 
-      {error && (
+      {(error || dashboardError) && (
         <p className="api-error" role="alert">
-          {error}
+          {error || dashboardError}
         </p>
       )}
       {loading && <p className="api-status">Loading HR workspace…</p>}
@@ -671,65 +603,6 @@ function filterRecords(records, searchTerm, fields) {
         .includes(query),
     ),
   );
-}
-
-async function getCompanyCapacity(kind, company, currentCount) {
-  const subscriptions = await hrApi.getSubscriptions();
-  const normalizedCompanyName = company.companyName.trim().toLowerCase();
-  const subscription = (subscriptions || []).find(
-    (item) =>
-      String(item.status || "")
-        .trim()
-        .toLowerCase() === "active" &&
-      (() => {
-        const subscriptionCompanyId = String(item.companyId || "").trim();
-        if (company.companyId && subscriptionCompanyId) {
-          return subscriptionCompanyId === company.companyId;
-        }
-        return (
-          String(item.companyName || "")
-            .trim()
-            .toLowerCase() === normalizedCompanyName
-        );
-      })(),
-  );
-  if (
-    !subscription ||
-    !["starter", "business", "enterprise"].includes(
-      String(subscription.planId || "")
-        .trim()
-        .toLowerCase(),
-    )
-  ) {
-    return {
-      allowed: false,
-      reason:
-        "No active subscription is attached to this company. Choose a plan from Upgrade Plan before adding users.",
-    };
-  }
-  const planId = String(subscription.planId).trim().toLowerCase();
-  const planLimits = {
-    starter: { employee: 100, expert: 10 },
-    business: { employee: 1000, expert: 50 },
-    enterprise: { employee: 10000, expert: 100 },
-  };
-  const configuredLimit =
-    kind === "employee" ? subscription.employeeLimit : subscription.expertLimit;
-  const limit = Number(configuredLimit ?? planLimits[planId][kind]);
-  if (!Number.isFinite(limit) || limit <= 0) {
-    return {
-      allowed: false,
-      reason:
-        "The active subscription plan is invalid. Choose a plan from Upgrade Plan before adding users.",
-    };
-  }
-  if (currentCount >= limit) {
-    return {
-      allowed: false,
-      reason: `${kind === "employee" ? "Employee" : "Wellness expert"} limit reached (${currentCount}/${limit}) on the ${subscription.planName || "current"} plan. Upgrade the plan to add more.`,
-    };
-  }
-  return { allowed: true, limit };
 }
 
 export default HRDashboard;

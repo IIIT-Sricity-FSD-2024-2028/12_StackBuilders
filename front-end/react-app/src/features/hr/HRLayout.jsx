@@ -1,15 +1,15 @@
 import { useState } from "react";
+import { useSelector } from "react-redux";
 import { Outlet } from "react-router-dom";
 import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
 import QueryModal from "../../components/QueryModal.jsx";
-import { getAuthSession } from "../homepage/authService.js";
 import { RolePermissionsProvider } from "../shared/roleAccessContext.jsx";
 
 export default function HRLayout() {
   const stylesReady = usePageStylesheets("/hr-shared-layout.css");
   const [queryOpen, setQueryOpen] = useState(false);
-  const profile = getAuthSession()?.profile;
+  const profile = useSelector((state) => state.auth.session?.profile || null);
 
   if (!stylesReady) return <RouteLoadingScreen />;
 

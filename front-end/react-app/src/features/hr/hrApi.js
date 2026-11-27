@@ -2,7 +2,6 @@ const DEFAULT_API_BASE_URL = "http://127.0.0.1:3000";
 const HR_ROLE = "HR";
 const LOCAL_EMPLOYEE_KEY = "stackbuilders.hr.employees";
 const LOCAL_EXPERT_KEY = "stackbuilders.hr.experts";
-const LOCAL_PAYMENT_KEY = "stackbuilders.payments.v1";
 
 function getApiBaseUrl() {
   return (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
@@ -55,13 +54,15 @@ const hrApi = {
   // Subscription eligibility must come from the API; cached plans must never
   // authorize HR directory changes after the in-memory server has been reset.
   getSubscriptions: () => get("/subscriptions"),
-  getPayments: () => getCollection("/subscriptions/payments", LOCAL_PAYMENT_KEY),
+  // Payment history is intentionally server-only: it resets with the in-memory
+  // API whenever the server process restarts.
+  getPayments: () => get("/subscriptions/payments"),
   createEmployee: (payload) => createDirectoryRecord("/employees", payload, LOCAL_EMPLOYEE_KEY),
   createExpert: (payload) => createDirectoryRecord("/experts", payload, LOCAL_EXPERT_KEY),
   createChallenge: (payload) => post("/challenges", payload),
   createReward: (payload) => post("/rewards", payload),
   saveSubscriptions: (payload) => put("/subscriptions/bulk", payload),
-  savePayments: (payload) => saveCollection("/subscriptions/payments/bulk", payload, LOCAL_PAYMENT_KEY),
+  savePayments: (payload) => put("/subscriptions/payments/bulk", payload),
   deleteEmployee: (id) => deleteDirectoryRecord(`/employees/${encodeURIComponent(id)}`, id, LOCAL_EMPLOYEE_KEY),
   deleteExpert: (id) => deleteDirectoryRecord(`/experts/${encodeURIComponent(id)}`, id, LOCAL_EXPERT_KEY),
   deleteChallenge: (id) => remove(`/challenges/${encodeURIComponent(id)}`),
@@ -122,16 +123,6 @@ async function getDirectory(path, context, localKey) {
   return remoteRecords;
 }
 
-async function getCollection(path, localKey) {
-  const localRecords = readLocalCollection(localKey);
-  try {
-    const remoteRecords = await get(path);
-    return Array.isArray(remoteRecords) && remoteRecords.length ? remoteRecords : localRecords;
-  } catch {
-    return localRecords;
-  }
-}
-
 async function createDirectoryRecord(path, payload, localKey) {
   const created = await post(path, payload);
   if (created) {
@@ -147,15 +138,6 @@ async function deleteDirectoryRecord(path, id, localKey) {
     if (!readLocalCollection(localKey).some((record) => record.id === id)) throw error;
   }
   writeLocalCollection(localKey, readLocalCollection(localKey).filter((record) => record.id !== id));
-}
-
-async function saveCollection(path, records, localKey) {
-  writeLocalCollection(localKey, records);
-  try {
-    return await put(path, records);
-  } catch {
-    return records;
-  }
 }
 
 function upsertLocalRecord(key, record) {

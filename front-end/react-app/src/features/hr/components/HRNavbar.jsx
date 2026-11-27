@@ -1,69 +1,32 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
-import { getAuthSession, logout } from "../../homepage/authService.js";
+import { signOut } from "../../shared/authSlice.js";
 import DashboardProfileOverlay from "../../../components/DashboardProfileOverlay.jsx";
 import QueryNotifications from "../../../components/QueryNotifications.jsx";
-import hrApi from "../hrApi.js";
 import { getCurrentHrCompanyContext } from "../hrUtils.js";
+import { loadHrSubscriptions } from "../subscriptionsSlice.js";
 import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
 import { useRoleAccess } from "../../shared/roleAccessContext.jsx";
 
 function HRNavbar({ activeSection = "home", onProfileClick }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [profileOpen, setProfileOpen] = useState(false);
-  const [planActionLabel, setPlanActionLabel] = useState("Select Plan");
-  const profile = getAuthSession()?.profile;
+  const profile = useSelector((state) => state.auth.session?.profile || null);
+  const subscriptions = useSelector((state) => state.hr.subscriptions.items);
   const { hasPermission } = useRoleAccess();
   const profileName = profile?.name || "";
   const firstName = profileName.split(/\s+/).filter(Boolean)[0] || "";
 
-  const refreshPlanLabel = () => {
-    const company = getCurrentHrCompanyContext();
-    if (!company.companyId && !company.companyName) {
-      setPlanActionLabel("Select Plan");
-      return Promise.resolve();
-    }
-
-    return hrApi
-      .getSubscriptions()
-      .then((subscriptions) => {
-        const companyName = company.companyName.toLowerCase();
-        const subscription = (subscriptions || []).find(
-          (item) =>
-            String(item.status || "")
-              .trim()
-              .toLowerCase() === "active" &&
-            ((company.companyId &&
-              String(item.companyId || "").trim() === company.companyId) ||
-              (companyName &&
-                String(item.companyName || "")
-                  .trim()
-                  .toLowerCase() === companyName)),
-        );
-        if (!subscription) {
-          setPlanActionLabel("Select Plan");
-          return;
-        }
-        const planId = String(
-          subscription.planId || subscription.planName || "",
-        )
-          .trim()
-          .toLowerCase();
-        setPlanActionLabel(
-          planId.includes("enterprise") ? "Change Plan" : "Upgrade Plan",
-        );
-      })
-      .catch(() => {});
-  };
-
   const companyContext = getCurrentHrCompanyContext();
-  useEffect(() => {
-    refreshPlanLabel();
-  }, []);
-  useAutoRefresh(
-    refreshPlanLabel,
-    `${companyContext.companyId || companyContext.companyName || "hr"}:plan`,
-  );
+  const refreshSubscriptions = useCallback(() => dispatch(loadHrSubscriptions()), [dispatch]);
+  useEffect(() => { void refreshSubscriptions(); }, [refreshSubscriptions]);
+  useAutoRefresh(refreshSubscriptions, `${companyContext.companyId || companyContext.companyName || "hr"}:plan`);
+  const companyName = String(companyContext.companyName || "").trim().toLowerCase();
+  const subscription = subscriptions.find((item) => String(item.status || "").trim().toLowerCase() === "active" && ((companyContext.companyId && String(item.companyId || "").trim() === companyContext.companyId) || (companyName && String(item.companyName || "").trim().toLowerCase() === companyName)));
+  const planId = String(subscription?.planId || subscription?.planName || "").trim().toLowerCase();
+  const planActionLabel = subscription ? (planId.includes("enterprise") ? "Change Plan" : "Upgrade Plan") : "Select Plan";
 
   function openProfile() {
     if (onProfileClick) {
@@ -143,7 +106,7 @@ function HRNavbar({ activeSection = "home", onProfileClick }) {
         <button
           type="button"
           onClick={() => {
-            logout();
+            void dispatch(signOut());
             navigate("/");
           }}
           aria-label="Logout"
