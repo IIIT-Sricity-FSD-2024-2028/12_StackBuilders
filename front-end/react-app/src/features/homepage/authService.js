@@ -60,6 +60,36 @@ export async function completePasswordReset(email, code, newPassword) {
   });
 }
 
+export async function updateAccountProfile(session, changes) {
+  const endpointByRole = { Employee: "/employees", "Wellness Expert": "/experts", HR: "/hr-profiles" };
+  const endpoint = endpointByRole[session?.role];
+  if (!endpoint || !session?.profile?.id) throw new Error("Your account profile is unavailable.");
+  const response = await fetch(`${API_BASE_URL}${endpoint}/${encodeURIComponent(session.profile.id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", role: session.role },
+    body: JSON.stringify(changes),
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(getApiErrorMessage(payload) || "Your profile could not be saved.");
+  return payload;
+}
+
+export function persistUpdatedAuthSession(session) {
+  try {
+    const serialized = JSON.stringify(session);
+    sessionStorage.setItem(AUTH_SESSION_KEY, serialized);
+    localStorage.setItem(AUTH_SESSION_KEY, serialized);
+    const profile = session.profile || {};
+    if (session.role === "Employee") {
+      const employeeSession = JSON.stringify(profile);
+      sessionStorage.setItem(EMPLOYEE_SESSION_KEY, employeeSession);
+      localStorage.setItem(EMPLOYEE_SESSION_KEY, employeeSession);
+    }
+    if (session.role === "Wellness Expert") sessionStorage.setItem(EXPERT_SESSION_KEY, JSON.stringify({ expertId: profile.id }));
+    if (session.role === "HR") sessionStorage.setItem(HR_SESSION_KEY, JSON.stringify({ hrId: profile.id, source: "homepage" }));
+  } catch { /* The server profile remains usable for the current app session. */ }
+}
+
 export async function updateDemoPassword(email, currentPassword, newPassword) {
   return postAuthRequest("/auth/demo-password", {
     email: normalizeEmail(email),
