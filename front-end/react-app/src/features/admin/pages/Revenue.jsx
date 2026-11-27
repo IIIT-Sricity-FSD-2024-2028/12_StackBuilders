@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
 import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
 import { SupervisorBarChart } from "../../supervisor/components/SupervisorCharts.jsx";
-import adminApi from "../adminApi.js";
 import { buildPlanRevenue } from "../../../utils/planRevenue.js";
+import { loadAdminRevenue } from "../revenueSlice.js";
 
 function money(value) {
   return `₹${(Number(value) || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
@@ -30,23 +31,9 @@ function formatDate(value) {
 
 function Revenue() {
   const stylesReady = usePageStylesheets("/admin-analytics-legacy.css");
-  const [payments, setPayments] = useState([]);
-  const [subscriptions, setSubscriptions] = useState([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  const loadRevenue = useCallback(async (silent = false) => {
-    try {
-      const [nextPayments, nextSubscriptions] = await Promise.all([adminApi.getPayments(), adminApi.getSubscriptions()]);
-      setPayments(nextPayments || []);
-      setSubscriptions(nextSubscriptions || []);
-      setError("");
-    } catch (loadError) {
-      if (!silent) setError(loadError.message || "Could not load revenue data.");
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, []);
+  const dispatch = useDispatch();
+  const { payments, subscriptions, error, loading } = useSelector((state) => state.admin.revenue);
+  const loadRevenue = useCallback(() => dispatch(loadAdminRevenue()), [dispatch]);
 
   useEffect(() => { loadRevenue(); }, [loadRevenue]);
   useAutoRefresh(() => loadRevenue(true), "admin-revenue");
