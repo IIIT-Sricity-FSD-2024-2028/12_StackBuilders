@@ -4,7 +4,7 @@ import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
 import HRNavbar from "./components/HRNavbar.jsx";
 import { loadHrVideos } from "./videosSlice.js";
-import { getCurrentHrCompanyContext } from "./hrUtils.js";
+import { getHrCompanyContext } from "./hrUtils.js";
 import VideoCardMedia from "../shared/VideoCardMedia.jsx";
 import VideoPlayerModal from "../shared/VideoPlayerModal.jsx";
 import useAutoRefresh from "../../hooks/useAutoRefresh.js";
@@ -42,6 +42,8 @@ const categories = [
 function HRVideoLibrary() {
   const stylesReady = usePageStylesheets("/hr-video-library-legacy.css");
   const dispatch = useDispatch();
+  const profile = useSelector((state) => state.auth.session?.profile || null);
+  const company = useMemo(() => getHrCompanyContext(profile), [profile]);
   const videos = useSelector((state) => state.hr.videos.items);
   const loading = useSelector((state) => state.hr.videos.loading);
   const error = useSelector((state) => state.hr.videos.error);
@@ -56,7 +58,7 @@ function HRVideoLibrary() {
   const [cardSteps, setCardSteps] = useState({});
   const categoryRefs = useRef({});
 
-  const loadVideos = useCallback(() => dispatch(loadHrVideos(getCurrentHrCompanyContext())), [dispatch]);
+  const loadVideos = useCallback(() => dispatch(loadHrVideos(company)), [dispatch, company]);
 
   useEffect(() => {
     const onResize = () => setCardsPerView(getCardsPerView());
@@ -67,7 +69,7 @@ function HRVideoLibrary() {
     };
   }, [loadVideos]);
 
-  useAutoRefresh(loadVideos, "hr-videos");
+  useAutoRefresh(loadVideos, `hr-videos:${company.companyId || company.companyName || "default"}`);
 
   const filteredVideos = useMemo(() => {
     const query = search.trim().toLowerCase();

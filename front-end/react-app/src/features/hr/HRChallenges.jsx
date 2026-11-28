@@ -6,8 +6,8 @@ import HRChallengeCard from "./components/HRChallengeCard.jsx";
 import HRChallengeModal from "./components/HRChallengeModal.jsx";
 import HRNavbar from "./components/HRNavbar.jsx";
 import HRRewardCard from "./components/HRRewardCard.jsx";
-import { createHrChallenge, createHrReward, loadHrChallenges, removeHrChallenge, removeHrReward } from "./challengesSlice.js";
-import { getCurrentHrCompanyContext } from "./hrUtils.js";
+import { clearHrChallengeError, createHrChallenge, createHrReward, loadHrChallenges, removeHrChallenge, removeHrReward } from "./challengesSlice.js";
+import { getHrCompanyContext } from "./hrUtils.js";
 import useAutoRefresh from "../../hooks/useAutoRefresh.js";
 import { useRoleAccess } from "../shared/roleAccessContext.jsx";
 
@@ -17,6 +17,8 @@ function HRChallenges() {
   const canDelete = hasPermission("challenge-management-delete");
   const stylesReady = usePageStylesheets("/hr-challenges-legacy.css");
   const dispatch = useDispatch();
+  const profile = useSelector((state) => state.auth.session?.profile || null);
+  const company = useMemo(() => getHrCompanyContext(profile), [profile]);
   const challenges = useSelector((state) => state.hr.challenges.challenges);
   const rewards = useSelector((state) => state.hr.challenges.rewards);
   const loading = useSelector((state) => state.hr.challenges.loading);
@@ -28,12 +30,12 @@ function HRChallenges() {
   const [formError, setFormError] = useState("");
   const pageSize = 3;
 
-  const loadData = useCallback(() => dispatch(loadHrChallenges(getCurrentHrCompanyContext())), [dispatch]);
+  const loadData = useCallback(() => dispatch(loadHrChallenges(company)), [dispatch, company]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
-  useAutoRefresh(() => loadData(true), "hr-challenges");
+  useAutoRefresh(loadData, `hr-challenges:${company.companyId || company.companyName || "default"}`);
 
   const visibleChallenges = useMemo(
     () =>
@@ -52,9 +54,9 @@ function HRChallenges() {
   async function createRecord(data) {
     if (!canCreate) return;
     setFormError("");
+    dispatch(clearHrChallengeError());
     try {
       if (modal === "challenge") {
-        const company = getCurrentHrCompanyContext();
         await dispatch(createHrChallenge({
           ...data,
           companyId: company.companyId,
@@ -62,7 +64,6 @@ function HRChallenges() {
         })).unwrap();
         setChallengePage(0);
       } else {
-        const company = getCurrentHrCompanyContext();
         await dispatch(createHrReward({
           ...data,
           companyId: company.companyId,

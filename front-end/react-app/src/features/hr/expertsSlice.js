@@ -8,7 +8,9 @@ export const removeHrExpert = createAsyncThunk("hr/experts/remove", async (id) =
 const expertsSlice = createSlice({
   name: "hrExperts",
   initialState: { items: [], loading: false, saving: false, removing: false, error: "" },
-  reducers: {},
+  reducers: {
+    clearHrExpertsError(state) { state.error = ""; },
+  },
   extraReducers(builder) {
     builder
       .addCase(loadHrExperts.pending, (state) => { state.loading = true; state.error = ""; })
@@ -23,4 +25,5 @@ const expertsSlice = createSlice({
   },
 });
 
+export const { clearHrExpertsError } = expertsSlice.actions;
 export default expertsSlice.reducer;

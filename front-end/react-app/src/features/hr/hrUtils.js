@@ -1,18 +1,59 @@
 import * as XLSX from "xlsx";
 import { getAuthSession } from "../homepage/authService.js";
 
-export function getCurrentHrCompanyContext() {
-  const profile = getAuthSession()?.profile || {};
+export function getHrCompanyContext(profile = null) {
+  const source = profile || {};
   return {
-    hrName: String(profile.name || profile.username || "").trim(),
-    companyId: String(profile.companyId || "").trim(),
-    companyName: String(profile.companyName || "").trim(),
+    hrName: String(source.name || source.username || "").trim(),
+    companyId: String(source.companyId || "").trim(),
+    companyName: String(source.companyName || "").trim(),
   };
 }
 
-export function requireHrCompanyContext() {
-  const context = getCurrentHrCompanyContext();
-  return context.companyId && context.companyName ? context : null;
+export function hasHrCompanyContext(context) {
+  return Boolean(context?.companyId && context?.companyName);
+}
+
+export function getCurrentHrCompanyContext() {
+  return getHrCompanyContext(getAuthSession()?.profile || null);
+}
+
+export function requireHrCompanyContext(profile) {
+  const context =
+    profile === undefined ? getCurrentHrCompanyContext() : getHrCompanyContext(profile);
+  return hasHrCompanyContext(context) ? context : null;
+}
+
+export function isSameHrCompany(record, company) {
+  const recordCompanyId = String(record?.companyId || "").trim();
+  const companyId = String(company?.companyId || "").trim();
+  if (companyId && recordCompanyId) return recordCompanyId === companyId;
+  const companyName = String(company?.companyName || "").trim().toLowerCase();
+  return Boolean(
+    companyName &&
+      String(record?.companyName || "").trim().toLowerCase() === companyName,
+  );
+}
+
+export function findActiveCompanySubscription(subscriptions, company) {
+  return (subscriptions || []).find(
+    (item) =>
+      String(item?.status || "").trim().toLowerCase() === "active" &&
+      isSameHrCompany(item, company),
+  );
+}
+
+export function filterHrRecords(records, searchTerm, fields) {
+  const query = String(searchTerm || "").trim().toLowerCase();
+  if (!query) return records;
+
+  return (records || []).filter((record) =>
+    fields.some((field) =>
+      String(record[field] || "")
+        .toLowerCase()
+        .includes(query),
+    ),
+  );
 }
 
 export function buildCompanyQuery(context) {
@@ -91,4 +132,126 @@ export function summarizeImportFailures(failures) {
   if (!failures.length) return "";
   const visible = failures.slice(0, 3).join(" ");
   return failures.length > 3 ? `${visible} ${failures.length - 3} more row(s) also failed.` : visible;
+}
+
+const DIRECTORY_IMPORT_CONFIG = {
+  employee: {
+    singular: "employee",
+    plural: "employees",
+    normalize: normalizeImportedEmployee,
+    requiredFields: (record) => [
+      ["Employee Name", record.name],
+      ["Department", record.department],
+      ["Gmail Address", record.email],
+      ["Password", record.password],
+    ],
+    limitMessage: (rowNumber, limit) => `Row ${rowNumber}: employee limit reached (${limit}).`,
+  },
+  expert: {
+    singular: "wellness expert",
+    plural: "wellness experts",
+    normalize: normalizeImportedExpert,
+    requiredFields: (record) => [
+      ["Full Name", record.name],
+      ["Specialization", record.specialization],
+      ["Experience (Years)", record.experience],
+      ["Gmail Address", record.email],
+      ["Password", record.password],
+    ],
+    limitMessage: (rowNumber, limit) =>
+      `Row ${rowNumber}: wellness expert limit reached (${limit}).`,
+  },
+};
+
+export async function importHrDirectoryRecords({
+  kind,
+  file,
+  company,
+  currentCount,
+  checkCapacity,
+  createRecord,
+  onProgress,
+}) {
+  const config = DIRECTORY_IMPORT_CONFIG[kind];
+  if (!config) {
+    return { message: "Unsupported import type.", type: "error" };
+  }
+  if (!hasHrCompanyContext(company)) {
+    return {
+      message:
+        "Your HR account is not linked to a company. Ask an administrator to assign one first.",
+      type: "error",
+    };
+  }
+
+  onProgress?.({
+    message: `Importing ${config.singular} spreadsheet…`,
+    type: "success",
+  });
+
+  try {
+    const rows = await readSpreadsheetRows(file);
+    const capacity = await checkCapacity();
+    if (!capacity.allowed) throw new Error(capacity.reason);
+
+    let importedCount = 0;
+    let skippedCount = 0;
+    const failures = [];
+
+    for (const [index, row] of rows.entries()) {
+      const record = config.normalize(row);
+      const rowNumber = index + 2;
+      if (isEmptyImportedRecord(record)) {
+        skippedCount += 1;
+        continue;
+      }
+
+      const missingFields = config
+        .requiredFields(record)
+        .filter(([, value]) => !value)
+        .map(([label]) => label);
+      if (missingFields.length) {
+        failures.push(`Row ${rowNumber}: missing ${missingFields.join(", ")}.`);
+        continue;
+      }
+
+      if (currentCount + importedCount >= capacity.limit) {
+        failures.push(config.limitMessage(rowNumber, capacity.limit));
+        continue;
+      }
+
+      try {
+        await createRecord({
+          ...record,
+          status: record.status || "Active",
+          companyId: company.companyId,
+          companyName: company.companyName,
+        });
+        importedCount += 1;
+      } catch (createError) {
+        failures.push(
+          `Row ${rowNumber}: ${createError.message || "Unable to create record."}`,
+        );
+      }
+    }
+
+    const summary = [
+      `${importedCount} ${importedCount === 1 ? config.singular : config.plural} imported successfully.`,
+    ];
+    if (skippedCount) {
+      summary.push(
+        `${skippedCount} empty row${skippedCount === 1 ? "" : "s"} skipped.`,
+      );
+    }
+    if (failures.length) summary.push(summarizeImportFailures(failures));
+    return {
+      message: summary.join(" "),
+      type: failures.length && !importedCount ? "error" : "success",
+    };
+  } catch (importError) {
+    return {
+      message: importError.message || "Unable to import the spreadsheet.",
+      type: "error",
+    };
+  }
 }

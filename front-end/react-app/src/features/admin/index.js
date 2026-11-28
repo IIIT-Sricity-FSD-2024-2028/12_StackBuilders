@@ -6,5 +6,12 @@ import reports from "./reportsSlice.js";
 import revenue from "./revenueSlice.js";
 import settings from "./settingsSlice.js";
 
-const adminReducer = combineReducers({ dashboard, users, companyManagement, reports, revenue, settings });
+const adminReducer = combineReducers({
+  dashboard,
+  users,
+  companyManagement,
+  reports,
+  revenue,
+  settings,
+});
 export default adminReducer;

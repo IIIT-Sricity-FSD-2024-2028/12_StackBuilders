@@ -3,8 +3,17 @@ import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
 import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
-import { addAdminUser, loadAdminUsers, removeAdminUsersForCompany } from "../usersSlice.js";
-import { createAdminCompany, loadAdminCompanies, replaceAdminCompanies, removeAdminCompany } from "../companyManagementSlice.js";
+import {
+  addAdminUser,
+  loadAdminUsers,
+  removeAdminUsersForCompany,
+} from "../usersSlice.js";
+import {
+  createAdminCompany,
+  loadAdminCompanies,
+  replaceAdminCompanies,
+  removeAdminCompany,
+} from "../companyManagementSlice.js";
 
 const INDIAN_PHONE_PATTERN = "(?:\\+?91[\\s()-]*)?[6-9](?:[\\s()-]*[0-9]){9}";
 
@@ -12,8 +21,15 @@ function normalizeIndianPhoneNumber(value) {
   const phone = String(value ?? "").trim();
   if (!phone || !/^\+?[\d\s()-]+$/.test(phone)) return null;
   const digits = phone.replace(/\D/g, "");
-  const number = digits.length === 10 ? digits : digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : "";
-  return /^[6-9]\d{9}$/.test(number) ? `+91 ${number.slice(0, 5)} ${number.slice(5)}` : null;
+  const number =
+    digits.length === 10
+      ? digits
+      : digits.length === 12 && digits.startsWith("91")
+        ? digits.slice(2)
+        : "";
+  return /^[6-9]\d{9}$/.test(number)
+    ? `+91 ${number.slice(0, 5)} ${number.slice(5)}`
+    : null;
 }
 
 function CompanyManagement() {
@@ -23,11 +39,24 @@ function CompanyManagement() {
   const users = useSelector((state) => state.admin.users.items);
   const loading = useSelector((state) => state.admin.companyManagement.loading);
   const saving = useSelector((state) => state.admin.companyManagement.saving);
-  const removing = useSelector((state) => state.admin.companyManagement.removing);
-  const featureError = useSelector((state) => state.admin.companyManagement.error);
+  const removing = useSelector(
+    (state) => state.admin.companyManagement.removing,
+  );
+  const featureError = useSelector(
+    (state) => state.admin.companyManagement.error,
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [companyToRemove, setCompanyToRemove] = useState(null);
-  const [form, setForm] = useState({ name: "", phone: "", address: "", email: "", hrName: "", hrPhoneNumber: "", hrEmail: "", hrPassword: "" });
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    address: "",
+    email: "",
+    hrName: "",
+    hrPhoneNumber: "",
+    hrEmail: "",
+    hrPassword: "",
+  });
   const [error, setError] = useState("");
   const [formError, setFormError] = useState("");
 
@@ -36,38 +65,68 @@ function CompanyManagement() {
     void dispatch(loadAdminUsers());
   }, [dispatch]);
 
-  useEffect(() => { loadCompanies(); }, [loadCompanies]);
+  useEffect(() => {
+    loadCompanies();
+  }, [loadCompanies]);
   useAutoRefresh(() => loadCompanies(true), "admin-companies");
 
   async function createCompany(event) {
     event.preventDefault();
     setFormError("");
     const companyPhone = normalizeIndianPhoneNumber(form.phone);
-    const hrPhoneNumber = form.hrPhoneNumber.trim() ? normalizeIndianPhoneNumber(form.hrPhoneNumber) : "";
+    const hrPhoneNumber = form.hrPhoneNumber.trim()
+      ? normalizeIndianPhoneNumber(form.hrPhoneNumber)
+      : "";
     if (!companyPhone) {
-      setFormError("Enter a valid Indian company mobile number with 10 digits starting from 6–9, optionally prefixed by +91.");
+      setFormError(
+        "Enter a valid Indian company mobile number with 10 digits starting from 6–9, optionally prefixed by +91.",
+      );
       return;
     }
     if (form.hrPhoneNumber.trim() && !hrPhoneNumber) {
-      setFormError("Enter a valid Indian HR mobile number with 10 digits starting from 6–9, optionally prefixed by +91.");
+      setFormError(
+        "Enter a valid Indian HR mobile number with 10 digits starting from 6–9, optionally prefixed by +91.",
+      );
       return;
     }
     try {
-      const result = await dispatch(createAdminCompany({
-        companyName: form.name,
-        companyPhone,
-        companyAddress: form.address,
-        companyEmail: form.email,
-        hrName: form.hrName,
-        hrPhoneNumber,
-        hrEmail: form.hrEmail,
-        hrPassword: form.hrPassword,
-      })).unwrap();
-      if (result.hrProfile) dispatch(addAdminUser({ ...result.hrProfile, role: "HR", source: "hr", company: result.hrProfile.companyName || result.company?.name || "—" }));
-      setForm({ name: "", phone: "", address: "", email: "", hrName: "", hrPhoneNumber: "", hrEmail: "", hrPassword: "" });
+      const result = await dispatch(
+        createAdminCompany({
+          companyName: form.name,
+          companyPhone,
+          companyAddress: form.address,
+          companyEmail: form.email,
+          hrName: form.hrName,
+          hrPhoneNumber,
+          hrEmail: form.hrEmail,
+          hrPassword: form.hrPassword,
+        }),
+      ).unwrap();
+      if (result.hrProfile)
+        dispatch(
+          addAdminUser({
+            ...result.hrProfile,
+            role: "HR",
+            source: "hr",
+            company:
+              result.hrProfile.companyName || result.company?.name || "—",
+          }),
+        );
+      setForm({
+        name: "",
+        phone: "",
+        address: "",
+        email: "",
+        hrName: "",
+        hrPhoneNumber: "",
+        hrEmail: "",
+        hrPassword: "",
+      });
       setIsModalOpen(false);
     } catch (saveError) {
-      setFormError(saveError.message || "Could not create the company and HR account.");
+      setFormError(
+        saveError.message || "Could not create the company and HR account.",
+      );
     }
   }
 
@@ -96,14 +155,18 @@ function CompanyManagement() {
       } catch {
         // Preserve the original error when the directory cannot be reloaded.
       }
-      setError(removeError.message && removeError.message !== "[object Object]"
-        ? removeError.message
-        : "Could not confirm company removal. Refresh the directory before retrying.");
+      setError(
+        removeError.message && removeError.message !== "[object Object]"
+          ? removeError.message
+          : "Could not confirm company removal. Refresh the directory before retrying.",
+      );
     }
   }
 
   function countUsers(company, role) {
-    return users.filter((user) => user.role === role && belongsToCompany(user, company)).length;
+    return users.filter(
+      (user) => user.role === role && belongsToCompany(user, company),
+    ).length;
   }
 
   if (!stylesReady) return <RouteLoadingScreen />;
@@ -121,7 +184,16 @@ function CompanyManagement() {
 
         <div className="actions actions-only">
           <div>
-            <button className="btn-primary" type="button" onClick={() => { setFormError(""); setIsModalOpen(true); }}>+ Add Company</button>
+            <button
+              className="btn-primary"
+              type="button"
+              onClick={() => {
+                setFormError("");
+                setIsModalOpen(true);
+              }}
+            >
+              + Add Company
+            </button>
           </div>
         </div>
 
@@ -139,71 +211,258 @@ function CompanyManagement() {
               </tr>
             </thead>
             <tbody>
-              {companies.length ? companies.map((company, index) => (
-                <tr key={`${company.id || company.name || "company"}-${index}`}>
-                  <td>{company.id || "—"}</td>
-                  <td><span className="cell-title">{company.name || "Unnamed company"}</span></td>
-                  <td>{countUsers(company, "Employee")}</td>
-                  <td>{countUsers(company, "Wellness Expert")}</td>
-                  <td>{countUsers(company, "HR")}</td>
-                  <td>{company.createdAt ? new Date(company.createdAt).toLocaleDateString() : "—"}</td>
-                  <td><button className="delete action-button" type="button" onClick={() => requestCompanyRemoval(company)}>Remove</button></td>
+              {companies.length ? (
+                companies.map((company, index) => (
+                  <tr
+                    key={`${company.id || company.name || "company"}-${index}`}
+                  >
+                    <td>{company.id || "—"}</td>
+                    <td>
+                      <span className="cell-title">
+                        {company.name || "Unnamed company"}
+                      </span>
+                    </td>
+                    <td>{countUsers(company, "Employee")}</td>
+                    <td>{countUsers(company, "Wellness Expert")}</td>
+                    <td>{countUsers(company, "HR")}</td>
+                    <td>
+                      {company.createdAt
+                        ? new Date(company.createdAt).toLocaleDateString()
+                        : "—"}
+                    </td>
+                    <td>
+                      <button
+                        className="delete action-button"
+                        type="button"
+                        onClick={() => requestCompanyRemoval(company)}
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr className="empty-row">
+                  <td colSpan="7">
+                    {loading
+                      ? "Loading companies…"
+                      : "No company records are hardcoded. Render this table from your project data."}
+                  </td>
                 </tr>
-              )) : (
-                <tr className="empty-row"><td colSpan="7">{loading ? "Loading companies…" : "No company records are hardcoded. Render this table from your project data."}</td></tr>
               )}
             </tbody>
           </table>
-          <p className="footer-text" id="companyTableFooter">{error || featureError || `Showing ${companies.length} entries`}</p>
+          <p className="footer-text" id="companyTableFooter">
+            {error || featureError || `Showing ${companies.length} entries`}
+          </p>
         </div>
       </main>
 
-      <div className={`page-modal${isModalOpen ? " is-open" : ""}`} id="companyFormModal" aria-hidden={!isModalOpen}>
-        <div className="page-modal-backdrop" onClick={() => !saving && setIsModalOpen(false)} />
-        <div className="page-modal-panel admin-company-modal-panel" role="dialog" aria-modal="true" aria-label="Add Company and HR">
-          <button className="page-modal-close" type="button" onClick={() => !saving && setIsModalOpen(false)} aria-label="Close add company form"><i className="fa fa-xmark" /></button>
+      <div
+        className={`page-modal${isModalOpen ? " is-open" : ""}`}
+        id="companyFormModal"
+        aria-hidden={!isModalOpen}
+      >
+        <div
+          className="page-modal-backdrop"
+          onClick={() => !saving && setIsModalOpen(false)}
+        />
+        <div
+          className="page-modal-panel admin-company-modal-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Add Company and HR"
+        >
+          <button
+            className="page-modal-close"
+            type="button"
+            onClick={() => !saving && setIsModalOpen(false)}
+            aria-label="Close add company form"
+          >
+            <i className="fa fa-xmark" />
+          </button>
           <form className="admin-company-form" onSubmit={createCompany}>
             <h2>Add Company and HR</h2>
             <p>Create a company workspace together with its first HR login.</p>
-            <label>Company Name<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
-            <label>Phone Number<input type="tel" inputMode="tel" autoComplete="tel" maxLength="18" pattern={INDIAN_PHONE_PATTERN} title="Enter a 10-digit Indian mobile number starting with 6–9, optionally prefixed by +91." required value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="+91 98765 43210" /></label>
-            <label>Address<input required value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} /></label>
-            <label>Company Email<input required type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
+            <label>
+              Company Name
+              <input
+                required
+                value={form.name}
+                onChange={(event) =>
+                  setForm({ ...form, name: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              Phone Number
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                maxLength="18"
+                pattern={INDIAN_PHONE_PATTERN}
+                title="Enter a 10-digit Indian mobile number starting with 6–9, optionally prefixed by +91."
+                required
+                value={form.phone}
+                onChange={(event) =>
+                  setForm({ ...form, phone: event.target.value })
+                }
+                placeholder="+91 98765 43210"
+              />
+            </label>
+            <label>
+              Address
+              <input
+                required
+                value={form.address}
+                onChange={(event) =>
+                  setForm({ ...form, address: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              Company Email
+              <input
+                required
+                type="email"
+                value={form.email}
+                onChange={(event) =>
+                  setForm({ ...form, email: event.target.value })
+                }
+              />
+            </label>
             <h3>Initial HR Account</h3>
-            <label>HR Name<input required value={form.hrName} onChange={(event) => setForm({ ...form, hrName: event.target.value })} /></label>
-            <label>HR Phone (optional)<input type="tel" inputMode="tel" autoComplete="tel" maxLength="18" pattern={INDIAN_PHONE_PATTERN} title="Enter a 10-digit Indian mobile number starting with 6–9, optionally prefixed by +91." value={form.hrPhoneNumber} onChange={(event) => setForm({ ...form, hrPhoneNumber: event.target.value })} placeholder="+91 98765 43210" /></label>
-            <label>HR Gmail<input required type="email" placeholder="hr@gmail.com" value={form.hrEmail} onChange={(event) => setForm({ ...form, hrEmail: event.target.value })} /></label>
-            <label>HR Password<input required type="password" minLength="6" autoComplete="new-password" value={form.hrPassword} onChange={(event) => setForm({ ...form, hrPassword: event.target.value })} /></label>
-            {formError && <p className="form-message" role="alert">{formError}</p>}
-            <div className="form-actions"><button className="btn-primary" type="submit" disabled={saving}>{saving ? "Creating…" : "Create Company and HR"}</button><button className="btn-outline" type="button" disabled={saving} onClick={() => setIsModalOpen(false)}>Back</button></div>
+            <label>
+              HR Name
+              <input
+                required
+                value={form.hrName}
+                onChange={(event) =>
+                  setForm({ ...form, hrName: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              HR Phone (optional)
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                maxLength="18"
+                pattern={INDIAN_PHONE_PATTERN}
+                title="Enter a 10-digit Indian mobile number starting with 6–9, optionally prefixed by +91."
+                value={form.hrPhoneNumber}
+                onChange={(event) =>
+                  setForm({ ...form, hrPhoneNumber: event.target.value })
+                }
+                placeholder="+91 98765 43210"
+              />
+            </label>
+            <label>
+              HR Gmail
+              <input
+                required
+                type="email"
+                placeholder="hr@gmail.com"
+                value={form.hrEmail}
+                onChange={(event) =>
+                  setForm({ ...form, hrEmail: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              HR Password
+              <input
+                required
+                type="password"
+                minLength="6"
+                autoComplete="new-password"
+                value={form.hrPassword}
+                onChange={(event) =>
+                  setForm({ ...form, hrPassword: event.target.value })
+                }
+              />
+            </label>
+            {formError && (
+              <p className="form-message" role="alert">
+                {formError}
+              </p>
+            )}
+            <div className="form-actions">
+              <button className="btn-primary" type="submit" disabled={saving}>
+                {saving ? "Creating…" : "Create Company and HR"}
+              </button>
+              <button
+                className="btn-outline"
+                type="button"
+                disabled={saving}
+                onClick={() => setIsModalOpen(false)}
+              >
+                Back
+              </button>
+            </div>
           </form>
         </div>
       </div>
-      {companyToRemove && <div className="page-modal is-open" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !removing) setCompanyToRemove(null); }}>
-        <section className="page-modal-panel" role="alertdialog" aria-modal="true" aria-labelledby="removeCompanyTitle" aria-describedby="removeCompanyDescription">
-          <div className="admin-company-form">
-            <h2 id="removeCompanyTitle">Remove company?</h2>
-            <p id="removeCompanyDescription">{companyToRemove.linkedUserCount
-              ? `Removing ${companyToRemove.name} will delete ${companyToRemove.linkedUserCount} linked account${companyToRemove.linkedUserCount === 1 ? "" : "s"} and cancel its subscription. Historical wellness records will be retained.`
-              : `Remove ${companyToRemove.name} and cancel its subscription? Historical wellness records will be retained.`}</p>
-            <div className="form-actions">
-              <button className="btn-outline" type="button" disabled={removing} onClick={() => setCompanyToRemove(null)}>Cancel</button>
-              <button className="delete action-button" type="button" disabled={removing} onClick={confirmCompanyRemoval}>{removing ? "Removing…" : "Remove Company"}</button>
+      {companyToRemove && (
+        <div
+          className="page-modal is-open"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !removing)
+              setCompanyToRemove(null);
+          }}
+        >
+          <section
+            className="page-modal-panel"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="removeCompanyTitle"
+            aria-describedby="removeCompanyDescription"
+          >
+            <div className="admin-company-form">
+              <h2 id="removeCompanyTitle">Remove company?</h2>
+              <p id="removeCompanyDescription">
+                {companyToRemove.linkedUserCount
+                  ? `Removing ${companyToRemove.name} will delete ${companyToRemove.linkedUserCount} linked account${companyToRemove.linkedUserCount === 1 ? "" : "s"} and cancel its subscription. Historical wellness records will be retained.`
+                  : `Remove ${companyToRemove.name} and cancel its subscription? Historical wellness records will be retained.`}
+              </p>
+              <div className="form-actions">
+                <button
+                  className="btn-outline"
+                  type="button"
+                  disabled={removing}
+                  onClick={() => setCompanyToRemove(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="delete action-button"
+                  type="button"
+                  disabled={removing}
+                  onClick={confirmCompanyRemoval}
+                >
+                  {removing ? "Removing…" : "Remove Company"}
+                </button>
+              </div>
             </div>
-          </div>
-        </section>
-      </div>}
+          </section>
+        </div>
+      )}
     </>
   );
 }
 
 function belongsToCompany(user, company) {
   const userCompanyId = String(user.companyId || "").trim();
-  if (company.id && userCompanyId) return userCompanyId === String(company.id).trim();
+  if (company.id && userCompanyId)
+    return userCompanyId === String(company.id).trim();
   return Boolean(
     company.name &&
-      String(user.companyName || "").trim().toLowerCase() ===
-        String(company.name).trim().toLowerCase(),
+    String(user.companyName || "")
+      .trim()
+      .toLowerCase() === String(company.name).trim().toLowerCase(),
   );
 }
 

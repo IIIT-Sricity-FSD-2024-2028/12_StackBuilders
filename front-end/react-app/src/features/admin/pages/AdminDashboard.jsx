@@ -7,20 +7,47 @@ import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
 import { loadAdminDashboard } from "../dashboardSlice.js";
 
 const quickActions = [
-  { title: "Add User", detail: "Create new user account", icon: "plus", target: "/admin/users" },
-  { title: "Manage Companies", detail: "Review company records", icon: "database", target: "/admin/companies" },
-  { title: "View Reports", detail: "Access analytics", icon: "file", target: "/admin/reports" },
-  { title: "System Settings", detail: "Configure system", icon: "cog", target: "/admin/settings" },
+  {
+    title: "Add User",
+    detail: "Create new user account",
+    icon: "plus",
+    target: "/admin/users",
+  },
+  {
+    title: "Manage Companies",
+    detail: "Review company records",
+    icon: "database",
+    target: "/admin/companies",
+  },
+  {
+    title: "View Reports",
+    detail: "Access analytics",
+    icon: "file",
+    target: "/admin/reports",
+  },
+  {
+    title: "System Settings",
+    detail: "Configure system",
+    icon: "cog",
+    target: "/admin/settings",
+  },
 ];
 
 function AdminDashboard() {
   const stylesReady = usePageStylesheets("/admin-dashboard-legacy.css");
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { stats, activity, error } = useSelector((state) => state.admin.dashboard);
-  const loadDashboard = useCallback(() => dispatch(loadAdminDashboard()), [dispatch]);
+  const { stats, activity, error } = useSelector(
+    (state) => state.admin.dashboard,
+  );
+  const loadDashboard = useCallback(
+    () => dispatch(loadAdminDashboard()),
+    [dispatch],
+  );
 
-  useEffect(() => { loadDashboard(); }, [loadDashboard]);
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
   useAutoRefresh(() => loadDashboard(true), "admin-dashboard");
 
   if (!stylesReady) return <RouteLoadingScreen />;
@@ -34,7 +61,11 @@ function AdminDashboard() {
         </div>
       </div>
 
-      {error && <p className="placeholder-text" role="alert">{error}</p>}
+      {error && (
+        <p className="placeholder-text" role="alert">
+          {error}
+        </p>
+      )}
 
       <section className="stats">
         {stats.map((stat) => (
@@ -43,7 +74,9 @@ function AdminDashboard() {
               <span>{stat.label}</span>
               <i className={`fa fa-${stat.icon}`} />
             </div>
-            <h2 className="placeholder-value" id={stat.id}>{stat.value}</h2>
+            <h2 className="placeholder-value" id={stat.id}>
+              {stat.value}
+            </h2>
             <p className="placeholder-text">{stat.detail}</p>
           </div>
         ))}
@@ -58,7 +91,10 @@ function AdminDashboard() {
               data-href={action.target}
               key={action.title}
               onClick={() => navigate(action.target)}
-              onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") navigate(action.target); }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ")
+                  navigate(action.target);
+              }}
               role="link"
               tabIndex={0}
             >
@@ -74,12 +110,23 @@ function AdminDashboard() {
         <div className="panel">
           <h3>Recent Activity</h3>
           <ul className="activity" id="dashboardActivityList">
-            {activity.length ? activity.map((item) => (
-              <li key={item.id}>
-                <strong><span className={`dot ${item.tone}`} />{item.title}</strong>
-                <small>{item.details} | {item.time}</small>
+            {activity.length ? (
+              activity.map((item) => (
+                <li key={item.id}>
+                  <strong>
+                    <span className={`dot ${item.tone}`} />
+                    {item.title}
+                  </strong>
+                  <small>
+                    {item.details} | {item.time}
+                  </small>
+                </li>
+              ))
+            ) : (
+              <li className="placeholder-text">
+                No workspace activity has been created yet.
               </li>
-            )) : <li className="placeholder-text">No workspace activity has been created yet.</li>}
+            )}
           </ul>
         </div>
       </section>

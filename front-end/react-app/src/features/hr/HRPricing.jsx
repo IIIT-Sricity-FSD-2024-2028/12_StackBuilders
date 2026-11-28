@@ -1,11 +1,11 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
 import HRNavbar from "./components/HRNavbar.jsx";
 import { loadHrPricing } from "./pricingSlice.js";
-import { getCurrentHrCompanyContext } from "./hrUtils.js";
+import { findActiveCompanySubscription, getHrCompanyContext } from "./hrUtils.js";
 import useAutoRefresh from "../../hooks/useAutoRefresh.js";
 
 const plans = [
@@ -51,21 +51,28 @@ function HRPricing() {
     "/hr-pricing-legacy.css",
   ]);
   const dispatch = useDispatch();
-  const company = getCurrentHrCompanyContext();
-  const currentPlan = useSelector((state) => {
-    const companyName = company.companyName.toLowerCase();
-    const subscription = state.hr.subscriptions.items.find((item) => String(item.status || "").trim().toLowerCase() === "active" && ((company.companyId && String(item.companyId || "").trim() === company.companyId) || String(item.companyName || "").trim().toLowerCase() === companyName));
-    return subscription?.planId || "";
-  });
+  const profile = useSelector((state) => state.auth.session?.profile || null);
+  const company = useMemo(() => getHrCompanyContext(profile), [profile]);
+  const subscriptions = useSelector((state) => state.hr.subscriptions.items);
+  const loading = useSelector((state) => state.hr.pricing.loading);
+  const error = useSelector((state) => state.hr.pricing.error);
+  const currentPlan = useMemo(
+    () => findActiveCompanySubscription(subscriptions, company)?.planId || "",
+    [subscriptions, company],
+  );
 
-  const loadCurrentPlan = () => {
-    return dispatch(loadHrPricing()).catch(() => {});
-  };
+  const loadCurrentPlan = useCallback(
+    () => dispatch(loadHrPricing()),
+    [dispatch],
+  );
 
   useEffect(() => {
-    loadCurrentPlan();
-  }, []);
-  useAutoRefresh(loadCurrentPlan, "hr-pricing");
+    void loadCurrentPlan();
+  }, [loadCurrentPlan]);
+  useAutoRefresh(
+    loadCurrentPlan,
+    `hr-pricing:${company.companyId || company.companyName || "default"}`,
+  );
 
   if (!stylesReady) return <RouteLoadingScreen />;
 
@@ -79,6 +86,14 @@ function HRPricing() {
           of employees and wellness experts you can add.
         </p>
       </section>
+      {error && (
+        <p className="api-error" role="alert">
+          {error}
+        </p>
+      )}
+      {loading && !currentPlan && (
+        <p className="api-status">Loading current subscription…</p>
+      )}
       <section className="plans-grid">
         {plans.map((plan) => (
           <div

@@ -1,10 +1,7 @@
+import { findActiveCompanySubscription } from "./hrUtils.js";
+
 export function getCapacityForPlan(kind, company, currentCount, subscriptions) {
-  const normalizedCompanyName = company.companyName.trim().toLowerCase();
-  const subscription = (subscriptions || []).find((item) => String(item.status || "").trim().toLowerCase() === "active" && (() => {
-    const subscriptionCompanyId = String(item.companyId || "").trim();
-    if (company.companyId && subscriptionCompanyId) return subscriptionCompanyId === company.companyId;
-    return String(item.companyName || "").trim().toLowerCase() === normalizedCompanyName;
-  })());
+  const subscription = findActiveCompanySubscription(subscriptions, company);
   if (!subscription || !["starter", "business", "enterprise"].includes(String(subscription.planId || "").trim().toLowerCase())) {
     return { allowed: false, reason: "No active subscription is attached to this company. Choose a plan from Upgrade Plan before adding users." };
   }

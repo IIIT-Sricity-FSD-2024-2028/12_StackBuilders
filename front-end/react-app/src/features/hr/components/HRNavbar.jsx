@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
 import { signOut } from "../../shared/authSlice.js";
 import DashboardProfileOverlay from "../../../components/DashboardProfileOverlay.jsx";
 import QueryNotifications from "../../../components/QueryNotifications.jsx";
-import { getCurrentHrCompanyContext } from "../hrUtils.js";
+import { findActiveCompanySubscription, getHrCompanyContext } from "../hrUtils.js";
 import { loadHrSubscriptions } from "../subscriptionsSlice.js";
 import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
 import { useRoleAccess } from "../../shared/roleAccessContext.jsx";
@@ -19,12 +19,14 @@ function HRNavbar({ activeSection = "home", onProfileClick }) {
   const profileName = profile?.name || "";
   const firstName = profileName.split(/\s+/).filter(Boolean)[0] || "";
 
-  const companyContext = getCurrentHrCompanyContext();
+  const companyContext = useMemo(() => getHrCompanyContext(profile), [profile]);
   const refreshSubscriptions = useCallback(() => dispatch(loadHrSubscriptions()), [dispatch]);
   useEffect(() => { void refreshSubscriptions(); }, [refreshSubscriptions]);
   useAutoRefresh(refreshSubscriptions, `${companyContext.companyId || companyContext.companyName || "hr"}:plan`);
-  const companyName = String(companyContext.companyName || "").trim().toLowerCase();
-  const subscription = subscriptions.find((item) => String(item.status || "").trim().toLowerCase() === "active" && ((companyContext.companyId && String(item.companyId || "").trim() === companyContext.companyId) || (companyName && String(item.companyName || "").trim().toLowerCase() === companyName)));
+  const subscription = useMemo(
+    () => findActiveCompanySubscription(subscriptions, companyContext),
+    [subscriptions, companyContext],
+  );
   const planId = String(subscription?.planId || subscription?.planName || "").trim().toLowerCase();
   const planActionLabel = subscription ? (planId.includes("enterprise") ? "Change Plan" : "Upgrade Plan") : "Select Plan";
 

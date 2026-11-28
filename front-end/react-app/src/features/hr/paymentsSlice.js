@@ -1,12 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import hrApi from "./hrApi.js";
+import { isSameHrCompany } from "./hrUtils.js";
 
 export const submitHrPayment = createAsyncThunk("hr/payments/submit", async ({ company, planId, plan }) => {
   const [subscriptions, payments] = await Promise.all([hrApi.getSubscriptions(), hrApi.getPayments()]);
   const now = Date.now();
   const subscription = { id: `SUB-${now}`, companyId: company.companyId, companyName: company.companyName, planId, planName: plan.name, price: plan.price, employeeLimit: plan.employeeLimit, expertLimit: plan.expertLimit, status: "active", subscribedAt: now };
-  const sameCompany = (item) => (company.companyId && String(item.companyId || "").trim() === company.companyId) || String(item.companyName || "").trim().toLowerCase() === company.companyName.toLowerCase();
-  const nextSubscriptions = (subscriptions || []).filter((item) => !sameCompany(item)).concat(subscription);
+  const nextSubscriptions = (subscriptions || []).filter((item) => !isSameHrCompany(item, company)).concat(subscription);
   const payment = { id: `PAY-${now}`, companyId: company.companyId, companyName: company.companyName, planId, planName: plan.name, amount: plan.price, status: "completed", paidAt: now };
   const nextPayments = [...(payments || []), payment];
   await Promise.all([hrApi.saveSubscriptions(nextSubscriptions), hrApi.savePayments(nextPayments)]);

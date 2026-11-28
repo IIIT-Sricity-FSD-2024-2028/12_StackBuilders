@@ -8,13 +8,25 @@ const navigation = [
   ["reports", "Reports", "file"],
 ];
 
-function AdminSidebar({ activeView = "dashboard", onSelect = () => {}, isOpen = false }) {
+function AdminSidebar({
+  activeView = "dashboard",
+  onSelect = () => {},
+  isOpen = false,
+}) {
   return (
     <aside className={`admin-feature-sidebar${isOpen ? " is-open" : ""}`}>
-      <div className="admin-feature-brand"><AdminIcon name="layer" /><span>Administrator Console</span></div>
+      <div className="admin-feature-brand">
+        <AdminIcon name="layer" />
+        <span>Administrator Console</span>
+      </div>
       <nav aria-label="Administrator workspace">
         {navigation.map(([id, label, icon]) => (
-          <button className={activeView === id ? "active" : ""} key={id} type="button" onClick={() => onSelect(id)}>
+          <button
+            className={activeView === id ? "active" : ""}
+            key={id}
+            type="button"
+            onClick={() => onSelect(id)}
+          >
             <AdminIcon name={icon} size={18} />
             <span>{label}</span>
           </button>

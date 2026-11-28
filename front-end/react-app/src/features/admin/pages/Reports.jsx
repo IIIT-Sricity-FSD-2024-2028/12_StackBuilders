@@ -3,28 +3,51 @@ import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../../hooks/usePageStylesheets.js";
 import useAutoRefresh from "../../../hooks/useAutoRefresh.js";
-import { SupervisorBarChart, SupervisorDonutChart, SupervisorLineChart } from "../../supervisor/components/SupervisorCharts.jsx";
+import {
+  SupervisorBarChart,
+  SupervisorDonutChart,
+  SupervisorLineChart,
+} from "../../supervisor/components/SupervisorCharts.jsx";
 import { loadAdminReports } from "../reportsSlice.js";
 
 function monthlyCounts(records) {
   const now = new Date();
-  const months = Array.from({ length: 6 }, (_, index) => new Date(now.getFullYear(), now.getMonth() - (5 - index), 1));
+  const months = Array.from(
+    { length: 6 },
+    (_, index) => new Date(now.getFullYear(), now.getMonth() - (5 - index), 1),
+  );
   return {
-    labels: months.map((month) => new Intl.DateTimeFormat(undefined, { month: "short" }).format(month)),
-    values: months.map((month) => records.filter((record) => {
-      const date = new Date(record.createdAt || record.updatedAt || "");
-      return !Number.isNaN(date.valueOf()) && date.getFullYear() === month.getFullYear() && date.getMonth() === month.getMonth();
-    }).length),
+    labels: months.map((month) =>
+      new Intl.DateTimeFormat(undefined, { month: "short" }).format(month),
+    ),
+    values: months.map(
+      (month) =>
+        records.filter((record) => {
+          const date = new Date(record.createdAt || record.updatedAt || "");
+          return (
+            !Number.isNaN(date.valueOf()) &&
+            date.getFullYear() === month.getFullYear() &&
+            date.getMonth() === month.getMonth()
+          );
+        }).length,
+    ),
   };
 }
 
 function Reports() {
   const stylesReady = usePageStylesheets("/admin-analytics-legacy.css");
   const dispatch = useDispatch();
-  const { report, error, loading } = useSelector((state) => state.admin.reports);
-  const loadReport = useCallback(() => dispatch(loadAdminReports()), [dispatch]);
+  const { report, error, loading } = useSelector(
+    (state) => state.admin.reports,
+  );
+  const loadReport = useCallback(
+    () => dispatch(loadAdminReports()),
+    [dispatch],
+  );
 
-  useEffect(() => { loadReport(); }, [loadReport]);
+  useEffect(() => {
+    loadReport();
+  }, [loadReport]);
   useAutoRefresh(() => loadReport(true), "admin-reports");
 
   if (!stylesReady) return <RouteLoadingScreen />;
@@ -32,33 +55,89 @@ function Reports() {
   return (
     <main className="admin-analytics">
       <div className="admin-analytics-heading">
-        <div><p className="admin-analytics-eyebrow">Analytics</p><h1>Reports &amp; analytics</h1><p className="admin-analytics-subtitle">View shared workspace insights and live product trends.</p></div>
+        <div>
+          <p className="admin-analytics-eyebrow">Analytics</p>
+          <h1>Reports &amp; analytics</h1>
+          <p className="admin-analytics-subtitle">
+            View shared workspace insights and live product trends.
+          </p>
+        </div>
       </div>
 
-      {error && <p className="admin-analytics-error" role="alert">{error}</p>}
-      {loading && <p className="admin-analytics-empty" role="status">Loading report data…</p>}
+      {error && (
+        <p className="admin-analytics-error" role="alert">
+          {error}
+        </p>
+      )}
+      {loading && (
+        <p className="admin-analytics-empty" role="status">
+          Loading report data…
+        </p>
+      )}
 
-      {!loading && report && <>
-        <div className="admin-report-grid">
-          <section className="admin-analytics-panel chart-wide">
-            <div className="admin-analytics-panel-heading"><div><p className="admin-analytics-eyebrow">Growth</p><h2>Monthly user growth</h2></div><span className="admin-analytics-live">Live data</span></div>
-            <SupervisorLineChart values={report.monthlyUsers.values} labels={report.monthlyUsers.labels} color="#1565d8" />
+      {!loading && report && (
+        <>
+          <div className="admin-report-grid">
+            <section className="admin-analytics-panel chart-wide">
+              <div className="admin-analytics-panel-heading">
+                <div>
+                  <p className="admin-analytics-eyebrow">Growth</p>
+                  <h2>Monthly user growth</h2>
+                </div>
+                <span className="admin-analytics-live">Live data</span>
+              </div>
+              <SupervisorLineChart
+                values={report.monthlyUsers.values}
+                labels={report.monthlyUsers.labels}
+                color="#1565d8"
+              />
+            </section>
+            <section className="admin-analytics-panel">
+              <div className="admin-analytics-panel-heading">
+                <div>
+                  <p className="admin-analytics-eyebrow">Mix</p>
+                  <h2>Role distribution</h2>
+                </div>
+              </div>
+              <SupervisorDonutChart
+                values={report.roleDistribution}
+                labels={["Employees", "HR", "Experts"]}
+                colors={["#1565d8", "#f19b72", "#1d9b63"]}
+              />
+            </section>
+          </div>
+
+          <section className="admin-analytics-panel admin-activity-panel">
+            <div className="admin-analytics-panel-heading">
+              <div>
+                <p className="admin-analytics-eyebrow">Engagement</p>
+                <h2>Workspace activity</h2>
+              </div>
+            </div>
+            <SupervisorBarChart
+              values={report.weeklyActivity}
+              labels={[
+                "Consultations",
+                "Sessions",
+                "Videos",
+                "Challenges",
+                "Rewards",
+              ]}
+              color="admin"
+            />
           </section>
-          <section className="admin-analytics-panel">
-            <div className="admin-analytics-panel-heading"><div><p className="admin-analytics-eyebrow">Mix</p><h2>Role distribution</h2></div></div>
-            <SupervisorDonutChart values={report.roleDistribution} labels={["Employees", "HR", "Experts"]} colors={["#1565d8", "#f19b72", "#1d9b63"]} />
-          </section>
-        </div>
 
-        <section className="admin-analytics-panel admin-activity-panel">
-          <div className="admin-analytics-panel-heading"><div><p className="admin-analytics-eyebrow">Engagement</p><h2>Workspace activity</h2></div></div>
-          <SupervisorBarChart values={report.weeklyActivity} labels={["Consultations", "Sessions", "Videos", "Challenges", "Rewards"]} color="admin" />
-        </section>
-
-        <div className="admin-analytics-stats">
-          {report.stats.map((stat) => <div className="admin-analytics-stat" key={stat.label}><span>{stat.label}</span><strong>{stat.value.toLocaleString()}</strong><small>{stat.detail}</small></div>)}
-        </div>
-      </>}
+          <div className="admin-analytics-stats">
+            {report.stats.map((stat) => (
+              <div className="admin-analytics-stat" key={stat.label}>
+                <span>{stat.label}</span>
+                <strong>{stat.value.toLocaleString()}</strong>
+                <small>{stat.detail}</small>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </main>
   );
 }

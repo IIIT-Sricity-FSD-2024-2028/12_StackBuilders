@@ -1,11 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import RouteLoadingScreen from "../../components/RouteLoadingScreen.jsx";
 import usePageStylesheets from "../../hooks/usePageStylesheets.js";
 import HRNavbar from "./components/HRNavbar.jsx";
 import { submitHrPayment } from "./paymentsSlice.js";
-import { getCurrentHrCompanyContext } from "./hrUtils.js";
+import { getHrCompanyContext } from "./hrUtils.js";
 
 const plans = {
   starter: { name: "Starter", price: 100, employeeLimit: 100, expertLimit: 10 },
@@ -31,13 +31,20 @@ function HRPayment() {
   const [params] = useSearchParams();
   const planId = params.get("plan") || "starter";
   const plan = useMemo(() => plans[planId], [planId]);
-  const company = getCurrentHrCompanyContext();
   const dispatch = useDispatch();
+  const profile = useSelector((state) => state.auth.session?.profile || null);
+  const company = useMemo(() => getHrCompanyContext(profile), [profile]);
   const processing = useSelector((state) => state.hr.payments.processing);
   const paymentError = useSelector((state) => state.hr.payments.error);
-  const [cardName, setCardName] = useState(company.hrName);
+  const [cardName, setCardName] = useState(() => company.hrName);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!cardName && company.hrName) {
+      setCardName(company.hrName);
+    }
+  }, [cardName, company.hrName]);
 
   if (!stylesReady) return <RouteLoadingScreen />;
 
@@ -157,20 +164,6 @@ function HRPayment() {
         )}
       </div>
     </div>
-  );
-}
-
-function isSameCompany(record, company) {
-  const recordCompanyId = String(record.companyId || "").trim();
-  const companyId = String(company.companyId || "").trim();
-  if (recordCompanyId && companyId) return recordCompanyId === companyId;
-  return (
-    String(record.companyName || "")
-      .trim()
-      .toLowerCase() ===
-    String(company.companyName || "")
-      .trim()
-      .toLowerCase()
   );
 }
 

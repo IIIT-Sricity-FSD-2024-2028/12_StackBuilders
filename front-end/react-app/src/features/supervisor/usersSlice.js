@@ -6,7 +6,7 @@ const formatRelativeDate = (value) => {
   const date = new Date(value);
   return Number.isNaN(date.valueOf()) ? "—" : new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
 };
-function normalizeUsers({ employees = [], experts = [], hrProfiles = [] }) {
+export function normalizeUsers({ employees = [], experts = [], hrProfiles = [] }) {
   const mapUser = (record, role) => ({ id: record.id, name: record.name || record.email || "Unnamed user", email: record.email || "—", role, company: record.companyName || "—", companyName: record.companyName || "—", companyId: record.companyId || "", isSeededDefault: Boolean(record.isSeededDefault), status: record.status || "Unknown", lastActive: formatRelativeDate(record.updatedAt || record.createdAt), createdAt: record.createdAt || record.updatedAt });
   return [...employees.map((record) => mapUser(record, "Employee")), ...experts.map((record) => mapUser(record, "Wellness Expert")), ...hrProfiles.map((record) => mapUser(record, "HR"))];
 }

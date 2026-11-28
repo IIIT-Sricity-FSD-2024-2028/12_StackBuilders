@@ -38,7 +38,9 @@ function AdminConsoleLayout() {
     <div className="app-shell">
       <aside className="app-sidebar">
         <div className="brand-lockup">
-          <div className="brand-mark"><i className="fa fa-layer-group" /></div>
+          <div className="brand-mark">
+            <i className="fa fa-layer-group" />
+          </div>
           <div className="brand-copy">
             <strong>Stack Builders</strong>
             <span>Admin Console</span>
@@ -49,7 +51,9 @@ function AdminConsoleLayout() {
         <nav className="sidebar-nav" aria-label="Admin workspace">
           {navigationItems.map(([icon, label, path]) => (
             <NavLink
-              className={({ isActive }) => `sidebar-link${isActive ? " active" : ""}`}
+              className={({ isActive }) =>
+                `sidebar-link${isActive ? " active" : ""}`
+              }
               end={path === "/admin"}
               key={path}
               to={path}
@@ -62,9 +66,17 @@ function AdminConsoleLayout() {
 
         <div className="sidebar-card">
           <h3>Workspace Overview</h3>
-          <p>Connect your project data here to surface activity, alerts, and the most important workflows.</p>
-          <NavLink className="mini-button" to="/admin/reports"><i className="fa fa-arrow-up-right-from-square" />Open reports</NavLink>
-          <button type="button" onClick={handleLogout} aria-label="Log out">Log out</button>
+          <p>
+            Connect your project data here to surface activity, alerts, and the
+            most important workflows.
+          </p>
+          <NavLink className="mini-button" to="/admin/reports">
+            <i className="fa fa-arrow-up-right-from-square" />
+            Open reports
+          </NavLink>
+          <button type="button" onClick={handleLogout} aria-label="Log out">
+            Log out
+          </button>
         </div>
       </aside>
 

@@ -1,8 +1,22 @@
-function HRChallengeOverview({
-  challenges,
-  onSelectChallenge,
-  selectedChallenge,
-}) {
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+
+function HRChallengeOverview() {
+  const challenges = useSelector((state) => state.hr.challenges.challenges);
+  const [selectedChallengeId, setSelectedChallengeId] = useState("");
+
+  useEffect(() => {
+    setSelectedChallengeId((current) =>
+      challenges.some((challenge) => challenge.id === current)
+        ? current
+        : challenges[0]?.id || "",
+    );
+  }, [challenges]);
+
+  const selectedChallenge =
+    challenges.find((challenge) => challenge.id === selectedChallengeId) ||
+    challenges[0];
+
   return (
     <section className="two-column-grid" id="challenges">
       <article className="panel">
@@ -15,7 +29,7 @@ function HRChallengeOverview({
               <button
                 className={`challenge-item${selectedChallenge?.id === challenge.id ? " selected" : ""}`}
                 key={challenge.id}
-                onClick={() => onSelectChallenge(challenge.id)}
+                onClick={() => setSelectedChallengeId(challenge.id)}
                 type="button"
               >
                 <span
